@@ -303,8 +303,6 @@ func (c *Compose) Populate(conf *config.Config, stack *StackConfig) error {
 			"8000:8000",
 		},
 		Volumes: []string{
-			// utils.MakeDir(0777, stack.EventsEngineWorkdir, "geolocation") + ":/workdir/geolocation",
-			// utils.MakeDir(0777, stack.EventsEngineWorkdir, "plugins") + ":/workdir/plugins/utmstack",
 			utils.MakeDir(0777, stack.EventsEngineWorkdir, "pipeline") + ":/workdir/pipeline",
 			utils.MakeDir(0777, stack.EventsEngineWorkdir, "rules") + ":/workdir/rules/utmstack",
 			utils.MakeDir(0777, stack.EventsEngineWorkdir, "logs") + ":/workdir/logs",
