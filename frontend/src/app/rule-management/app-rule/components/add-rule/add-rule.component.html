@@ -245,24 +245,26 @@
                   </i>
               </span>
             </legend>
-            <div *ngFor="let group of afterEvents.controls; let i = index" class="card shadow-sm border-0 mb-3">
-              <div class="card-header d-flex justify-content-between align-items-center bg-light">
-                <span class="fw-semibold">After Event #{{ i + 1 }}</span>
-                <div class="medium-icon">
-                  <a class="mr-1 cursor-pointer" (click)="addAfterEvent()"
-                     ngbTooltip="Add more after event">
-                    <i class="icon-plus2"></i>
-                  </a>
-                  <a class="cursor-pointer" (click)="removeAfterEvent(i)"
-                     ngbTooltip="Remove">
-                    <i class="icon-cross2"></i>
-                  </a>
+            <div *ngFor="let group of afterEvents.controls; let i = index" class="card shadow-sm border border-light-subtle mb-3 rounded-3">
+              <div class="card-header bg-body-tertiary d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                  <i class="icon-calendar text-primary"></i>
+                </div>
+                <div class="d-flex gap-2">
+                  <button
+                    type="button"
+                    class="btn btn-icon btn-sm"
+                    (click)="removeAfterEvent(i)"
+                    ngbTooltip="Remove this event">
+                    <i style="font-size: 0.75rem" class="icon-cross2"></i>
+                  </button>
                 </div>
               </div>
               <div class="card-body">
                 <app-after-event [form]="asFormGroup(afterEvents.at(i))" (remove)="removeAfterEvent(i)"></app-after-event>
               </div>
             </div>
+
           </fieldset>
         </div>
 
