@@ -14,3 +14,12 @@ legend {
 fieldset {
   margin-bottom: 1rem;
 }
+
+.section-label{
+  font-weight: 600;
+  font-size: .75rem!important;
+}
+
+.icon-plus2 {
+  font-size: .75rem!important;
+}

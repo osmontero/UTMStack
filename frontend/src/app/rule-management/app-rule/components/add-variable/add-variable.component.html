@@ -12,6 +12,19 @@
   <div formGroupName="definition">
     <div formArrayName="ruleVariables">
       <div *ngFor="let variable of variables.controls; let i = index" [formGroupName]="i">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <label class="section-label">Variables</label>
+          <button
+            type="button"
+            [disabled]="variable.invalid || variable.get('of_type').value == null || variable.get('get').value == null"
+            class="btn btn-icon btn-sm btn-outline-primary"
+            (click)="saveVariable(i)"
+            ngbTooltip="Add a new variable">
+            <i class="icon-plus2"></i>
+            <span>Add Variable</span>
+          </button>
+
+        </div>
         <div class="input-group">
           <fieldset class="card p-3 border rounded shadow-sm w-100">
             <div class="row">
@@ -72,13 +85,13 @@
                   </div>
                 </div>
               </div>
-              <div class="col-1 d-flex justify-content-center align-items-center">
+             <!-- <div class="col-1 d-flex justify-content-center align-items-center">
                 <button (click)="saveVariable(i)"
                         [disabled]="variable.invalid || variable.get('of_type').value == null || variable.get('get').value == null"
                         class="btn utm-button utm-button-primary"
                         type="button">Add
                 </button>
-              </div>
+              </div>-->
             </div>
           </fieldset>
         </div>
