@@ -1,9 +1,13 @@
 package updater
 
 import (
+	"bytes"
+	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -143,5 +147,49 @@ func (c *UpdaterClient) UpdateToNewVersion(version, edition, changelog string) e
 	config.Logger().Info("UTMStack updated to version %s-%s", version, edition)
 	config.Updating = false
 
+	return nil
+}
+
+func (c *UpdaterClient) UploadLogs(ctx context.Context, path string) error {
+	url := fmt.Sprintf("%s%s", c.Config.Server, config.LogCollectorEndpoint)
+
+	buf := &bytes.Buffer{}
+	writer := io.MultiWriter(buf)
+
+	zipFile, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer zipFile.Close()
+
+	if _, err = io.Copy(writer, zipFile); err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, buf)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/zip")
+	req.Header.Set("id", c.Config.InstanceID)
+	req.Header.Set("key", c.Config.InstanceKey)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode >= 300 {
+		body, _ := io.ReadAll(resp.Body)
+		bodyStr := string(body)
+
+		if resp.StatusCode == 500 && strings.Contains(bodyStr, "log collector is not enabled for this instance") {
+			return nil
+		}
+
+		return fmt.Errorf("%s: %s", resp.Status, bodyStr)
+	}
 	return nil
 }
