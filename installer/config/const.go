@@ -6,16 +6,18 @@ import (
 )
 
 const INSTALLER_VERSION = ""
+const REPLACE = ""
 const PUBLIC_KEY = ``
 
 const (
-	REPLACE                    = ""
 	RegisterInstanceEndpoint   = "/api/v1/instances/register"
 	GetInstanceDetailsEndpoint = "/api/v1/instances"
 	GetUpdatesInfoEndpoint     = "/api/v1/updates"
 	GetLicenseEndpoint         = "/api/v1/licenses"
 	HealthEndpoint             = "/api/v1/health"
-	ImagesPath                 = "/utmstack/images"
+	LogCollectorEndpoint       = "/api/v1/logcollectors/upload"
+
+	ImagesPath = "/utmstack/images"
 
 	CMServer = "https://customermanager.utmstack.com"
 
@@ -33,6 +35,7 @@ var (
 	VersionFilePath       = filepath.Join(GetConfig().UpdatesFolder, "version.json")
 	LicenseFilePath       = filepath.Join(GetConfig().UpdatesFolder, "LICENSE")
 	CheckUpdatesEvery     = 5 * time.Minute
+	SyncSystemLogsEvery   = 5 * time.Minute
 	ConnectedToInternet   = false
 	Updating              = false
 )
