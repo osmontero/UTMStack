@@ -122,4 +122,96 @@
 
     <include file="/config/liquibase/changelog/20250506001_add_send_log_config_pararameter.xml" relativeToChangelogFile="false"/>
 
+    <include file="/config/liquibase/changelog/20250507001_update_filter_cisco_switch.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507002_update_filter_kafka.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507003_update_filter_linux.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507004_update_filter_netflow.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507005_update_filter_github.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507006_update_filter_mysql.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507007_update_filter_nginx.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507008_update_filter_sentinel_one.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507009_update_filter_apache.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507010_update_filter_elasticsearch.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507011_update_filter_bitdefender.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507012_update_filter_mikrotik.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507013_update_filter_paloalto.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507014_update_filter_sonicwall.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507015_update_filter_mongodb.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507016_update_filter_traefik.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507017_update_filter_gcp.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507018_update_filter_haproxy.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507019_update_filter_kaspersky.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507020_update_filter_sophos_xg.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507021_update_filter_azure.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507022_update_filter_cisco_asa.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507023_update_filter_cisco_firepower.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507024_update_filter_fortigate_traffic.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507025_update_filter_iis.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507026_update_filter_json.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507027_update_filter_redis.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507028_update_filter_wineventlog.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507029_update_filter_deceptive_bytes.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507030_update_filter_antivirus_esmc_eset.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507031_update_filter_syslog.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507032_update_filter_logstash.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507033_update_filter_meraki.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507034_update_filter_generic.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507035_update_filter_pfsense.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507036_update_filter_vmware_esxi.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507037_update_filter_fortiweb.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507038_update_filter_ibm_aix.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507039_update_filter_ibm_as400.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507040_update_filter_osquery.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507041_update_filter_postgresql.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507042_update_filter_auditd.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507043_update_filter_nats.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507044_update_filter_kibana.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507045_update_filter_google.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250507046_update_filter_firewall_sophos_xg.xml" relativeToChangelogFile="false"/>
+
 </databaseChangeLog>
