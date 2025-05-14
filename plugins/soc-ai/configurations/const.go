@@ -55,6 +55,8 @@ type SensitivePattern struct {
 }
 
 var (
+	FakeUserName      = "John Doe"
+	FakeEmail         = "jhondoe@gmail.com"
 	SensitivePatterns = map[string]SensitivePattern{
 		"email": {Regexp: `([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})`, FakeValue: "jhondoe@gmail.com"},
 		//"ipv4":  `(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)`,

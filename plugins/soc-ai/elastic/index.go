@@ -38,7 +38,7 @@ func ElasticQuery(index string, query interface{}, op string) error {
 }
 
 func ElasticSearch(index, field, value string) ([]byte, error) {
-	config := configurations.GetPluginConfig()
+	config := configurations.GetConfig()
 	url := config.Backend + configurations.API_ALERT_ENDPOINT + configurations.API_ALERT_INFO_PARAMS + index
 	headers := map[string]string{
 		"Content-Type":     "application/json",
@@ -67,7 +67,7 @@ func IndexStatus(id, status, op string) error {
 	}
 
 	if op == "update" {
-		query, err := schema.ConvertGPTResponseToUpdateQuery(doc)
+		query, err := ConvertGPTResponseToUpdateQuery(doc)
 		if err != nil {
 			return fmt.Errorf("error while converting response to update query: %v", err)
 		}

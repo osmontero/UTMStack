@@ -130,13 +130,6 @@ type Alert struct {
 	DeduplicatedBy    []string       `json:"deduplicatedBy"`
 }
 
-type IncidentDetail struct {
-	CreatedBy    string `json:"createdBy"`
-	Observation  string `json:"observation"`
-	CreationDate string `json:"creationDate"`
-	Source       string `json:"source"`
-}
-
 type Impact struct {
 	Confidentiality int32 `json:"confidentiality,omitempty"`
 	Integrity       int32 `json:"integrity,omitempty"`
