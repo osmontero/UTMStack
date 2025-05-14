@@ -12,12 +12,11 @@ import (
 	"github.com/utmstack/UTMStack/plugins/soc-ai/utils"
 )
 
-func CreateNewIncident(alertDetails schema.AlertGPTDetails) error {
-	config := configurations.GetPluginConfig()
-	url := config.Backend + configurations.API_INCIDENT_ENDPOINT
+func CreateNewIncident(alertDetails *schema.AlertFields) error {
+	url := configurations.GetConfig().Backend + configurations.API_INCIDENT_ENDPOINT
 	headers := map[string]string{
 		"Content-Type":     "application/json",
-		"Utm-Internal-Key": config.InternalKey,
+		"Utm-Internal-Key": configurations.GetConfig().InternalKey,
 	}
 
 	t := time.Now()
@@ -46,12 +45,11 @@ func CreateNewIncident(alertDetails schema.AlertGPTDetails) error {
 	return nil
 }
 
-func AddAlertToIncident(incidentId int, alertDetails schema.AlertGPTDetails) error {
-	config := configurations.GetPluginConfig()
-	url := config.Backend + configurations.API_INCIDENT_ADD_NEW_ALERT_ENDPOINT
+func AddAlertToIncident(incidentId int, alertDetails *schema.AlertFields) error {
+	url := configurations.GetConfig().Backend + configurations.API_INCIDENT_ADD_NEW_ALERT_ENDPOINT
 	headers := map[string]string{
 		"Content-Type":     "application/json",
-		"Utm-Internal-Key": config.InternalKey,
+		"Utm-Internal-Key": configurations.GetConfig().InternalKey,
 	}
 
 	body := schema.AddNewAlertToIncidentRequest{
@@ -83,11 +81,10 @@ func GetIncidentsByPattern(pattern string) ([]schema.IncidentResp, error) {
 	t24hAfter := tnow.Add(24 * time.Hour)
 	t24hBefore := tnow.Add(-24 * time.Hour)
 
-	config := configurations.GetPluginConfig()
-	url := config.Backend + configurations.API_INCIDENT_ENDPOINT + "?incidentName.contains=" + pattern + "&incidentCreatedDate.greaterThanOrEqual=" + t24hBefore.Format(time.RFC3339) + "&incidentCreatedDate.lessThanOrEqual=" + t24hAfter.Format(time.RFC3339) + "&incidentStatus.in=IN_REVIEW,OPEN&page=0&size=100"
+	url := configurations.GetConfig().Backend + configurations.API_INCIDENT_ENDPOINT + "?incidentName.contains=" + pattern + "&incidentCreatedDate.greaterThanOrEqual=" + t24hBefore.Format(time.RFC3339) + "&incidentCreatedDate.lessThanOrEqual=" + t24hAfter.Format(time.RFC3339) + "&incidentStatus.in=IN_REVIEW,OPEN&page=0&size=100"
 	headers := map[string]string{
 		"Content-Type":     "application/json",
-		"Utm-Internal-Key": config.InternalKey,
+		"Utm-Internal-Key": configurations.GetConfig().InternalKey,
 	}
 
 	resp, statusCode, err := utils.DoReq(url, nil, "GET", headers, configurations.HTTP_TIMEOUT)

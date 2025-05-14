@@ -1,0 +1,114 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+	"time"
+
+	"github.com/utmstack/UTMStack/plugins/soc-ai/configurations"
+	"github.com/utmstack/UTMStack/plugins/soc-ai/correlation"
+	"github.com/utmstack/UTMStack/plugins/soc-ai/schema"
+	"github.com/utmstack/UTMStack/plugins/soc-ai/utils"
+)
+
+func sendRequestToOpenAI(alert *schema.AlertFields) error {
+	const maxRetries = 3
+	const retryDelay = 2 * time.Second
+
+	content := configurations.GPT_INSTRUCTION
+	correlationContext, err := correlation.GetCorrelationContext(*alert)
+	if err != nil {
+		return fmt.Errorf("error getting correlation context: %v", err)
+	}
+	if correlationContext != "" {
+		content = fmt.Sprintf("%s%s", content, correlationContext)
+	}
+
+	jsonContent, err := json.Marshal(alert)
+	if err != nil {
+		return fmt.Errorf("error marshalling alert: %v", err)
+	}
+
+	req := schema.GPTRequest{
+		Model: configurations.GetConfig().Model,
+		Messages: []schema.GPTMessage{
+			{
+				Role:    "system",
+				Content: content,
+			},
+			{
+				Role:    "user",
+				Content: string(jsonContent),
+			},
+		},
+	}
+
+	requestJson, err := json.Marshal(req)
+	if err != nil {
+		return fmt.Errorf("error marshalling request: %v", err)
+	}
+
+	headers := map[string]string{
+		"Authorization": "Bearer " + configurations.GetConfig().APIKey,
+		"Content-Type":  "application/json",
+	}
+
+	var lastErr error
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		response, status, err := utils.DoParseReq[schema.GPTResponse](configurations.GPT_API_ENDPOINT, requestJson, "POST", headers, configurations.HTTP_GPT_TIMEOUT)
+		if err == nil && len(response.Choices) > 0 {
+			err = processOpenAIResponse(alert, response.Choices[0].Message.Content)
+			if err != nil {
+				return fmt.Errorf("error processing GPT response: %v", err)
+			}
+			return nil
+		}
+
+		if status == 401 {
+			return fmt.Errorf("invalid api-key")
+		}
+		lastErr = fmt.Errorf("attempt %d failed: %v (status: %d)", attempt, err, status)
+
+		if attempt < maxRetries {
+			time.Sleep(retryDelay)
+		}
+	}
+
+	return fmt.Errorf("all attempts to call OpenAI failed: %v", lastErr)
+}
+
+func processOpenAIResponse(alert *schema.AlertFields, response string) error {
+	response, err := clearJson(response)
+	if err != nil {
+		return fmt.Errorf("error clearing json: %v", err)
+	}
+
+	alertResponse, err := utils.ConvertFromJsonToStruct[schema.GPTAlertResponse](response)
+	if err != nil {
+		return fmt.Errorf("error converting json to struct: %v", err)
+	}
+
+	nextSteps := []string{}
+	for _, step := range alertResponse.NextSteps {
+		nextSteps = append(nextSteps, fmt.Sprintf("%s:: %s", step.Action, step.Details))
+	}
+
+	alert.GPTTimestamp = time.Now().UTC().Format("2006-01-02T15:04:05.999999Z07:00")
+	alert.GPTClassification = alertResponse.Classification
+	alert.GPTReasoning = strings.Join(alertResponse.Reasoning, configurations.LOGS_SEPARATOR)
+	alert.GPTNextSteps = strings.Join(nextSteps, "\n")
+
+	return nil
+}
+
+func clearJson(s string) (string, error) {
+	start := strings.Index(s, "{")
+	end := strings.LastIndex(s, "}")
+
+	if start == -1 || end == -1 {
+		return "", fmt.Errorf("no valid json found in gpt response")
+	}
+
+	return s[start : end+1], nil
+}
