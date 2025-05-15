@@ -60,16 +60,16 @@ func isAlertRelated(current, historical schema.AlertFields) (bool, []string) {
 
 	var matches []string
 
-	if current.Adversary.Ip != "" && current.Adversary.Ip == historical.Adversary.Ip {
+	if current.Adversary != nil && current.Adversary.Ip != "" && current.Adversary.Ip == historical.Adversary.Ip {
 		matches = append(matches, "AdversaryIP")
 	}
-	if current.Target.Ip != "" && current.Target.Ip == historical.Target.Ip {
+	if current.Target != nil && current.Target.Ip != "" && current.Target.Ip == historical.Target.Ip {
 		matches = append(matches, "TargetIP")
 	}
-	if current.Adversary.User != "" && current.Adversary.User == historical.Adversary.User {
+	if current.Adversary != nil && current.Adversary.User != "" && current.Adversary.User == historical.Adversary.User {
 		matches = append(matches, "AdversaryUser")
 	}
-	if current.Target.User != "" && current.Target.User == historical.Adversary.User {
+	if current.Target != nil && current.Target.User != "" && current.Target.User == historical.Adversary.User {
 		matches = append(matches, "AdeversaryUser")
 	}
 

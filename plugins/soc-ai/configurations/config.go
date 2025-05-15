@@ -40,10 +40,17 @@ func UpdateGPTConfigurations() {
 
 	mode := plugins.GetCfg().Env.Mode
 	if mode != "manager" {
+		utils.Logger.ErrorF("Plugin is not running in manager mode, exiting...")
 		os.Exit(0)
 	}
 
 	pluginConfig := plugins.PluginCfg("com.utmstack", false)
+	if !pluginConfig.Exists() {
+		utils.Logger.ErrorF("Plugin configuration not found")
+		_ = catcher.Error("plugin configuration not found", nil, nil)
+		os.Exit(1)
+	}
+
 	internalKey := pluginConfig.Get("internalKey").String()
 	backendUrl := pluginConfig.Get("backend").String()
 	config.Backend = backendUrl
@@ -53,12 +60,13 @@ func UpdateGPTConfigurations() {
 
 	for {
 		if err := utils.ConnectionChecker(GPT_API_ENDPOINT); err != nil {
+			utils.Logger.ErrorF("Failed to establish internet connection: %v", err)
 			_ = catcher.Error("Failed to establish internet connection: %v", err, nil)
 		}
 
 		moduleConfig, err := client.GetUTMConfig(enum.SOCAI)
 		if err != nil && err.Error() != "" && err.Error() != " " {
-			_ = catcher.Error("Error while getting GPT configuration: %v", err, nil)
+			utils.Logger.LogF(100, "Error while getting module configuration: %v", err)
 			time.Sleep(TIME_FOR_GET_CONFIG * time.Second)
 			continue
 		}

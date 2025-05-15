@@ -19,6 +19,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
+	"github.com/utmstack/UTMStack/plugins/aws/utils"
 	utmconf "github.com/utmstack/config-client-go"
 	"github.com/utmstack/config-client-go/enum"
 	"github.com/utmstack/config-client-go/types"
@@ -32,8 +33,11 @@ const (
 )
 
 func main() {
+	utils.Logger.Info("Starting AWS plugin...")
+
 	mode := plugins.GetCfg().Env.Mode
 	if mode != "manager" {
+		utils.Logger.ErrorF("Plugin is not running in manager mode, exiting...")
 		os.Exit(0)
 	}
 
@@ -121,6 +125,7 @@ func pull(startTime time.Time, endTime time.Time, group types.ModuleGroup) {
 	}
 
 	for _, log := range logs {
+		utils.Logger.LogF(100, "AWS log: %s", log)
 		plugins.EnqueueLog(&plugins.Log{
 			Id:         uuid.NewString(),
 			TenantId:   defaultTenant,

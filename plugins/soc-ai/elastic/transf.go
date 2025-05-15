@@ -11,6 +11,10 @@ import (
 )
 
 func ConvertFromAlertDBToGPTResponse(alertDetails *schema.AlertFields) schema.GPTAlertResponse {
+	if alertDetails == nil {
+		return schema.GPTAlertResponse{}
+	}
+
 	resp := schema.GPTAlertResponse{
 		Timestamp:      time.Now().UTC().Format("2006-01-02T15:04:05.999999Z07:00"),
 		Severity:       alertDetails.Severity,
