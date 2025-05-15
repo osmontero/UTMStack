@@ -1,0 +1,24 @@
+<div class="condition-builder card-body" [formGroup]="group">
+  <div formArrayName="conditions" class="d-flex flex-column gap-4">
+
+    <div *ngFor="let condition of ruleConditions.controls; let i = index" [formGroupName]="i" class="card shadow-sm rounded-lg">
+      <div class="card-body d-flex flex-column gap-3">
+        <app-condition-item [group]="condition"
+                            [index]="i"
+                            (delete)="removeRuleCondition($event)">
+        </app-condition-item>
+      </div>
+    </div>
+
+    <div *ngIf=" ruleConditions.length === 0" class="alert alert-warning">
+      You must define at least one condition.
+    </div>
+
+    <div class="text-end">
+      <button type="button" class="btn btn-sm btn-outline-primary" (click)="addRuleCondition()">
+        <i class="bi bi-plus-lg"></i> Add Condition
+      </button>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,19 @@
+.condition-builder {
+  .card {
+    transition: box-shadow 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    }
+  }
+
+  .badge {
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .section-label{
+    font-weight: 600;
+    font-size: .75rem!important;
+  }
+}
