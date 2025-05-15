@@ -1,0 +1,44 @@
+<div [formGroup]="group">
+  <div class="d-flex align-items-center justify-content-between">
+    <label class="mb-0 section-label">Condition #{{ index + 1 }}</label>
+    <button type="button" class="btn btn-sm btn-outline-danger" (click)="removeRuleCondition(i)">
+      <i class="bi bi-x-lg"></i> Remove
+    </button>
+  </div>
+
+  <div class="row align-items-end">
+    <div class="col-md-4">
+      <label class="form-label">Field</label>
+      <ng-select
+        [clearable]="false"
+        [items]="alertFields"
+        bindLabel="label"
+        bindValue="field"
+        [loading]="!alertFields"
+        placeholder="Select field"
+        formControlName="field"
+        (change)="getValuesForField($event.field)">
+      </ng-select>
+    </div>
+
+    <div class="col-md-2 text-center">
+      <label class="form-label text-muted d-block">Operator</label>
+      <span class="badge bg-light text-dark px-3 py-2">IS</span>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label">Value</label>
+      <ng-select
+        [items]="values$ | async"
+        [loading]=""
+        [addTag]="true"
+        [clearable]="false"
+        [hideSelected]="true"
+        placeholder="Select or type a value"
+        (scrollToEnd)="onScroll()"
+        formControlName="value">
+      </ng-select>
+    </div>
+  </div>
+</div>
+
