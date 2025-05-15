@@ -26,25 +26,27 @@ func cleanAlerts(alert schema.AlertFields) schema.AlertFields {
 	}
 
 	if alert.LastEvent != nil {
-		if alert.LastEvent.Target.User != "" {
+		if alert.LastEvent.Target != nil && alert.LastEvent.Target.User != "" {
 			alert.LastEvent.Target.User = configurations.FakeUserName
 		}
-		if alert.LastEvent.Target.Email != "" {
+		if alert.LastEvent.Target != nil && alert.LastEvent.Target.Email != "" {
 			alert.LastEvent.Target.Email = configurations.FakeEmail
 		}
 
-		for key, val := range alert.LastEvent.Log {
-			if val == nil || val.GetKind() == nil || val.GetKind().(*structpb.Value_StringValue) == nil {
-				continue
-			}
-			original := val.GetStringValue()
-			cleaned := original
-			for _, pattern := range configurations.SensitivePatterns {
-				re := regexp.MustCompile(pattern.Regexp)
-				cleaned = re.ReplaceAllString(cleaned, pattern.FakeValue)
-			}
-			if cleaned != original {
-				alert.LastEvent.Log[key] = structpb.NewStringValue(cleaned)
+		if alert.LastEvent.Log != nil {
+			for key, val := range alert.LastEvent.Log {
+				if val == nil || val.GetKind() == nil || val.GetKind().(*structpb.Value_StringValue) == nil {
+					continue
+				}
+				original := val.GetStringValue()
+				cleaned := original
+				for _, pattern := range configurations.SensitivePatterns {
+					re := regexp.MustCompile(pattern.Regexp)
+					cleaned = re.ReplaceAllString(cleaned, pattern.FakeValue)
+				}
+				if cleaned != original {
+					alert.LastEvent.Log[key] = structpb.NewStringValue(cleaned)
+				}
 			}
 		}
 	}

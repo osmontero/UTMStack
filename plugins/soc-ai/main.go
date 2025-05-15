@@ -7,9 +7,10 @@ import (
 
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
-	"github.com/threatwinds/go-sdk/utils"
+	twutil "github.com/threatwinds/go-sdk/utils"
 	"github.com/utmstack/UTMStack/plugins/soc-ai/configurations"
 	"github.com/utmstack/UTMStack/plugins/soc-ai/elastic"
+	"github.com/utmstack/UTMStack/plugins/soc-ai/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -19,10 +20,13 @@ type socAiServer struct {
 }
 
 func main() {
+	utils.Logger.Info("Starting soc-ai plugin...")
+
 	go configurations.UpdateGPTConfigurations()
 
-	socketsFolder, err := utils.MkdirJoin(plugins.WorkDir, "sockets")
+	socketsFolder, err := twutil.MkdirJoin(plugins.WorkDir, "sockets")
 	if err != nil {
+		utils.Logger.ErrorF("cannot create socket directory: %v", err)
 		_ = catcher.Error("cannot create socket directory", err, nil)
 		os.Exit(1)
 	}
@@ -32,12 +36,14 @@ func main() {
 
 	unixAddress, err := net.ResolveUnixAddr("unix", socketFile)
 	if err != nil {
+		utils.Logger.ErrorF("cannot resolve unix address: %v", err)
 		_ = catcher.Error("cannot resolve unix address", err, nil)
 		os.Exit(1)
 	}
 
 	listener, err := net.ListenUnix("unix", unixAddress)
 	if err != nil {
+		utils.Logger.ErrorF("cannot listen to unix socket: %v", err)
 		_ = catcher.Error("cannot listen to unix socket", err, nil)
 		os.Exit(1)
 	}
@@ -46,6 +52,7 @@ func main() {
 	plugins.RegisterCorrelationServer(grpcServer, &socAiServer{})
 
 	if err := grpcServer.Serve(listener); err != nil {
+		utils.Logger.ErrorF("cannot serve grpc: %v", err)
 		_ = catcher.Error("cannot serve grpc", err, nil)
 		os.Exit(1)
 	}
@@ -53,6 +60,7 @@ func main() {
 
 func (p *socAiServer) Correlate(_ context.Context,
 	alert *plugins.Alert) (*emptypb.Empty, error) {
+	utils.Logger.LogF(100, "Received alert: %s", alert.Id)
 
 	alertFields := cleanAlerts(alertToAlertFields(alert))
 

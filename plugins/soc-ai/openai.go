@@ -17,6 +17,9 @@ func sendRequestToOpenAI(alert *schema.AlertFields) error {
 	const retryDelay = 2 * time.Second
 
 	content := configurations.GPT_INSTRUCTION
+	if alert == nil {
+		return fmt.Errorf("sendRequestToOpenAI: alert is nil")
+	}
 	correlationContext, err := correlation.GetCorrelationContext(*alert)
 	if err != nil {
 		return fmt.Errorf("error getting correlation context: %v", err)
@@ -43,6 +46,8 @@ func sendRequestToOpenAI(alert *schema.AlertFields) error {
 			},
 		},
 	}
+
+	utils.Logger.LogF(100, "Sending request to OpenAI: %v", req)
 
 	requestJson, err := json.Marshal(req)
 	if err != nil {

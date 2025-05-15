@@ -13,6 +13,10 @@ import (
 )
 
 func CreateNewIncident(alertDetails *schema.AlertFields) error {
+	if alertDetails == nil {
+		return fmt.Errorf("CreateNewIncident: alertDetails is nil")
+	}
+
 	url := configurations.GetConfig().Backend + configurations.API_INCIDENT_ENDPOINT
 	headers := map[string]string{
 		"Content-Type":     "application/json",
@@ -42,10 +46,16 @@ func CreateNewIncident(alertDetails *schema.AlertFields) error {
 		return fmt.Errorf("error while doing request: %v, status: %d, response: %v", err, statusCode, string(resp))
 	}
 
+	utils.Logger.LogF(100, "Incident %s created successfully", body.IncidentName)
+
 	return nil
 }
 
 func AddAlertToIncident(incidentId int, alertDetails *schema.AlertFields) error {
+	if alertDetails == nil {
+		return fmt.Errorf("AddAlertToIncident: alertDetails is nil")
+	}
+
 	url := configurations.GetConfig().Backend + configurations.API_INCIDENT_ADD_NEW_ALERT_ENDPOINT
 	headers := map[string]string{
 		"Content-Type":     "application/json",
@@ -71,6 +81,8 @@ func AddAlertToIncident(incidentId int, alertDetails *schema.AlertFields) error 
 	if err != nil || (statusCode != http.StatusOK && statusCode != http.StatusCreated) {
 		return fmt.Errorf("error while doing request: %v, status: %d, response: %v", err, statusCode, string(resp))
 	}
+
+	utils.Logger.LogF(100, "Alert %s added to incident %d successfully", alertDetails.ID, incidentId)
 
 	return nil
 }
