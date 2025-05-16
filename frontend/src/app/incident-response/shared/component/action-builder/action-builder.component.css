@@ -1,0 +1,39 @@
+.phantom-action {
+  border: 1px dashed #cbd5e1;
+  background-color: #f9fafb;
+  transition: background-color 0.2s ease;
+  min-height: 210px;
+
+}
+
+.action-block {
+  transition: all 0.2s ease-in-out;
+  background-color: #ffffff;
+  border-color: #cfd4da;
+  box-shadow: 0 0 0 2px #e2e6ea;
+
+
+  .icon-box {
+    width: 32px;
+    height: 32px;
+    background-color: #e9ecef;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: #495057;
+  }
+}
+
+.icon-bin {
+  width: 32px;
+  height: 32px;
+  background-color: #e9ecef;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #495057;
+}

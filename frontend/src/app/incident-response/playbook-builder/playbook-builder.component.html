@@ -1,73 +1,82 @@
-<div class="container py-4">
-  <form [formGroup]="formRule">
-    <div class="card mb-4">
-      <div class="card-body">
-        <h5 class="card-title">Incident Response Info</h5>
-        <div class="mb-3">
-          <div class="form-group">
-            <label class="pb-1" for="name">Name</label>
-            <div class="input-group">
-              <span class="input-group-text">{{ rulePrefix }}</span>
-              <input [ngClass]="inputClass.resolveClassInput(formRule.get('name'))"
-                     class="border-1 border-grey-600 form-control" formControlName="name"
-                     id="name"
-                     name="">
-            </div>
-
-            <app-formcontrol-error [formcontrol]="formRule.get('name')"></app-formcontrol-error>
-            <div *ngIf="typing && formRule.get('name').valid"
-                 class="checking-tag-name d-flex justify-content-start align-items-center mt-1 span-small-icon">
-              <i class="icon-spinner2 spinner mr-2"></i>
-              <span>Checking rule name...</span>
-            </div>
-            <div *ngIf="exist && !typing"
-                 class="checking-tag-name d-flex justify-content-start align-items-center text-danger-300 mt-1 span-small-icon">
-              <i class="icon-copy4 mr-2"></i>
-              <span>Rule name already exist</span>
-            </div>
-            <div *ngIf="!exist && !typing && formRule.get('name').value!==''"
-                 class="checking-tag-name d-flex justify-content-start align-items-center text-blue-800 mt-1 span-small-icon">
-              <i class="icon-checkmark-circle mr-2"></i>
-              <span>Rule name is valid</span>
-            </div>
-          </div>
-        </div>
-        <div class="mb-3">
-          <div class="form-group">
-            <label class="pb-1" for="description">Description
-              ({{ maxLength - formRule.get('description').value.length }})</label>
-            <textarea [ngClass]="inputClass.resolveClassInput(formRule.get('description'))"
-                      [maxLength]="maxLength"
-                      class="border-1 border-grey-600 form-control" formControlName="description"
-                      id="description"
-                      name=""
-                      rows="5"></textarea>
-            <app-formcontrol-error [formcontrol]="formRule.get('description')"></app-formcontrol-error>
-          </div>
-        </div>
-        <app-utm-toggle (toggleChange)="formRule.get('active').setValue($event)"
-                        [active]="formRule.get('active').value"
-                        [emitAtStart]="false"
-                        [label]="'Incident response automation is active'">
-        </app-utm-toggle>
+<div [ngStyle]="{'min-height': getMenuHeight(), 'height': getMenuHeight()}" class="container-fluid px-3 py-4">
+  <form [formGroup]="formRule" class="h-100">
+    <div class="d-flex h-100">
+      <div class="col-auto px-0 sidebar-section h-100">
+        <app-action-sidebar></app-action-sidebar>
       </div>
-    </div>
 
-    <!-- Bloque: Trigger -->
-    <div class="card border-start border-primary border-4 mb-4">
-      <app-condition-builder [alert]="alert" [group]="formRule"></app-condition-builder>
-    </div>
+      <div class="col overflow-auto h-100 d-flex flex-column">
+        <div class="card mb-4">
+          <div class="card-body">
+            <div class="mb-3">
+              <div class="form-group">
+                <label class="pb-1" for="name">Name</label>
+                <div class="input-group">
+                  <span class="input-group-text">{{ rulePrefix }}</span>
+                  <input [ngClass]="inputClass.resolveClassInput(formRule.get('name'))"
+                         class="border-1 border-grey-600 form-control" formControlName="name"
+                         id="name"
+                         name="">
+                </div>
 
-    <!-- Builder visual: Acciones -->
-    <div class="card border-start border-primary border-4 mb-4">
-      <app-action-builder [group]="formRule"></app-action-builder>
-    </div>
+                <app-formcontrol-error [formcontrol]="formRule.get('name')"></app-formcontrol-error>
+                <div *ngIf="typing && formRule.get('name').valid"
+                     class="checking-tag-name d-flex justify-content-start align-items-center mt-1 span-small-icon">
+                  <i class="icon-spinner2 spinner mr-2"></i>
+                  <span>Checking rule name...</span>
+                </div>
+                <div *ngIf="exist && !typing"
+                     class="checking-tag-name d-flex justify-content-start align-items-center text-danger-300 mt-1 span-small-icon">
+                  <i class="icon-copy4 mr-2"></i>
+                  <span>Rule name already exist</span>
+                </div>
+                <div *ngIf="!exist && !typing && formRule.get('name').value!==''"
+                     class="checking-tag-name d-flex justify-content-start align-items-center text-blue-800 mt-1 span-small-icon">
+                  <i class="icon-checkmark-circle mr-2"></i>
+                  <span>Rule name is valid</span>
+                </div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <div class="form-group">
+                <label class="pb-1" for="description">Description
+                  ({{ maxLength - formRule.get('description').value.length }})</label>
+                <textarea [ngClass]="inputClass.resolveClassInput(formRule.get('description'))"
+                          [maxLength]="maxLength"
+                          class="border-1 border-grey-600 form-control" formControlName="description"
+                          id="description"
+                          name=""
+                          rows="5"></textarea>
+                <app-formcontrol-error [formcontrol]="formRule.get('description')"></app-formcontrol-error>
+              </div>
+            </div>
+            <app-utm-toggle (toggleChange)="formRule.get('active').setValue($event)"
+                            [active]="formRule.get('active').value"
+                            [emitAtStart]="false"
+                            [label]="'Incident response automation is active'">
+            </app-utm-toggle>
+          </div>
+        </div>
+
+        <div class="card border-start border-4 mb-4">
+          <app-condition-builder [alert]="alert" [group]="formRule"></app-condition-builder>
+        </div>
 
 
-    <!-- Acciones finales -->
-    <div class="d-flex justify-content-end mt-4 gap-2">
-      <button class="btn btn-secondary">👁 Preview</button>
-      <button class="btn btn-success">💾 Save</button>
+        <div class="card border-start border-4 mb-4">
+          <app-action-builder [group]="formRule"></app-action-builder>
+        </div>
+
+        <div class="button-container d-flex justify-content-end mt-auto pt-3 border-top w-100">
+          <button class="btn utm-button utm-button-outline-primary ng-star-inserted">
+            <i class="icon-eye mr-2"></i> Preview
+          </button>
+
+          <button class="btn utm-button utm-button-primary ml-2 ng-star-inserted">
+            <i class="icon-terminal mr-2"></i> Create playbook
+          </button>
+        </div>
+      </div>
     </div>
   </form>
 </div>

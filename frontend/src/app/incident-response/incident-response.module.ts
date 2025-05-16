@@ -15,24 +15,30 @@ import {IncidentResponseRoutingModule} from './incident-response-routing.module'
 import {IncidentResponseViewComponent} from './incident-response-view/incident-response-view.component';
 import { PlaybookBuilderComponent } from './playbook-builder/playbook-builder.component';
 import {IncidentResponseSharedModule} from './shared/incident-response-shared.module';
+import {WorkflowActionsService} from './shared/services/workflow-actions.service';
 
 @NgModule({
-  declarations: [IncidentResponseViewComponent, IncidentResponseCommandComponent,
-    IncidentResponseAutomationComponent,
-    CreateWorkflowComponent,
-    PlaybookBuilderComponent],
-  imports: [
-    CommonModule,
-    IncidentResponseRoutingModule,
-    IncidentResponseSharedModule,
-    UtmSharedModule,
-    NgbModule,
-    NgSelectModule,
-    FormsModule,
-    AlertManagementSharedModule,
-    TranslateModule,
-    ReactiveFormsModule
-  ], entryComponents: []
+  declarations:
+    [
+      IncidentResponseViewComponent, IncidentResponseCommandComponent,
+      IncidentResponseAutomationComponent,
+      CreateWorkflowComponent,
+      PlaybookBuilderComponent
+    ],
+  imports:
+    [
+      CommonModule,
+      IncidentResponseRoutingModule,
+      IncidentResponseSharedModule,
+      UtmSharedModule,
+      NgbModule,
+      NgSelectModule,
+      FormsModule,
+      AlertManagementSharedModule,
+      TranslateModule,
+      ReactiveFormsModule
+    ],
+  entryComponents: [],
 })
 export class IncidentResponseModule {
 }
