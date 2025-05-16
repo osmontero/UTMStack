@@ -1,20 +1,16 @@
-import {Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {debounceTime} from 'rxjs/operators';
-import {UtmNetScanService} from '../../assets-discover/shared/services/utm-net-scan.service';
 import {NetScanType} from '../../assets-discover/shared/types/net-scan.type';
-import {UtmToastService} from '../../shared/alert/utm-toast.service';
-import {ALERT_NAME_FIELD, INCIDENT_AUTOMATION_ALERT_FIELDS} from '../../shared/constants/alert/alert-field.constant';
+import {ALERT_NAME_FIELD} from '../../shared/constants/alert/alert-field.constant';
+import {ElasticOperatorsEnum} from '../../shared/enums/elastic-operators.enum';
 import {PrefixElementEnum} from '../../shared/enums/prefix-element.enum';
-import {ElasticSearchIndexService} from '../../shared/services/elasticsearch/elasticsearch-index.service';
+import {getValueFromPropertyPath} from '../../shared/util/get-value-object-from-property-path.util';
 import {InputClassResolve} from '../../shared/util/input-class-resolve';
 import {createElementPrefix, getElementPrefix} from '../../shared/util/string-util';
 import {IncidentResponseRuleService} from '../shared/services/incident-response-rule.service';
 import {IncidentRuleType} from '../shared/type/incident-rule.type';
-import {ALERT_INDEX_PATTERN} from "../../shared/constants/main-index-pattern.constant";
-import {ElasticOperatorsEnum} from "../../shared/enums/elastic-operators.enum";
-import {getValueFromPropertyPath} from "../../shared/util/get-value-object-from-property-path.util";
 
 @Component({
   selector: 'app-playbook-builder',
@@ -37,23 +33,15 @@ export class PlaybookBuilderComponent implements OnInit {
   exist = true;
   typing = true;
   rulePrefix: string = createElementPrefix(PrefixElementEnum.INCIDENT_RESPONSE_AUTOMATION);
-  valuesMap: Map<string, string[]> = new Map();
   maxLength = 512;
-  predefinedActions = [
-    { icon: '📁', label: 'Create Incident', description: 'Creates a new incident' },
-    { icon: '✅', label: 'Change Status to "under_review"', description: 'Marks alert as under review' },
-    { icon: '📧', label: 'Send Email', description: 'Send a notification email' },
-  ];
+  viewportHeight: number;
 
   workflow: any[] = [];
 
   constructor(private incidentResponseRuleService: IncidentResponseRuleService,
               public activeModal: NgbActiveModal,
               private fb: FormBuilder,
-              public inputClass: InputClassResolve,
-              private utmNetScanService: UtmNetScanService,
-              private elasticSearchIndexService: ElasticSearchIndexService,
-              private utmToastService: UtmToastService) {
+              public inputClass: InputClassResolve) {
 
     this.formRule = this.fb.group({
       id: [null],
@@ -67,6 +55,12 @@ export class PlaybookBuilderComponent implements OnInit {
       defaultAgent: [''],
       agentPlatform: ['', Validators.required]
     });
+    this.viewportHeight = window.innerHeight;
+  }
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event) {
+    this.viewportHeight = window.innerHeight;
   }
 
   ngOnInit() {
@@ -142,6 +136,10 @@ export class PlaybookBuilderComponent implements OnInit {
         this.typing = false;
       });
     }, 1000);
+  }
+
+  getMenuHeight() {
+    return 100 - ((150 / this.viewportHeight) * 100) + 'vh';
   }
 
 }

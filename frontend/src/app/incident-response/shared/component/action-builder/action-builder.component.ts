@@ -1,18 +1,19 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {FormGroup} from '@angular/forms';
-import {Observable, of} from 'rxjs';
-import {catchError, finalize, map, tap} from 'rxjs/operators';
+import {Observable, of, Subject} from 'rxjs';
+import {catchError, finalize, map, takeUntil, tap} from 'rxjs/operators';
 import {UtmNetScanService} from '../../../../assets-discover/shared/services/utm-net-scan.service';
 import {NetScanType} from '../../../../assets-discover/shared/types/net-scan.type';
 import {UtmToastService} from '../../../../shared/alert/utm-toast.service';
 import {InputClassResolve} from '../../../../shared/util/input-class-resolve';
+import {WorkflowActionsService} from '../../services/workflow-actions.service';
 
 @Component({
   selector: 'app-action-builder',
   templateUrl: './action-builder.component.html',
   styleUrls: ['./action-builder.component.css']
 })
-export class ActionBuilderComponent implements OnInit {
+export class ActionBuilderComponent implements OnInit, OnDestroy {
 
   @Input() group: FormGroup;
   agents: any[];
@@ -23,20 +24,21 @@ export class ActionBuilderComponent implements OnInit {
   loadingAgents = false;
   noPlatforms = false;
 
-  predefinedActions = [
-    { icon: '📁', label: 'Create Incident', description: 'Creates a new incident' },
-    { icon: '✅', label: 'Change Status to "under_review"', description: 'Marks alert as under review' },
-    { icon: '📧', label: 'Send Email', description: 'Send a notification email' },
-  ];
-
-  workflow: any[] = [];
+  workflow$: Observable<any[]>;
+  destroy$: Subject<void> = new Subject<void>();
 
   constructor(private utmNetScanService: UtmNetScanService,
               public inputClass: InputClassResolve,
-              private utmToastService: UtmToastService) { }
+              private utmToastService: UtmToastService,
+              private workflowActionsService: WorkflowActionsService) { }
 
   ngOnInit() {
     this.platforms$ = this.getPlatforms();
+
+    this.workflow$ = this.workflowActionsService.actions$
+      .pipe(takeUntil(this.destroy$));
+
+    this.workflow$.subscribe( w => console.log(w));
   }
 
   getPlatforms() {
@@ -54,11 +56,6 @@ export class ActionBuilderComponent implements OnInit {
         this.loadingPlatforms = false;
       })
     );
-  }
-
-
-  addToWorkFlow(action: any) {
-    this.workflow.push(action);
   }
 
   getAgents(platform: any) {
@@ -104,4 +101,16 @@ export class ActionBuilderComponent implements OnInit {
       );
   }
 
+  openActionSidebar() {
+
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  removeAction() {
+
+  }
 }

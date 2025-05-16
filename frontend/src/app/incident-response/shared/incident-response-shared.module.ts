@@ -19,6 +19,7 @@ import {IrFullLogComponent} from './component/ir-full-log/ir-full-log.component'
 import {IrJobCreateComponent} from './component/ir-job-create/ir-job-create.component';
 import {IrSummaryComponent} from './component/ir-summary/ir-summary.component';
 import {IraHistoryComponent} from './component/ira-history/ira-history.component';
+import { ActionSidebarComponent } from './component/action-sidebar/action-sidebar.component';
 
 @NgModule({
   declarations: [IrJobCreateComponent,
@@ -33,7 +34,8 @@ import {IraHistoryComponent} from './component/ira-history/ira-history.component
     IrSummaryComponent,
     ConditionBuilderComponent,
     ConditionItemComponent,
-    ActionBuilderComponent],
+    ActionBuilderComponent,
+    ActionSidebarComponent],
 
   entryComponents: [
     IrJobCreateComponent,
@@ -51,7 +53,8 @@ import {IraHistoryComponent} from './component/ira-history/ira-history.component
     IraHistoryComponent,
     IrSummaryComponent,
     ConditionBuilderComponent,
-    ActionBuilderComponent
+    ActionBuilderComponent,
+    ActionSidebarComponent
   ],
   imports: [
     CommonModule,
