@@ -41,6 +41,7 @@ export class CreateWorkflowComponent implements OnInit {
   rulePrefix: string = createElementPrefix(PrefixElementEnum.INCIDENT_RESPONSE_AUTOMATION);
   valuesMap: Map<string, string[]> = new Map();
   maxLength = 512;
+  workflow = [];
 
 
   constructor(private incidentResponseRuleService: IncidentResponseRuleService,
