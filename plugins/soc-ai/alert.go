@@ -35,17 +35,19 @@ func cleanAlerts(alert schema.AlertFields) schema.AlertFields {
 
 		if alert.LastEvent.Log != nil {
 			for key, val := range alert.LastEvent.Log {
-				if val == nil || val.GetKind() == nil || val.GetKind().(*structpb.Value_StringValue) == nil {
+				switch v := val.Kind.(type) {
+				case *structpb.Value_StringValue:
+					original := v.StringValue
+					cleaned := original
+					for _, pattern := range configurations.SensitivePatterns {
+						re := regexp.MustCompile(pattern.Regexp)
+						cleaned = re.ReplaceAllString(cleaned, pattern.FakeValue)
+					}
+					if cleaned != original {
+						alert.LastEvent.Log[key] = structpb.NewStringValue(cleaned)
+					}
+				default:
 					continue
-				}
-				original := val.GetStringValue()
-				cleaned := original
-				for _, pattern := range configurations.SensitivePatterns {
-					re := regexp.MustCompile(pattern.Regexp)
-					cleaned = re.ReplaceAllString(cleaned, pattern.FakeValue)
-				}
-				if cleaned != original {
-					alert.LastEvent.Log[key] = structpb.NewStringValue(cleaned)
 				}
 			}
 		}

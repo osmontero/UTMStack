@@ -20,6 +20,7 @@ var (
 type Config struct {
 	Backend                   string
 	InternalKey               string
+	Openseach                 string
 	APIKey                    string
 	ChangeAlertStatus         bool
 	AutomaticIncidentCreation bool
@@ -51,12 +52,11 @@ func UpdateGPTConfigurations() {
 		os.Exit(1)
 	}
 
-	internalKey := pluginConfig.Get("internalKey").String()
-	backendUrl := pluginConfig.Get("backend").String()
-	config.Backend = backendUrl
-	config.InternalKey = internalKey
+	config.Backend = pluginConfig.Get("internalKey").String()
+	config.InternalKey = pluginConfig.Get("backend").String()
+	config.Openseach = pluginConfig.Get("opensearch").String()
 
-	client := moduleConf.NewUTMClient(internalKey, backendUrl)
+	client := moduleConf.NewUTMClient(config.InternalKey, config.Backend)
 
 	for {
 		if err := utils.ConnectionChecker(GPT_API_ENDPOINT); err != nil {

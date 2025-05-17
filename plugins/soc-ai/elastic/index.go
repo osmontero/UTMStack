@@ -19,7 +19,7 @@ func ElasticQuery(index string, query interface{}, op string) error {
 	case "update":
 		endp = configurations.ELASTIC_UPDATE_BY_QUERY_ENDPOINT
 	}
-	url := configurations.GetOpenSearchHost() + ":" + configurations.GetOpenSearchPort() + "/" + index + endp
+	url := fmt.Sprintf("%s/%s%s", configurations.GetConfig().Openseach, index, endp)
 	headers := map[string]string{
 		"Content-Type": "application/json",
 	}
@@ -78,7 +78,7 @@ func IndexStatus(id, status, op string) error {
 }
 
 func CreateIndexIfNotExist(index string) error {
-	url := configurations.GetOpenSearchHost() + ":" + configurations.GetOpenSearchPort() + "/" + index
+	url := fmt.Sprintf("%s/%s", configurations.GetConfig().Openseach, index)
 	headers := map[string]string{
 		"Content-Type": "application/json",
 	}
