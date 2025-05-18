@@ -7,6 +7,8 @@ import {NetScanType} from '../../../../assets-discover/shared/types/net-scan.typ
 import {UtmToastService} from '../../../../shared/alert/utm-toast.service';
 import {InputClassResolve} from '../../../../shared/util/input-class-resolve';
 import {WorkflowActionsService} from '../../services/workflow-actions.service';
+import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
+import {ActionTerminalComponent} from "../action-terminal/action-terminal.component";
 
 @Component({
   selector: 'app-action-builder',
@@ -30,7 +32,8 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
   constructor(private utmNetScanService: UtmNetScanService,
               public inputClass: InputClassResolve,
               private utmToastService: UtmToastService,
-              private workflowActionsService: WorkflowActionsService) { }
+              private workflowActionsService: WorkflowActionsService,
+              private modalService: NgbModal) { }
 
   ngOnInit() {
     this.platforms$ = this.getPlatforms();
@@ -102,7 +105,7 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
   }
 
   openActionSidebar() {
-
+    const dialogRef = this.modalService.open(ActionTerminalComponent, {size: 'lg', centered: true});
   }
 
   ngOnDestroy(): void {
@@ -111,6 +114,6 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
   }
 
   removeAction() {
-
+    this.workflowActionsService.clear();
   }
 }

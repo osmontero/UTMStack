@@ -70,8 +70,8 @@
       </div>
 
 
-      <div *ngIf="workflow$ | async as workflow" class="card phantom-action py-4 px-5 workflow-card">
-        <div style="height: 70px" *ngFor="let action of workflow" class="d-flex flex-column align-items-center justify-content-center action-block">
+      <div *ngIf="workflow$ | async as workflow" class="card phantom-action py-4 px-5 workflow-card align-items-center">
+        <div style="height: 88px" *ngFor="let action of workflow" class="d-flex flex-column align-items-center justify-content-center action-block w-100">
           <div style="min-height: 70px !important;" class="card-body d-flex flex-column w-100 justify-content-center">
             <div class="d-flex align-items-center justify-content-between mb-2">
               <div class="d-flex align-items-center">
@@ -89,10 +89,20 @@
         </div>
 
         <ng-container *ngIf="workflow.length === 0">
-          <div class="card-body d-flex flex-column align-items-center justify-content-center text-muted text-center">
-            <div class="icon-plus2 fs-4 mb-2"></div>
-            <div class="fw-bold">Add Next Action</div>
-            <small class="text-muted">Click an action or define your own</small>
+          <div style="border-radius: .2rem" class="d-flex flex-column align-items-center justify-content-center action-block w-25 cursor-pointer text-start hover-shadow"
+            (click)="openActionSidebar()"
+            role="button"
+            tabindex="0">
+            <div class="card-body d-flex flex-column w-100 justify-content-center">
+              <div class="d-flex align-items-center mb-2">
+                <div class="icon-plus2 mr-3">
+                </div>
+                <div>
+                  <div class="fw-semibold text-primary">Add Next Action</div>
+                  <small class="text-muted">Click an action or define your own</small>
+                </div>
+              </div>
+            </div>
           </div>
         </ng-container>
       </div>

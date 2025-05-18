@@ -20,6 +20,7 @@ import {IrJobCreateComponent} from './component/ir-job-create/ir-job-create.comp
 import {IrSummaryComponent} from './component/ir-summary/ir-summary.component';
 import {IraHistoryComponent} from './component/ira-history/ira-history.component';
 import { ActionSidebarComponent } from './component/action-sidebar/action-sidebar.component';
+import { ActionTerminalComponent } from './component/action-terminal/action-terminal.component';
 
 @NgModule({
   declarations: [IrJobCreateComponent,
@@ -35,12 +36,14 @@ import { ActionSidebarComponent } from './component/action-sidebar/action-sideba
     ConditionBuilderComponent,
     ConditionItemComponent,
     ActionBuilderComponent,
-    ActionSidebarComponent],
+    ActionSidebarComponent,
+    ActionTerminalComponent],
 
   entryComponents: [
     IrJobCreateComponent,
     IrActionCreateComponent,
-    IrCreateRuleComponent
+    IrCreateRuleComponent,
+    ActionTerminalComponent,
   ],
 
   exports: [
@@ -54,7 +57,8 @@ import { ActionSidebarComponent } from './component/action-sidebar/action-sideba
     IrSummaryComponent,
     ConditionBuilderComponent,
     ActionBuilderComponent,
-    ActionSidebarComponent
+    ActionSidebarComponent,
+    ActionTerminalComponent
   ],
   imports: [
     CommonModule,

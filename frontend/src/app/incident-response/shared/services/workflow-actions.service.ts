@@ -12,4 +12,8 @@ export class WorkflowActionsService {
   setActions(action: any) {
     this.actionsBehaviorSubject.next([{...action}]);
   }
+
+  clear(){
+    this.actionsBehaviorSubject.next([]);
+  }
 }
