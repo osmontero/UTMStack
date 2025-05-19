@@ -291,44 +291,6 @@ export class ElasticFilterAddComponent implements OnInit {
     }
   }
 
-  /*/!**
-   * Return operators based on field type
-   *!/
-  getOperators() {
-    const index = this.getIndexField();
-    if (index !== -1) {
-      const fieldType = this.fields[index].type;
-      if (fieldType === ElasticDataTypesEnum.TEXT || fieldType === ElasticDataTypesEnum.STRING ||
-        fieldType === ElasticDataTypesEnum.KEYWORD) {
-        if (!this.field.name.includes('.keyword')) {
-          this.operators = FILTER_OPERATORS.filter(value =>
-            value.operator !== ElasticOperatorsEnum.IS_BETWEEN &&
-            value.operator !== ElasticOperatorsEnum.IS_NOT_BETWEEN);
-        } else {
-          this.operators = FILTER_OPERATORS.filter(value =>
-            value.operator !== ElasticOperatorsEnum.IS_BETWEEN &&
-            value.operator !== ElasticOperatorsEnum.CONTAIN &&
-            value.operator !== ElasticOperatorsEnum.DOES_NOT_CONTAIN &&
-            value.operator !== ElasticOperatorsEnum.IS_NOT_BETWEEN &&
-            value.operator !== ElasticOperatorsEnum.ENDS_WITH &&
-            value.operator !== ElasticOperatorsEnum.NOT_ENDS_WITH &&
-            value.operator !== ElasticOperatorsEnum.START_WITH &&
-            value.operator !== ElasticOperatorsEnum.NOT_START_WITH);
-        }
-
-      } else if (fieldType === ElasticDataTypesEnum.LONG ||
-        fieldType === ElasticDataTypesEnum.NUMBER || fieldType === ElasticDataTypesEnum.DATE) {
-        this.operators = FILTER_OPERATORS.filter(value =>
-          value.operator !== ElasticOperatorsEnum.CONTAIN &&
-          value.operator !== ElasticOperatorsEnum.DOES_NOT_CONTAIN &&
-          value.operator !== ElasticOperatorsEnum.START_WITH &&
-          value.operator !== ElasticOperatorsEnum.NOT_START_WITH);
-      } else {
-        this.operators = FILTER_OPERATORS;
-      }
-    }
-  }*/
-
   getOperators() {
     const index = this.getIndexField();
     if (index !== -1) {
