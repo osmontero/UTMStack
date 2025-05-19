@@ -30,8 +30,9 @@ func main() {
 		_ = catcher.Error("cannot create socket directory", err, nil)
 		os.Exit(1)
 	}
+	utils.Logger.LogF(100, "Socket directory %s created", socketsFolder)
 
-	socketFile := socketsFolder.FileJoin("com.utmstack.soc_ai_correlation.sock")
+	socketFile := socketsFolder.FileJoin("com.utmstack.soc-ai_correlation.sock")
 	_ = os.Remove(socketFile)
 
 	unixAddress, err := net.ResolveUnixAddr("unix", socketFile)
@@ -40,6 +41,7 @@ func main() {
 		_ = catcher.Error("cannot resolve unix address", err, nil)
 		os.Exit(1)
 	}
+	utils.Logger.LogF(100, "Socket file %s created", socketFile)
 
 	listener, err := net.ListenUnix("unix", unixAddress)
 	if err != nil {
@@ -47,10 +49,12 @@ func main() {
 		_ = catcher.Error("cannot listen to unix socket", err, nil)
 		os.Exit(1)
 	}
+	utils.Logger.LogF(100, "Listening on %s", socketFile)
 
 	grpcServer := grpc.NewServer()
 	plugins.RegisterCorrelationServer(grpcServer, &socAiServer{})
 
+	utils.Logger.LogF(100, "Server started successfully")
 	if err := grpcServer.Serve(listener); err != nil {
 		utils.Logger.ErrorF("cannot serve grpc: %v", err)
 		_ = catcher.Error("cannot serve grpc", err, nil)
