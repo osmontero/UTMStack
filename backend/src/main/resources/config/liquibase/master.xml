@@ -214,4 +214,6 @@
 
     <include file="/config/liquibase/changelog/20250507046_update_filter_firewall_sophos_xg.xml" relativeToChangelogFile="false"/>
 
+    <include file="/config/liquibase/changelog/20250519001_updateo_365_menu_display_name.xml" relativeToChangelogFile="false"/>
+
 </databaseChangeLog>
