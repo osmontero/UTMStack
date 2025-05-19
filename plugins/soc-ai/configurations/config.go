@@ -52,8 +52,8 @@ func UpdateGPTConfigurations() {
 		os.Exit(1)
 	}
 
-	config.Backend = pluginConfig.Get("internalKey").String()
-	config.InternalKey = pluginConfig.Get("backend").String()
+	config.Backend = pluginConfig.Get("backend").String()
+	config.InternalKey = pluginConfig.Get("internalKey").String()
 	config.Openseach = pluginConfig.Get("opensearch").String()
 
 	client := moduleConf.NewUTMClient(config.InternalKey, config.Backend)
