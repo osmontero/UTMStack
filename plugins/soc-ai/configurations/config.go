@@ -8,18 +8,19 @@ import (
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
 	"github.com/utmstack/UTMStack/plugins/soc-ai/utils"
-	utmconf "github.com/utmstack/config-client-go"
+	moduleConf "github.com/utmstack/config-client-go"
 	"github.com/utmstack/config-client-go/enum"
 )
 
 var (
-	pluginConfig     PluginConfig
-	pluginConfigOnce sync.Once
+	config     Config
+	configOnce sync.Once
 )
 
-type PluginConfig struct {
+type Config struct {
 	Backend                   string
 	InternalKey               string
+	Openseach                 string
 	APIKey                    string
 	ChangeAlertStatus         bool
 	AutomaticIncidentCreation bool
@@ -27,38 +28,45 @@ type PluginConfig struct {
 	ModuleActive              bool
 }
 
-func GetPluginConfig() *PluginConfig {
-	pluginConfigOnce.Do(func() {
-		pluginConfig = PluginConfig{}
+func GetConfig() *Config {
+	configOnce.Do(func() {
+		config = Config{}
 	})
 
-	return &pluginConfig
+	return &config
 }
 
-func (c *PluginConfig) UpdateGPTConfigurations() {
+func UpdateGPTConfigurations() {
+	GetConfig()
+
 	mode := plugins.GetCfg().Env.Mode
 	if mode != "manager" {
+		utils.Logger.ErrorF("Plugin is not running in manager mode, exiting...")
 		os.Exit(0)
 	}
 
+	pluginConfig := plugins.PluginCfg("com.utmstack", false)
+	if !pluginConfig.Exists() {
+		utils.Logger.ErrorF("Plugin configuration not found")
+		_ = catcher.Error("plugin configuration not found", nil, nil)
+		os.Exit(1)
+	}
+
+	config.Backend = pluginConfig.Get("backend").String()
+	config.InternalKey = pluginConfig.Get("internalKey").String()
+	config.Openseach = pluginConfig.Get("opensearch").String()
+
+	client := moduleConf.NewUTMClient(config.InternalKey, config.Backend)
+
 	for {
 		if err := utils.ConnectionChecker(GPT_API_ENDPOINT); err != nil {
+			utils.Logger.ErrorF("Failed to establish internet connection: %v", err)
 			_ = catcher.Error("Failed to establish internet connection: %v", err, nil)
 		}
 
-		utmConfig := plugins.PluginCfg("com.utmstack", false)
-		internalKey := utmConfig.Get("internalKey").String()
-		backendUrl := utmConfig.Get("backend").String()
-		if internalKey == "" || backendUrl == "" {
-			time.Sleep(5 * time.Second)
-			continue
-		}
-
-		client := utmconf.NewUTMClient(internalKey, backendUrl)
-
 		moduleConfig, err := client.GetUTMConfig(enum.SOCAI)
 		if err != nil && err.Error() != "" && err.Error() != " " {
-			_ = catcher.Error("Error while getting GPT configuration: %v", err, nil)
+			utils.Logger.LogF(100, "Error while getting module configuration: %v", err)
 			time.Sleep(TIME_FOR_GET_CONFIG * time.Second)
 			continue
 		}
@@ -67,28 +75,26 @@ func (c *PluginConfig) UpdateGPTConfigurations() {
 			continue
 		}
 
-		c.Backend = backendUrl
-		c.InternalKey = internalKey
-		c.ModuleActive = moduleConfig.ModuleActive
+		config.ModuleActive = moduleConfig.ModuleActive
 
-		if c.ModuleActive && len(moduleConfig.ConfigurationGroups) > 0 {
-			for _, config := range moduleConfig.ConfigurationGroups[0].Configurations {
-				switch config.ConfKey {
+		if config.ModuleActive && len(moduleConfig.ConfigurationGroups) > 0 {
+			for _, c := range moduleConfig.ConfigurationGroups[0].Configurations {
+				switch c.ConfKey {
 				case "utmstack.socai.key":
-					if config.ConfValue != "" && config.ConfValue != " " {
-						c.APIKey = config.ConfValue
+					if c.ConfValue != "" && c.ConfValue != " " {
+						config.APIKey = c.ConfValue
 					}
 				case "utmstack.socai.incidentCreation":
-					if config.ConfValue != "" && config.ConfValue != " " {
-						c.AutomaticIncidentCreation = config.ConfValue == "true"
+					if c.ConfValue != "" && c.ConfValue != " " {
+						config.AutomaticIncidentCreation = c.ConfValue == "true"
 					}
 				case "utmstack.socai.changeAlertStatus":
-					if config.ConfValue != "" && config.ConfValue != " " {
-						c.ChangeAlertStatus = config.ConfValue == "true"
+					if c.ConfValue != "" && c.ConfValue != " " {
+						config.ChangeAlertStatus = c.ConfValue == "true"
 					}
 				case "utmstack.socai.model":
-					if config.ConfValue != "" && config.ConfValue != " " {
-						c.Model = config.ConfValue
+					if c.ConfValue != "" && c.ConfValue != " " {
+						config.Model = c.ConfValue
 					}
 				}
 			}

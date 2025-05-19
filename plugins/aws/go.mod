@@ -8,8 +8,11 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.67
 	github.com/google/uuid v1.6.0
 	github.com/threatwinds/go-sdk v1.0.13
+	github.com/threatwinds/logger v1.2.1
 	github.com/utmstack/config-client-go v1.2.6
 )
+
+require gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 
 require (
 	cel.dev/expr v0.23.1 // indirect

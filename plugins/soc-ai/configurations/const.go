@@ -1,14 +1,6 @@
 package configurations
 
-import (
-	"path/filepath"
-
-	"github.com/utmstack/UTMStack/plugins/soc-ai/utils"
-)
-
 const (
-	SOC_AI_SERVER_PORT                  = "8080"
-	SOC_AI_SERVER_ENDPOINT              = "/process"
 	API_ALERT_ENDPOINT                  = "/api/elasticsearch/search"
 	API_ALERT_STATUS_ENDPOINT           = "/api/utm-alerts/status"
 	API_INCIDENT_ENDPOINT               = "/api/utm-incidents"
@@ -55,6 +47,8 @@ type SensitivePattern struct {
 }
 
 var (
+	FakeUserName      = "John Doe"
+	FakeEmail         = "jhondoe@gmail.com"
 	SensitivePatterns = map[string]SensitivePattern{
 		"email": {Regexp: `([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})`, FakeValue: "jhondoe@gmail.com"},
 		//"ipv4":  `(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)`,
@@ -63,16 +57,3 @@ var (
 	GPT_FALSE_POSITIVE  = "This alert is categorized as a potential false positive due to two key factors. Firstly, it originates from an automated system, which may occasionally produce alerts without direct human validation. Additionally, the absence of any correlated logs further raises suspicion, as a genuine incident typically leaves a trail of relevant log entries. Hence, the combination of its system-generated nature and the lack of associated logs suggests a likelihood of being a false positive rather than a genuine security incident."
 	CORRELATION_CONTEXT = "\n\nThe current alert has historical correlation with previous alerts:\n%s"
 )
-
-func GetOpenSearchHost() string {
-	return "http://" + utils.Getenv("OPENSEARCH_HOST", true)
-}
-
-func GetOpenSearchPort() string {
-	return utils.Getenv("OPENSEARCH_PORT", true)
-}
-
-func GetAlertsDBPath() string {
-	path, _ := utils.GetMyPath()
-	return filepath.Join(path, "database", "alerts.sqlite3")
-}

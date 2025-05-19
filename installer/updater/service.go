@@ -37,6 +37,7 @@ func (p *program) run() {
 	client := GetUpdaterClient()
 	go UpdateWindowConfig()
 	go client.UpdateProcess()
+	go SyncSystemLogs()
 	client.LicenseProcess()
 }
 

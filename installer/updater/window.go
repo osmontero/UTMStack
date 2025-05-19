@@ -27,7 +27,6 @@ func UpdateWindowConfig() {
 
 func IsInMaintenanceWindow() bool {
 	if windowConfig == "" {
-		config.Logger().Info("Maintenance window config not set in backend, presuming 24/7 maintenance window")
 		return true
 	}
 
