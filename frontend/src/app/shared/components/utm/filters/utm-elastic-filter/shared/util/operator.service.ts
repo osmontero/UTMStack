@@ -11,6 +11,7 @@ import {OperatorsType} from '../../../../../../types/filter/operators.type';
 export class OperatorService {
 
   getOperators(field: ElasticSearchFieldInfoType, operators: OperatorsType[]) {
+    console.log('field', field);
       if (field.type === ElasticDataTypesEnum.TEXT || field.type === ElasticDataTypesEnum.STRING ||
         field.type === ElasticDataTypesEnum.KEYWORD) {
         if (!field.name.includes('.keyword')) {

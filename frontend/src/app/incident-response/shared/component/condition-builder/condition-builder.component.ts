@@ -1,7 +1,14 @@
+import {HttpResponse} from '@angular/common/http';
 import {Component, Input, OnInit} from '@angular/core';
-import {FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {catchError, filter, map, tap} from 'rxjs/operators';
+import {UtmToastService} from '../../../../shared/alert/utm-toast.service';
+import {ALERT_INDEX_PATTERN} from '../../../../shared/constants/main-index-pattern.constant';
 import {ElasticOperatorsEnum} from '../../../../shared/enums/elastic-operators.enum';
+import {ElasticSearchIndexService} from '../../../../shared/services/elasticsearch/elasticsearch-index.service';
+import {ElasticSearchFieldInfoType} from '../../../../shared/types/elasticsearch/elastic-search-field-info.type';
 import {IncidentRuleType} from '../../type/incident-rule.type';
+import {of} from "rxjs";
 
 @Component({
   selector: 'app-condition-builder',
@@ -13,8 +20,11 @@ export class ConditionBuilderComponent implements OnInit {
   @Input() alert: any;
   @Input() group: FormGroup;
   @Input() rule: IncidentRuleType;
+  fields = [];
 
-  constructor(private fb: FormBuilder) { }
+  constructor(private fb: FormBuilder,
+              private elasticSearchIndexService: ElasticSearchIndexService,
+              private toastService: UtmToastService) { }
 
   ngOnInit() {
     if (this.rule) {
@@ -29,6 +39,19 @@ export class ConditionBuilderComponent implements OnInit {
     } else {
       this.addRuleCondition();
     }
+
+    this.elasticSearchIndexService.getElasticIndexField( {
+      indexPattern: ALERT_INDEX_PATTERN
+    }).pipe(
+      map((res: HttpResponse<ElasticSearchFieldInfoType[]>) => {
+        return res.body.filter(f => f.type !== 'date');
+      }),
+      tap((body) => this.fields = body ),
+      catchError(() => {
+        this.toastService.showError('Error', 'An error has occurred while fetching fields');
+        return of([]);
+      })
+    ).subscribe();
   }
 
   get ruleConditions() {
@@ -49,4 +72,7 @@ export class ConditionBuilderComponent implements OnInit {
     this.ruleConditions.removeAt(index);
   }
 
+  getConditionFormControl(condition: AbstractControl) {
+    return condition as FormGroup;
+  }
 }
