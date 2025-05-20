@@ -10,7 +10,13 @@ export class WorkflowActionsService {
   actions$ = this.actionsBehaviorSubject.asObservable();
 
   setActions(action: any) {
-    this.actionsBehaviorSubject.next([{...action}]);
+    const actions = this.actionsBehaviorSubject.value ? this.actionsBehaviorSubject.value : [];
+    this.actionsBehaviorSubject.next([...actions, action]);
+  }
+
+  deleteAction(action: any) {
+    const actions = this.actionsBehaviorSubject.value ? this.actionsBehaviorSubject.value : [];
+    this.actionsBehaviorSubject.next(actions.filter(act => act !== action));
   }
 
   clear(){

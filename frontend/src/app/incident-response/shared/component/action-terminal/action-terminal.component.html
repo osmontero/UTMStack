@@ -3,8 +3,10 @@
   <div class="alert alert-warning alert-styled-right mb-4 mt-3 alert-dismissible">
     <span>Warning! You may cause damage to the infrastructure and services of your organization, please review the automation command before saving it</span>
   </div>
-      <span class="font-size-lg mb-2"> <i
-        class="icon-keyboard"></i> Press <b>TAB</b> to use alert fields in the command</span>
+  <span class="font-size-lg mb-2">
+    <i class="icon-keyboard"></i> Press <b>TAB</b> to use alert fields in the command
+  </span>
+
   <div class="window mb-3">
     <div class="terminal">
       <div class="d-flex justify-content-start align-items-start">
@@ -18,7 +20,8 @@
                   #area
                   class="command ml-2"
                   rows="10"
-                  placeholder="Enter command here"></textarea>
+                  placeholder="Enter command here">
+        </textarea>
       </div>
 
       <ng-template #colContent>
@@ -34,14 +37,16 @@
           </li>
         </ul>
       </ng-template>
+
     </div>
   </div>
+
   <div class="button-container d-flex justify-content-end mt-auto pt-3 w-100">
     <button (click)="close()" class="btn utm-button utm-button-outline-primary ng-star-inserted">
      Cancel
     </button>
 
-    <button class="btn utm-button utm-button-primary ml-2 ng-star-inserted">
+    <button (click)="create()" class="btn utm-button utm-button-primary ml-2 ng-star-inserted">
        Create
     </button>
   </div>

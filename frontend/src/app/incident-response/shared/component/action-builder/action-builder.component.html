@@ -1,8 +1,18 @@
+<div class="playbook-trigger-header panel panel-default">
+  <div class="panel-body d-flex align-items-center">
+    <div class="trigger-icon text-primary">
+      <i class="glyphicon glyphicon-flash"></i>
+    </div>
+    <div class="ml-2">
+      <h4 class="panel-title m-0">Playbook Actions</h4>
+      <small class="text-muted">These actions define what this automation will do once triggered</small>
+    </div>
+  </div>
+</div>
+
 <div [formGroup]="group" class="card-body">
   <div class="row">
     <div class="col-md-12">
-      <h6 class="text-success mb-3">Action Workflow</h6>
-
       <div *ngIf="noPlatforms"
            class="w-100 alert alert-danger alert-styled-right mt-3">
        <span class="font-weight-semibold">
@@ -71,7 +81,8 @@
 
 
       <div *ngIf="workflow$ | async as workflow" class="card phantom-action py-4 px-5 workflow-card align-items-center">
-        <div style="height: 88px" *ngFor="let action of workflow" class="d-flex flex-column align-items-center justify-content-center action-block w-100">
+
+        <!--<div style="height: 88px" *ngFor="let action of workflow" class="d-flex flex-column align-items-center justify-content-center action-block w-100">
           <div style="min-height: 70px !important;" class="card-body d-flex flex-column w-100 justify-content-center">
             <div class="d-flex align-items-center justify-content-between mb-2">
               <div class="d-flex align-items-center">
@@ -85,10 +96,54 @@
               </div>
             </div>
           </div>
+        </div>-->
 
+        <!-- Timeline container -->
+        <!-- Secuencia de acciones -->
+        <div class="workflow-timeline">
+
+          <div *ngFor="let action of workflow; let last = last" class="action-wrapper d-flex flex-column align-items-center w-100">
+            <!-- Action block -->
+            <div class="action-block d-flex flex-column align-items-center justify-content-center w-100" style="height: 88px;">
+              <div class="card-body d-flex flex-column w-100 justify-content-center" style="min-height: 70px;">
+                <div class="d-flex align-items-center justify-content-between mb-2" style="width: 100%;">
+                  <div class="d-flex align-items-center">
+                    <div class="icon-box mr-2" style="margin-right: 8px;"></div>
+                    <div>
+                      <div class="fw-bold">{{ action.label }}</div>
+                      <small class="text-muted">{{ action.description }}</small>
+                    </div>
+                  </div>
+                  <div class="icon-bin text-danger cursor-pointer" (click)="removeAction(action)"></div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="workflow" class="timeline-connector">
+              <div class="line-vertical"></div>
+              <div class="arrow-down">&#x2193;</div>
+            </div>
+          </div>
+
+          <div class="action-block d-flex flex-column align-items-center justify-content-center w-100 border-dash cursor-pointer" style="height: 88px">
+            <div (click)="openActionSidebar()" class="card-body d-flex flex-column w-100 justify-content-center" style="min-height: 70px;">
+
+            <div class="d-flex align-items-center justify-content-between mb-2" style="width: 100%;">
+              <div class="d-flex align-items-center">
+                <div class="icon-terminal mr-2" style="margin-right: 8px;"></div>
+                <div>
+                  <div class="fw-bold">Add New Action</div>
+                  <small class="text-muted">Define your own</small>
+                </div>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
 
-        <ng-container *ngIf="workflow.length === 0">
+
+
+        <!--<ng-container *ngIf="workflow.length === 0">
           <div style="border-radius: .2rem" class="d-flex flex-column align-items-center justify-content-center action-block w-25 cursor-pointer text-start hover-shadow"
             (click)="openActionSidebar()"
             role="button"
@@ -104,7 +159,7 @@
               </div>
             </div>
           </div>
-        </ng-container>
+        </ng-container>-->
       </div>
 
     </div>
