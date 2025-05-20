@@ -39,12 +39,6 @@ func GetConfig() *Config {
 func UpdateGPTConfigurations() {
 	GetConfig()
 
-	mode := plugins.GetCfg().Env.Mode
-	if mode != "manager" {
-		utils.Logger.ErrorF("Plugin is not running in manager mode, exiting...")
-		os.Exit(0)
-	}
-
 	pluginConfig := plugins.PluginCfg("com.utmstack", false)
 	if !pluginConfig.Exists() {
 		utils.Logger.ErrorF("Plugin configuration not found")
