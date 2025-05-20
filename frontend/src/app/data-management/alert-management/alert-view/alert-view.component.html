@@ -119,7 +119,7 @@
                 </th>
               </tr>
               </thead>
-              <!--<tbody *ngIf="alerts && alerts.length>0">
+              <tbody *ngIf="alerts && alerts.length>0">
                 <tr *ngFor="let alert of alerts" class="cursor-pointer">
                   <td class="text-center">
                     <div class="d-flex justify-content-between align-items-center h-100 w-100 small-md-icon">
@@ -168,10 +168,10 @@
                     </td>
                   </ng-container>
                 </tr>
-              </tbody>-->
-              <tbody *ngIf="alerts && alerts.length > 0">
+              </tbody>
+              <!--<tbody *ngIf="alerts && alerts.length > 0">
               <ng-container *ngFor="let alert of alerts">
-                <!-- Fila principal (sin parentId) -->
+
                 <ng-container *ngIf="!alert.parentId">
                   <tr class="cursor-pointer">
                     <td class="text-center">
@@ -230,11 +230,9 @@
                     </ng-container>
                   </tr>
 
-                  <!-- Hijos -->
                   <ng-container *ngIf="alert.expanded">
                     <tr *ngFor="let child of getAlertById(alert.id)" class="bg-light">
                       <td class="text-center">
-                        <!-- Espacio vacío o íconos secundarios -->
                       </td>
                       <ng-container *ngFor="let td of fields">
                         <td [ngClass]="{'min-width': td.field === ALERT_ADVERSARY_FIELD || td.field === ALERT_TARGET_FIELD}"
@@ -249,7 +247,7 @@
                   </ng-container>
                 </ng-container>
               </ng-container>
-              </tbody>
+              </tbody>-->
 
               <tbody *ngIf="(alerts && alerts.length===0)  && !loading">
               <tr>
