@@ -120,14 +120,12 @@ public class UtmCorrelationRulesService {
         if (ruleId == null) {
             throw new BadRequestException(ctx + ": The rule must have an id to activate or deactivate.");
         }
-        Optional<UtmCorrelationRules> find = utmCorrelationRulesRepository.findById(ruleId);
-        if (find.isEmpty()) {
-            throw new BadRequestException(ctx + ": The rule you're trying to activate or deactivate is not present in database.");
-        }
+
+        UtmCorrelationRules rule = utmCorrelationRulesRepository.findById(ruleId)
+                .orElseThrow(() -> new RuntimeException(ctx + ": The rule you're trying to activate or deactivate is not present in database."));
         try {
-            UtmCorrelationRules rule = find.get();
             rule.setRuleActive(setActive);
-            this.save(rule);
+            this.utmCorrelationRulesRepository.save(rule);
         } catch (Exception ex) {
             throw new RuntimeException(ctx + ": An error occurred while adding a rule.", ex);
         }
