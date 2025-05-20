@@ -8,7 +8,7 @@
         <sql dbms="postgresql" splitStatements="true" stripComments="true">
 
             UPDATE utm_menu
-            set ame = 'Microsoft 365'
+            set name = 'Microsoft 365'
             WHERE id = 206;
 
         </sql>
