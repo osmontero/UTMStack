@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import {NgbActiveModal, NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import {INCIDENT_AUTOMATION_ALERT_FIELDS} from '../../../../shared/constants/alert/alert-field.constant';
+import {FormBuilder} from "@angular/forms";
 
 @Component({
   selector: 'app-action-terminal',
@@ -12,7 +13,8 @@ export class ActionTerminalComponent implements OnInit {
   alertFields = INCIDENT_AUTOMATION_ALERT_FIELDS;
   command: any;
 
-  constructor(public activeModal: NgbActiveModal, ) { }
+  constructor(public activeModal: NgbActiveModal,
+              private fb: FormBuilder) { }
 
   ngOnInit() {
   }
@@ -27,5 +29,11 @@ export class ActionTerminalComponent implements OnInit {
 
   close() {
     this.activeModal.close(true);
+  }
+
+  create() {
+    this.activeModal.close({
+      command: this.command,
+    });
   }
 }

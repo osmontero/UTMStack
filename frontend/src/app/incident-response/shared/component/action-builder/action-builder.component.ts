@@ -1,5 +1,6 @@
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {FormGroup} from '@angular/forms';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {Observable, of, Subject} from 'rxjs';
 import {catchError, finalize, map, takeUntil, tap} from 'rxjs/operators';
 import {UtmNetScanService} from '../../../../assets-discover/shared/services/utm-net-scan.service';
@@ -7,8 +8,7 @@ import {NetScanType} from '../../../../assets-discover/shared/types/net-scan.typ
 import {UtmToastService} from '../../../../shared/alert/utm-toast.service';
 import {InputClassResolve} from '../../../../shared/util/input-class-resolve';
 import {WorkflowActionsService} from '../../services/workflow-actions.service';
-import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
-import {ActionTerminalComponent} from "../action-terminal/action-terminal.component";
+import {ActionTerminalComponent} from '../action-terminal/action-terminal.component';
 
 @Component({
   selector: 'app-action-builder',
@@ -40,8 +40,6 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
 
     this.workflow$ = this.workflowActionsService.actions$
       .pipe(takeUntil(this.destroy$));
-
-    this.workflow$.subscribe( w => console.log(w));
   }
 
   getPlatforms() {
@@ -106,6 +104,21 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
 
   openActionSidebar() {
     const dialogRef = this.modalService.open(ActionTerminalComponent, {size: 'lg', centered: true});
+
+    dialogRef.result.then(
+      result => {
+        if (result) {
+          this.workflowActionsService.setActions({
+            label: 'Custom Action',
+            description: result.command
+          });
+          this.group.get('command').setValue(result.command);
+        }
+      },
+      reason => {
+        console.log('Modal cerrado por:', reason);
+      }
+    );
   }
 
   ngOnDestroy(): void {
@@ -113,7 +126,7 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  removeAction() {
-    this.workflowActionsService.clear();
+  removeAction(action: any) {
+    this.workflowActionsService.deleteAction(action);
   }
 }
