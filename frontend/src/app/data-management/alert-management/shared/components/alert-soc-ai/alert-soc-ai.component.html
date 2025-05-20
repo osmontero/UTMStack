@@ -50,17 +50,17 @@
 <div *ngIf="isEmpty(socAiResponse) && !loading" class="w-100">
   <div class="w-100 alert alert-info alert-styled-right mb-3 alert-dismissible">
     <span class="font-weight-semibold">Info! </span>
-    <span>The SOC AI integration did not analyze this Alert; use the button below to kick-start an analysis</span>
+    <span>The SOC-AI integration did not analyze this alert due to inactivity or a processing error.</span>
   </div>
 
-  <div class="d-flex justify-content-end mb-2">
+  <!--<div class="d-flex justify-content-end mb-2">
     <button (click)="processAlert()"
             [disabled]="loadingProcess"
             class="btn utm-button utm-button-primary ml-2">
       <i [ngClass]="{'icon-spinner2 spinner': loadingProcess}"></i>
       {{ loadingProcess ? 'Processing' : 'Process Alert'}}
     </button>
-  </div>
+  </div>-->
 
 </div>
 
