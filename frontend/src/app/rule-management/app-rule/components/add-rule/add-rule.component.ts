@@ -21,7 +21,7 @@ export class AddRuleComponent implements OnInit, OnDestroy {
   loadingDataTypes = false;
   daTypeRequest: { page: number, size: number, sort: string } = {
     page: -1,
-    size: 10,
+    size: 1000,
     sort: 'dataType,ASC'
   };
   types$: Observable<DataType[]>;
