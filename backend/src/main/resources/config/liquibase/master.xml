@@ -216,4 +216,6 @@
 
     <include file="/config/liquibase/changelog/20250519001_updateo_365_menu_display_name.xml" relativeToChangelogFile="false"/>
 
+    <include file="/config/liquibase/changelog/20250516001_udpate_sophos_name.xml" relativeToChangelogFile="false"/>
+
 </databaseChangeLog>
