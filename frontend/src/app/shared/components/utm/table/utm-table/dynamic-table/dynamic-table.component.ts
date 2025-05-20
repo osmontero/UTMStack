@@ -16,7 +16,7 @@ import {ElasticDataTypesEnum} from '../../../../../enums/elastic-data-types.enum
 import {UtmDateFormatEnum} from '../../../../../enums/utm-date-format.enum';
 import {UtmFieldType} from '../../../../../types/table/utm-field.type';
 import {
-  convertObjectToKeyValueArray,
+  convertObjectToKeyValueArray, extractFieldValueFromKvArray,
   extractValueFromObjectByPath
 } from '../../../../../util/get-value-object-from-property-path.util';
 import {SUMMARY_COLUMNS} from './summary-fields';
@@ -103,7 +103,7 @@ export class UtmDynamicTableComponent implements OnInit, OnDestroy {
   }
 
   resolveTdValue(row: any, td: UtmFieldType): any {
-    const value = extractValueFromObjectByPath(row, td);
+    const value = extractFieldValueFromKvArray(row, td);
     return td.type === this.dataTypeEnum.DATE && value === '-' ?
       null : value;
   }
