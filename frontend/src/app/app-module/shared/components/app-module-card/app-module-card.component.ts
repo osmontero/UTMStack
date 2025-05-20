@@ -1,5 +1,9 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {VersionType, VersionTypeService} from '../../../../shared/services/util/version-type.service';
 import {UtmModuleType} from '../../type/utm-module.type';
+import {Subject} from "rxjs";
+import {takeUntil} from "rxjs/operators";
+import {UtmModulesEnum} from "../../enum/utm-module.enum";
 
 @Component({
   selector: 'app-app-module-card',
@@ -7,17 +11,30 @@ import {UtmModuleType} from '../../type/utm-module.type';
   styleUrls: ['./app-module-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AppModuleCardComponent implements OnInit {
+export class AppModuleCardComponent implements OnInit, OnDestroy {
   @Input() module: UtmModuleType;
   @Output() showModuleIntegration = new EventEmitter<UtmModuleType>();
+  versionType = VersionType;
+  version: VersionType;
+  destroy$: Subject<void> = new Subject<void>();
 
-  constructor() {
+  constructor(private versionTypeService: VersionTypeService) {
   }
 
   ngOnInit() {
+    this.versionTypeService.versionType$
+    .pipe(takeUntil(this.destroy$))
+      .subscribe(versionType => this.version = versionType);
   }
 
   showIntegration() {
     this.showModuleIntegration.emit(this.module);
   }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  protected readonly UtmModulesEnum = UtmModulesEnum;
 }
