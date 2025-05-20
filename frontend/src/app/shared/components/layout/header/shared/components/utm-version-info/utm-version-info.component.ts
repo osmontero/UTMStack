@@ -29,10 +29,11 @@ export class UtmVersionInfoComponent implements OnInit {
       .pipe(
         map(response => response.body || null),
         tap((versionInfo: VersionInfo) => {
+          console.log('versionInfo', versionInfo);
           const version = versionInfo && versionInfo.build && versionInfo.build.version || '';
-          const versionType = version.includes('community') ? VersionType.COMMUNITY : VersionType.ENTERPRISE;
+          const versionType = version.includes('community') || version === '' ? VersionType.COMMUNITY : VersionType.ENTERPRISE;
 
-          if (versionType !== this.versionTypeService.versionType()){
+          if (versionType !== this.versionTypeService.versionType()) {
             this.versionTypeService.changeVersionType(versionType);
           }
         }),
