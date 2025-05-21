@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -20,7 +19,8 @@ const delayCheck = 300
 func main() {
 	mode := plugins.GetCfg().Env.Mode
 	if mode != "manager" {
-		os.Exit(0)
+		// Don't exit, just return
+		return
 	}
 
 	pCfg := plugins.PluginCfg("com.utmstack", false)
@@ -53,6 +53,8 @@ func main() {
 
 		for _, group := range moduleConfig.ConfigurationGroups {
 			go func(group types.ModuleGroup) {
+				defer wg.Done()
+
 				var skip bool
 
 				for _, cnf := range group.Configurations {
@@ -65,7 +67,6 @@ func main() {
 				if !skip {
 					pullLogs(group)
 				}
-				wg.Done()
 			}(group)
 		}
 
