@@ -58,45 +58,92 @@ type AlertFields struct {
 }
 
 func main() {
-	socketsFolder, err := utils.MkdirJoin(plugins.WorkDir, "sockets")
-	if err != nil {
-		_ = catcher.Error("cannot create socket directory", err, nil)
-		os.Exit(1)
-	}
+	// Recover from panics to ensure the main function doesn't terminate
+	defer func() {
+		if r := recover(); r != nil {
+			_ = catcher.Error("recovered from panic in alerts main function", nil, map[string]any{
+				"panic": r,
+			})
+			// Restart the main function after a brief delay
+			time.Sleep(5 * time.Second)
+			go main()
+		}
+	}()
 
-	socketFile := socketsFolder.FileJoin("com.utmstack.alerts_correlation.sock")
-	_ = os.Remove(socketFile)
+	// Initialize with retry logic instead of exiting
+	var socketsFolder utils.Folder
+	var err error
+	var socketFile string
+	var unixAddress *net.UnixAddr
+	var listener *net.UnixListener
 
-	unixAddress, err := net.ResolveUnixAddr("unix", socketFile)
-	if err != nil {
-		_ = catcher.Error("cannot resolve unix address", err, nil)
-		os.Exit(1)
-	}
+	// Retry loop for initialization
+	for {
+		socketsFolder, err = utils.MkdirJoin(plugins.WorkDir, "sockets")
+		if err != nil {
+			_ = catcher.Error("cannot create socket directory", err, nil)
+			time.Sleep(5 * time.Second)
+			continue
+		}
 
-	listener, err := net.ListenUnix("unix", unixAddress)
-	if err != nil {
-		_ = catcher.Error("cannot listen to unix socket", err, nil)
-		os.Exit(1)
+		socketFile = socketsFolder.FileJoin("com.utmstack.alerts_correlation.sock")
+		_ = os.Remove(socketFile)
+
+		unixAddress, err = net.ResolveUnixAddr("unix", socketFile)
+		if err != nil {
+			_ = catcher.Error("cannot resolve unix address", err, nil)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
+		listener, err = net.ListenUnix("unix", unixAddress)
+		if err != nil {
+			_ = catcher.Error("cannot listen to unix socket", err, nil)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+
+		// If we got here, initialization was successful
+		break
 	}
 
 	grpcServer := grpc.NewServer()
 	plugins.RegisterCorrelationServer(grpcServer, &correlationServer{})
 
-	osUrl := plugins.PluginCfg("com.utmstack", false).Get("opensearch").String()
-	err = opensearch.Connect([]string{osUrl})
-	if err != nil {
-		_ = catcher.Error("cannot connect to OpenSearch", err, nil)
-		os.Exit(1)
+	// Connect to OpenSearch with retry logic
+	for {
+		osUrl := plugins.PluginCfg("com.utmstack", false).Get("opensearch").String()
+		err = opensearch.Connect([]string{osUrl})
+		if err != nil {
+			_ = catcher.Error("cannot connect to OpenSearch", err, nil)
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		// If we got here, connection was successful
+		break
 	}
 
+	// Serve with error handling
 	if err := grpcServer.Serve(listener); err != nil {
 		_ = catcher.Error("cannot serve grpc", err, nil)
-		os.Exit(1)
+		// Instead of exiting, restart the main function
+		time.Sleep(5 * time.Second)
+		go main()
+		return
 	}
 }
 
 func (p *correlationServer) Correlate(_ context.Context,
 	alert *plugins.Alert) (*emptypb.Empty, error) {
+	// Recover from panics to ensure the method doesn't terminate
+	defer func() {
+		if r := recover(); r != nil {
+			_ = catcher.Error("recovered from panic in Correlate method", nil, map[string]any{
+				"panic": r,
+				"alert": alert.Name,
+			})
+		}
+	}()
 
 	parentId := getPreviousAlertId(alert)
 
@@ -104,6 +151,16 @@ func (p *correlationServer) Correlate(_ context.Context,
 }
 
 func getPreviousAlertId(alert *plugins.Alert) string {
+	// Recover from panics to ensure the function doesn't terminate
+	defer func() {
+		if r := recover(); r != nil {
+			_ = catcher.Error("recovered from panic in getPreviousAlertId", nil, map[string]any{
+				"panic": r,
+				"alert": alert.Name,
+			})
+		}
+	}()
+
 	if len(alert.DeduplicateBy) == 0 {
 		return ""
 	}
@@ -174,24 +231,53 @@ func getPreviousAlertId(alert *plugins.Alert) string {
 		Source:       &opensearch.Source{Excludes: []string{}},
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// Retry logic for search operation
+	maxRetries := 3
+	retryDelay := 2 * time.Second
 
-	defer cancel()
+	for retry := 0; retry < maxRetries; retry++ {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 
-	hits, err := searchQuery.SearchIn(ctx, []string{opensearch.BuildIndexPattern("v11", "alert")})
-	if err != nil {
-		_ = catcher.Error("cannot search for previous alerts", err, map[string]any{"alert": alert.Name})
-		return ""
+		hits, err := searchQuery.SearchIn(ctx, []string{opensearch.BuildIndexPattern("v11", "alert")})
+		if err == nil {
+			if hits.Hits.Total.Value != 0 {
+				return hits.Hits.Hits[0].ID
+			}
+			return ""
+		}
+
+		_ = catcher.Error("cannot search for previous alerts, retrying", err, map[string]any{
+			"alert":      alert.Name,
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		}
 	}
 
-	if hits.Hits.Total.Value != 0 {
-		return hits.Hits.Hits[0].ID
-	}
-
+	// If we get here, all retries failed
+	_ = catcher.Error("all retries failed when searching for previous alerts", nil, map[string]any{
+		"alert": alert.Name,
+	})
 	return ""
 }
 
 func newAlert(alert *plugins.Alert, parentId string) error {
+	// Recover from panics to ensure the function doesn't terminate
+	defer func() {
+		if r := recover(); r != nil {
+			_ = catcher.Error("recovered from panic in newAlert", nil, map[string]any{
+				"panic": r,
+				"alert": alert.Name,
+			})
+		}
+	}()
+
 	var severityN int
 	var severityLabel string
 	switch alert.Severity {
@@ -239,16 +325,37 @@ func newAlert(alert *plugins.Alert, parentId string) error {
 		DeduplicatedBy: alert.DeduplicateBy,
 	}
 
-	cancelableContext, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	// Retry logic for indexing operation
+	maxRetries := 3
+	retryDelay := 2 * time.Second
 
-	defer cancel()
+	for retry := 0; retry < maxRetries; retry++ {
+		cancelableContext, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
 
-	err := opensearch.IndexDoc(cancelableContext, a, opensearch.BuildCurrentIndex("v11", "alert"), alert.Id)
-	if err != nil {
-		return catcher.Error("cannot index document", err, map[string]any{
-			"alert": alert.Name,
+		err := opensearch.IndexDoc(cancelableContext, a, opensearch.BuildCurrentIndex("v11", "alert"), alert.Id)
+		if err == nil {
+			return nil
+		}
+
+		_ = catcher.Error("cannot index document, retrying", err, map[string]any{
+			"alert":      alert.Name,
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
 		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		} else {
+			// If all retries failed, return the error
+			return catcher.Error("all retries failed when indexing document", err, map[string]any{
+				"alert": alert.Name,
+			})
+		}
 	}
 
+	// This should never be reached, but just in case
 	return nil
 }
