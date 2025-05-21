@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -16,7 +16,7 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-const maxMessageSize = 1024 * 1024 * 1024
+const maxMessageSize = 20 * 1024 * 1024 // 20MB
 
 type LogAuthService struct {
 	Mutex              *sync.Mutex
@@ -57,8 +57,9 @@ func (auth *LogAuthService) syncKeys(typ agent.ConnectorType) {
 	internalKey := pConfig.Get("internalKey").String()
 
 	if agentManager == "" {
-		_ = catcher.Error("agentManager config is empty", nil, nil)
-		os.Exit(1)
+		_ = catcher.Error("Could not sync keys. This is a common occurrence during the startup process and typically resolves on its own after a short while.", fmt.Errorf("configuration is empty"), nil)
+		// Don't exit, just return and retry later
+		return
 	}
 
 	tlsConfig := &tls.Config{
@@ -68,7 +69,7 @@ func (auth *LogAuthService) syncKeys(typ agent.ConnectorType) {
 	tlsCredentials := credentials.NewTLS(tlsConfig)
 	conn, err := grpc.NewClient(agentManager, grpc.WithTransportCredentials(tlsCredentials), grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(maxMessageSize)))
 	if err != nil {
-		_ = catcher.Error("cannot to connect to agent manager", err, nil)
+		_ = catcher.Error("Could not sync keys. This is a common occurrence during the startup process and typically resolves on its own after a short while.", err, nil)
 		return
 	}
 	defer func() {

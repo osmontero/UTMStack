@@ -7,7 +7,6 @@ import (
 	"github.com/threatwinds/go-sdk/utils"
 	"net"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -19,6 +18,10 @@ import (
 )
 
 func startHTTPServer(middlewares *Middlewares, cert string, key string) {
+	// Retry logic for starting HTTP server
+	maxRetries := 3
+	retryDelay := 2 * time.Second
+
 	gin.SetMode(gin.ReleaseMode)
 
 	router := gin.Default()
@@ -27,10 +30,26 @@ func startHTTPServer(middlewares *Middlewares, cert string, key string) {
 	router.GET("/v1/ping", Ping)
 	router.GET("/v1/health", func(c *gin.Context) { c.Status(http.StatusOK) })
 
-	err := router.RunTLS(":8080", cert, key)
-	if err != nil {
-		_ = catcher.Error("failed to start http server", err, nil)
-		os.Exit(1)
+	for retry := 0; retry < maxRetries; retry++ {
+		err := router.RunTLS(":8080", cert, key)
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("failed to start http server, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		} else {
+			// If all retries failed, log the error and return
+			_ = catcher.Error("all retries failed when starting http server", err, nil)
+			return
+		}
 	}
 }
 
@@ -115,11 +134,32 @@ type integration struct {
 	plugins.UnimplementedIntegrationServer
 }
 
-func startGRPCServer(middlewares *Middlewares, cert string, key string) {
-	transportCredentials, err := credentials.NewServerTLSFromFile(cert, key)
-	if err != nil {
-		_ = catcher.Error("failed to create credentials", err, nil)
-		os.Exit(1)
+func startGRPCServer(middlewares *Middlewares, cert string, key string) error {
+	// Retry logic for creating credentials
+	maxRetries := 3
+	retryDelay := 2 * time.Second
+	var transportCredentials credentials.TransportCredentials
+	var err error
+
+	for retry := 0; retry < maxRetries; retry++ {
+		transportCredentials, err = credentials.NewServerTLSFromFile(cert, key)
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("failed to create credentials, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		} else {
+			// If all retries failed, log the error and return
+			return catcher.Error("all retries failed when creating credentials", err, nil)
+		}
 	}
 
 	server := grpc.NewServer(
@@ -135,16 +175,37 @@ func startGRPCServer(middlewares *Middlewares, cert string, key string) {
 	grpcHealth.RegisterHealthServer(server, healthServer)
 	healthServer.SetServingStatus("", grpcHealth.HealthCheckResponse_SERVING)
 
-	listener, err := net.Listen("tcp", "0.0.0.0:50051")
-	if err != nil {
-		_ = catcher.Error("failed to listen to grpc", err, nil)
-		os.Exit(1)
+	// Retry logic for listening to gRPC
+	retryDelay = 2 * time.Second
+	var listener net.Listener
+
+	for retry := 0; retry < maxRetries; retry++ {
+		listener, err = net.Listen("tcp", "0.0.0.0:50051")
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("failed to listen to grpc, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		} else {
+			// If all retries failed, log the error and return
+			return catcher.Error("all retries failed when listening to grpc", err, nil)
+		}
 	}
 
+	// Serve with error handling
 	if err := server.Serve(listener); err != nil {
-		_ = catcher.Error("failed to serve grpc", err, nil)
-		os.Exit(1)
+		return catcher.Error("failed to serve grpc", err, nil)
 	}
+
+	return nil
 }
 
 func (i *integration) ProcessLog(srv plugins.Integration_ProcessLogServer) error {

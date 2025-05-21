@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"crypto/tls"
+	"fmt"
+	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
 	"time"
 
@@ -11,6 +13,8 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/metadata"
 )
+
+const healthMaxMessageSize = 5 * 1024 * 1024 // 5MB
 
 func CheckAgentManagerHealth() {
 	tlsConfig := &tls.Config{
@@ -24,11 +28,14 @@ func CheckAgentManagerHealth() {
 		internalKey := pConfig.Get("internalKey").String()
 
 		if agentManager == "" {
-			panic("agentManager config is empty")
+			_ = catcher.Error("Could not connect to the Agent Manager. This is a common occurrence during the startup process and typically resolves on its own after a short while.", fmt.Errorf("configuration is empty"), nil)
+			time.Sleep(5 * time.Second)
+			continue
 		}
 
-		conn, err := grpc.NewClient(agentManager, grpc.WithTransportCredentials(tlsCredentials), grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(maxMessageSize)))
+		conn, err := grpc.NewClient(agentManager, grpc.WithTransportCredentials(tlsCredentials), grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(healthMaxMessageSize)))
 		if err != nil {
+			_ = catcher.Error("Could not connect to the Agent Manager. This is a common occurrence during the startup process and typically resolves on its own after a short while.", err, nil)
 			time.Sleep(5 * time.Second)
 			continue
 		}
@@ -43,6 +50,7 @@ func CheckAgentManagerHealth() {
 		if err != nil {
 			cancel()
 			_ = conn.Close()
+			_ = catcher.Error("Could not connect to the Agent Manager. This is a common occurrence during the startup process and typically resolves on its own after a short while.", err, nil)
 			time.Sleep(5 * time.Second)
 			continue
 		}
@@ -52,9 +60,5 @@ func CheckAgentManagerHealth() {
 			_ = conn.Close()
 			break
 		}
-
-		cancel()
-		_ = conn.Close()
-		time.Sleep(5 * time.Second)
 	}
 }
