@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -31,13 +30,38 @@ const (
 )
 
 func main() {
+	// Recover from panics to ensure the main function doesn't terminate
+	defer func() {
+		if r := recover(); r != nil {
+			_ = catcher.Error("recovered from panic in main function", nil, map[string]any{
+				"panic": r,
+			})
+			// Restart the main function after a brief delay
+			time.Sleep(5 * time.Second)
+			go main()
+		}
+	}()
+
 	mode := plugins.GetCfg().Env.Mode
 	if mode != "manager" {
-		os.Exit(0)
+		return
 	}
 
 	for t := 0; t < 2*runtime.NumCPU(); t++ {
-		go plugins.SendLogsFromChannel()
+		go func() {
+			// Recover from panics to ensure the goroutine doesn't terminate
+			defer func() {
+				if r := recover(); r != nil {
+					_ = catcher.Error("recovered from panic in SendLogsFromChannel", nil, map[string]any{
+						"panic": r,
+					})
+					// Restart the goroutine after a brief delay
+					time.Sleep(1 * time.Second)
+					go plugins.SendLogsFromChannel()
+				}
+			}()
+			plugins.SendLogsFromChannel()
+		}()
 	}
 
 	for {
@@ -75,6 +99,18 @@ func main() {
 
 			for _, group := range moduleConfig.ConfigurationGroups {
 				go func(group types.ModuleGroup) {
+					// Recover from panics to ensure the goroutine doesn't terminate
+					defer func() {
+						if r := recover(); r != nil {
+							_ = catcher.Error("recovered from panic in group processor", nil, map[string]any{
+								"panic": r,
+								"group": group.GroupName,
+							})
+						}
+					}()
+
+					defer wg.Done()
+
 					var skip bool
 
 					for _, cnf := range group.Configurations {
@@ -88,8 +124,6 @@ func main() {
 						azureProcessor := getAzureProcessor(group)
 						azureProcessor.pull()
 					}
-
-					wg.Done()
 				}(group)
 			}
 
@@ -128,45 +162,121 @@ func getAzureProcessor(group types.ModuleGroup) AzureConfig {
 }
 
 func (ap *AzureConfig) pull() {
-	cred, err := azidentity.NewClientSecretCredential(ap.TenantID, ap.ClientID, ap.ClientSecretValue, nil)
+	// Retry logic for Azure credential creation
+	maxRetries := 3
+	retryDelay := 2 * time.Second
+	var cred *azidentity.ClientSecretCredential
+	var err error
+
+	for retry := 0; retry < maxRetries; retry++ {
+		cred, err = azidentity.NewClientSecretCredential(ap.TenantID, ap.ClientID, ap.ClientSecretValue, nil)
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("cannot obtain Azure credentials, retrying", err, map[string]any{
+			"group":      ap.GroupName,
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		}
+	}
+
 	if err != nil {
-		_ = catcher.Error("cannot obtain Azure credentials", err, map[string]any{
+		_ = catcher.Error("all retries failed when obtaining Azure credentials", err, map[string]any{
 			"group": ap.GroupName,
 		})
 		return
 	}
 
-	client, err := azquery.NewLogsClient(cred, nil)
+	// Retry logic for Azure client creation
+	retryDelay = 2 * time.Second
+	var client *azquery.LogsClient
+
+	for retry := 0; retry < maxRetries; retry++ {
+		client, err = azquery.NewLogsClient(cred, nil)
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("cannot create Logs client, retrying", err, map[string]any{
+			"group":      ap.GroupName,
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		}
+	}
+
 	if err != nil {
-		_ = catcher.Error("cannot create Logs client", err, map[string]any{
+		_ = catcher.Error("all retries failed when creating Logs client", err, map[string]any{
 			"group": ap.GroupName,
 		})
 		return
 	}
 
-	res, err := client.QueryWorkspace(
-		context.TODO(),
-		ap.WorkspaceID,
-		azquery.Body{
-			Query: to.Ptr("union * | where TimeGenerated >= ago(5m)| order by TimeGenerated desc"),
-		},
-		nil,
-	)
-	if err != nil {
-		_ = catcher.Error("cannot query Logs", err, map[string]any{
-			"group": ap.GroupName,
+	// Create a context with timeout for the query
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	// Retry logic for Azure query
+	retryDelay = 2 * time.Second
+	var tables []*azquery.Table
+	var queryErr error
+
+	for retry := 0; retry < maxRetries; retry++ {
+		resp, err := client.QueryWorkspace(
+			ctx,
+			ap.WorkspaceID,
+			azquery.Body{
+				Query: to.Ptr("union * | where TimeGenerated >= ago(5m)| order by TimeGenerated desc"),
+			},
+			nil,
+		)
+
+		// Determine the actual error
+		if resp.Error != nil {
+			queryErr = resp.Error
+		} else {
+			queryErr = err
+		}
+
+		if queryErr == nil {
+			tables = resp.Tables
+			break
+		}
+
+		_ = catcher.Error("cannot query Logs, retrying", queryErr, map[string]any{
+			"group":      ap.GroupName,
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
 		})
-		return
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		}
 	}
-	if res.Error != nil {
-		_ = catcher.Error("cannot query Logs", err, map[string]any{
+
+	if queryErr != nil {
+		_ = catcher.Error("all retries failed when querying Logs", queryErr, map[string]any{
 			"group": ap.GroupName,
 		})
 		return
 	}
 
 	var logs []map[string]any
-	for _, table := range res.Tables {
+	for _, table := range tables {
 		for _, row := range table.Rows {
 			rowMap := make(map[string]any)
 			for i, column := range table.Columns {
