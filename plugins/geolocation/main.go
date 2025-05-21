@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"os"
+	"time"
 
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
@@ -19,34 +20,104 @@ type parsingServer struct {
 }
 
 func main() {
-	filePath, err := utils.MkdirJoin(plugins.WorkDir, "sockets")
-	if err != nil {
-		_ = catcher.Error("cannot create directory", err, nil)
-		os.Exit(1)
+	// Retry logic for creating socket directory
+	maxRetries := 3
+	retryDelay := 2 * time.Second
+
+	var filePath utils.Folder
+	var err error
+
+	for retry := 0; retry < maxRetries; retry++ {
+		filePath, err = utils.MkdirJoin(plugins.WorkDir, "sockets")
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("cannot create directory, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		} else {
+			// If all retries failed, log the error and return
+			_ = catcher.Error("all retries failed when creating directory", err, nil)
+			return
+		}
 	}
+
 	socketPath := filePath.FileJoin("com.utmstack.geolocation_parsing.sock")
 	_ = os.Remove(socketPath)
 
-	unixAddress, err := net.ResolveUnixAddr("unix", socketPath)
-	if err != nil {
-		_ = catcher.Error("cannot resolve unix address", err, nil)
-		os.Exit(1)
+	// Retry logic for resolving unix address
+	retryDelay = 2 * time.Second
+	var unixAddress *net.UnixAddr
+
+	for retry := 0; retry < maxRetries; retry++ {
+		unixAddress, err = net.ResolveUnixAddr("unix", socketPath)
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("cannot resolve unix address, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		} else {
+			// If all retries failed, log the error and return
+			_ = catcher.Error("all retries failed when resolving unix address", err, nil)
+			return
+		}
 	}
 
-	listener, err := net.ListenUnix("unix", unixAddress)
-	if err != nil {
-		_ = catcher.Error("cannot listen to unix socket", err, nil)
-		os.Exit(1)
+	// Retry logic for listening to unix socket
+	retryDelay = 2 * time.Second
+	var listener *net.UnixListener
+
+	for retry := 0; retry < maxRetries; retry++ {
+		listener, err = net.ListenUnix("unix", unixAddress)
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("cannot listen to unix socket, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		} else {
+			// If all retries failed, log the error and return
+			_ = catcher.Error("all retries failed when listening to unix socket", err, nil)
+			return
+		}
 	}
 
 	grpcServer := grpc.NewServer()
 	plugins.RegisterParsingServer(grpcServer, &parsingServer{})
 
-	go update()
+	go loadGeolocationData()
 
-	if err := grpcServer.Serve(listener); err != nil {
-		_ = catcher.Error("cannot serve grpc", err, nil)
-		os.Exit(1)
+	// Serve with error handling and retry logic
+	for {
+		err := grpcServer.Serve(listener)
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("cannot serve grpc, retrying", err, nil)
+		time.Sleep(5 * time.Second)
 	}
 }
 
