@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -52,7 +51,7 @@ func GetTenantId() string {
 func main() {
 	mode := plugins.GetCfg().Env.Mode
 	if mode != "worker" {
-		os.Exit(0)
+		return
 	}
 
 	for i := 0; i < 2*runtime.NumCPU(); i++ {
@@ -97,6 +96,8 @@ func main() {
 
 			for _, group := range moduleConfig.ConfigurationGroups {
 				go func(group types.ModuleGroup) {
+					defer wg.Done()
+
 					var skip bool
 
 					for _, cnf := range group.Configurations {
@@ -109,8 +110,6 @@ func main() {
 					if !skip {
 						PullLogs(startTime, endTime, group)
 					}
-
-					wg.Done()
 				}(group)
 			}
 
@@ -195,14 +194,33 @@ func (o *OfficeProcessor) GetAuth() error {
 
 	dataBytes := []byte(data.Encode())
 
-	result, _, err := utils.DoReq[MicrosoftLoginResponse](requestUrl, dataBytes, http.MethodPost, headers)
-	if err != nil {
-		return err
+	// Retry logic for authentication
+	maxRetries := 3
+	retryDelay := 2 * time.Second
+
+	var result MicrosoftLoginResponse
+	var err error
+
+	for retry := 0; retry < maxRetries; retry++ {
+		result, _, err = utils.DoReq[MicrosoftLoginResponse](requestUrl, dataBytes, http.MethodPost, headers)
+		if err == nil {
+			o.Credentials = result
+			return nil
+		}
+
+		_ = catcher.Error("error getting authentication, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		}
 	}
 
-	o.Credentials = result
-
-	return nil
+	return catcher.Error("all retries failed when getting authentication", err, nil)
 }
 
 func (o *OfficeProcessor) StartSubscriptions() error {
@@ -213,12 +231,40 @@ func (o *OfficeProcessor) StartSubscriptions() error {
 			"Authorization": fmt.Sprintf("%s %s", o.Credentials.TokenType, o.Credentials.AccessToken),
 		}
 
-		_, _, err := utils.DoReq[StartSubscriptionResponse](link, []byte("{}"), http.MethodPost, headers)
-		if err != nil {
+		// Retry logic for starting subscriptions
+		maxRetries := 3
+		retryDelay := 2 * time.Second
+
+		var err error
+
+		for retry := 0; retry < maxRetries; retry++ {
+			_, _, err = utils.DoReq[StartSubscriptionResponse](link, []byte("{}"), http.MethodPost, headers)
+			if err == nil {
+				break
+			}
+
+			// If the subscription is already enabled, that's not an error
 			if strings.Contains(err.Error(), "subscription is already enabled") {
 				return nil
 			}
-			return err
+
+			_ = catcher.Error("error starting subscription, retrying", err, map[string]any{
+				"retry":        retry + 1,
+				"maxRetries":   maxRetries,
+				"subscription": subscription,
+			})
+
+			if retry < maxRetries-1 {
+				time.Sleep(retryDelay)
+				// Increase delay for next retry
+				retryDelay *= 2
+			}
+		}
+
+		if err != nil {
+			return catcher.Error("all retries failed when starting subscription", err, map[string]any{
+				"subscription": subscription,
+			})
 		}
 	}
 
@@ -233,13 +279,38 @@ func (o *OfficeProcessor) GetContentList(subscription string, startTime string, 
 		"Authorization": fmt.Sprintf("%s %s", o.Credentials.TokenType, o.Credentials.AccessToken),
 	}
 
-	respBody, status, err := utils.DoReq[[]ContentList](link, nil, http.MethodGet, headers)
-	if err != nil || status != http.StatusOK {
-		return []ContentList{}, err
+	// Retry logic for getting content list
+	maxRetries := 3
+	retryDelay := 2 * time.Second
+
+	var respBody []ContentList
+	var status int
+	var err error
+
+	for retry := 0; retry < maxRetries; retry++ {
+		respBody, status, err = utils.DoReq[[]ContentList](link, nil, http.MethodGet, headers)
+		if err == nil && status == http.StatusOK {
+			return respBody, nil
+		}
+
+		_ = catcher.Error("error getting content list, retrying", err, map[string]any{
+			"retry":        retry + 1,
+			"maxRetries":   maxRetries,
+			"subscription": subscription,
+			"status":       status,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		}
 	}
 
-	return respBody, nil
-
+	return []ContentList{}, catcher.Error("all retries failed when getting content list", err, map[string]any{
+		"subscription": subscription,
+		"status":       status,
+	})
 }
 
 func (o *OfficeProcessor) GetContentDetails(url string) (ContentDetailsResponse, error) {
@@ -248,12 +319,38 @@ func (o *OfficeProcessor) GetContentDetails(url string) (ContentDetailsResponse,
 		"Authorization": fmt.Sprintf("%s %s", o.Credentials.TokenType, o.Credentials.AccessToken),
 	}
 
-	respBody, _, err := utils.DoReq[ContentDetailsResponse](url, nil, http.MethodGet, headers)
-	if err != nil {
-		return ContentDetailsResponse{}, err
+	// Retry logic for getting content details
+	maxRetries := 3
+	retryDelay := 2 * time.Second
+
+	var respBody ContentDetailsResponse
+	var status int
+	var err error
+
+	for retry := 0; retry < maxRetries; retry++ {
+		respBody, status, err = utils.DoReq[ContentDetailsResponse](url, nil, http.MethodGet, headers)
+		if err == nil {
+			return respBody, nil
+		}
+
+		_ = catcher.Error("error getting content details, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+			"url":        url,
+			"status":     status,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		}
 	}
 
-	return respBody, nil
+	return ContentDetailsResponse{}, catcher.Error("all retries failed when getting content details", err, map[string]any{
+		"url":    url,
+		"status": status,
+	})
 }
 
 func (o *OfficeProcessor) GetLogs(startTime string, endTime string) []string {
