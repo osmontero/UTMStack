@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
-	"os"
 	"runtime"
 	"sync"
 	"time"
@@ -16,16 +16,44 @@ import (
 var logs = make(chan string, 100*runtime.NumCPU())
 
 func addToQueue(l string) {
+	if len(logs) >= 100*runtime.NumCPU() {
+		_ = catcher.Error("cannot enqueue log", fmt.Errorf("queue is full"), map[string]any{
+			"queue": "logs",
+		})
+
+		return
+	}
+
 	logs <- l
 }
 
 func startQueue() {
-	osUrl := plugins.PluginCfg("com.utmstack", false).Get("opensearch").String()
+	// Retry logic for connecting to OpenSearch
+	maxRetries := 3
+	retryDelay := 2 * time.Second
 
-	err := opensearch.Connect([]string{osUrl})
-	if err != nil {
-		_ = catcher.Error("cannot connect to OpenSearch", err, nil)
-		os.Exit(1)
+	for retry := 0; retry < maxRetries; retry++ {
+		osUrl := plugins.PluginCfg("com.utmstack", false).Get("opensearch").String()
+
+		err := opensearch.Connect([]string{osUrl})
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("cannot connect to OpenSearch, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		} else {
+			// If all retries failed, log the error and return
+			_ = catcher.Error("all retries failed when connecting to OpenSearch", err, nil)
+			return
+		}
 	}
 
 	numCPU := runtime.NumCPU() * 2

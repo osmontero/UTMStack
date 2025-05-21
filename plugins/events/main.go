@@ -7,6 +7,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"time"
 
 	"google.golang.org/grpc"
 )
@@ -16,35 +17,103 @@ type analysisServer struct {
 }
 
 func main() {
-	filePath, err := utils.MkdirJoin(plugins.WorkDir, "sockets")
-	if err != nil {
-		_ = catcher.Error("cannot create socket directory", err, nil)
-		os.Exit(1)
+	// Retry logic for initialization
+	maxRetries := 3
+	retryDelay := 2 * time.Second
+
+	// Initialize with retry logic instead of exiting
+	var filePath utils.Folder
+	var err error
+	var socketPath string
+	var unixAddress *net.UnixAddr
+	var listener *net.UnixListener
+
+	// Retry loop for creating socket directory
+	for retry := 0; retry < maxRetries; retry++ {
+		filePath, err = utils.MkdirJoin(plugins.WorkDir, "sockets")
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("cannot create socket directory, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		} else {
+			// If all retries failed, log the error and return
+			_ = catcher.Error("all retries failed when creating socket directory", err, nil)
+			return
+		}
 	}
 
-	socketPath := filePath.FileJoin("com.utmstack.events_analysis.sock")
+	socketPath = filePath.FileJoin("com.utmstack.events_analysis.sock")
 	_ = os.Remove(socketPath)
 
-	unixAddress, err := net.ResolveUnixAddr("unix", socketPath)
-	if err != nil {
-		_ = catcher.Error("cannot resolve unix address", err, nil)
-		os.Exit(1)
+	// Retry loop for resolving unix address
+	retryDelay = 2 * time.Second
+	for retry := 0; retry < maxRetries; retry++ {
+		unixAddress, err = net.ResolveUnixAddr("unix", socketPath)
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("cannot resolve unix address, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		} else {
+			// If all retries failed, log the error and return
+			_ = catcher.Error("all retries failed when resolving unix address", err, nil)
+			return
+		}
 	}
 
 	startQueue()
 
-	listener, err := net.ListenUnix("unix", unixAddress)
-	if err != nil {
-		_ = catcher.Error("cannot listen to unix socket", err, nil)
-		os.Exit(1)
+	// Retry loop for listening to unix socket
+	retryDelay = 2 * time.Second
+	for retry := 0; retry < maxRetries; retry++ {
+		listener, err = net.ListenUnix("unix", unixAddress)
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("cannot listen to unix socket, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		} else {
+			// If all retries failed, log the error and return
+			_ = catcher.Error("all retries failed when listening to unix socket", err, nil)
+			return
+		}
 	}
 
 	grpcServer := grpc.NewServer()
 	plugins.RegisterAnalysisServer(grpcServer, &analysisServer{})
 
+	// Serve with error handling
 	if err := grpcServer.Serve(listener); err != nil {
 		_ = catcher.Error("cannot serve grpc", err, nil)
-		os.Exit(1)
+		// Instead of exiting, restart the main function
+		time.Sleep(5 * time.Second)
+		go main()
+		return
 	}
 }
 
