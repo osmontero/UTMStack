@@ -9,6 +9,7 @@ import {UtmToastService} from '../../../../shared/alert/utm-toast.service';
 import {InputClassResolve} from '../../../../shared/util/input-class-resolve';
 import {WorkflowActionsService} from '../../services/workflow-actions.service';
 import {ActionTerminalComponent} from '../action-terminal/action-terminal.component';
+import {ActionConditionalEnum} from "../action-conditional/action-conditional.component";
 
 @Component({
   selector: 'app-action-builder',
@@ -39,7 +40,13 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
     this.platforms$ = this.getPlatforms();
 
     this.workflow$ = this.workflowActionsService.actions$
-      .pipe(takeUntil(this.destroy$));
+      .pipe(takeUntil(this.destroy$),
+          map(actions => {
+            return actions.map(action => ({
+              ...action,
+              conditional: { key: ActionConditionalEnum.ALWAYS, value: ';'},
+            }))
+          }));
   }
 
   getPlatforms() {
@@ -128,5 +135,9 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
 
   removeAction(action: any) {
     this.workflowActionsService.deleteAction(action);
+  }
+
+  select(always: string) {
+
   }
 }
