@@ -32,18 +32,6 @@ const (
 )
 
 func main() {
-	// Recover from panics to ensure the main function doesn't terminate
-	defer func() {
-		if r := recover(); r != nil {
-			_ = catcher.Error("recovered from panic in main function", nil, map[string]any{
-				"panic": r,
-			})
-			// Restart the main function after a brief delay
-			time.Sleep(5 * time.Second)
-			go main()
-		}
-	}()
-
 	utils.Logger.Info("Starting AWS plugin...")
 
 	mode := plugins.GetCfg().Env.Mode
@@ -54,17 +42,6 @@ func main() {
 
 	for t := 0; t < 2*runtime.NumCPU(); t++ {
 		go func() {
-			// Recover from panics to ensure the goroutine doesn't terminate
-			defer func() {
-				if r := recover(); r != nil {
-					_ = catcher.Error("recovered from panic in SendLogsFromChannel", nil, map[string]any{
-						"panic": r,
-					})
-					// Restart the goroutine after a brief delay
-					time.Sleep(1 * time.Second)
-					go plugins.SendLogsFromChannel()
-				}
-			}()
 			plugins.SendLogsFromChannel()
 		}()
 	}
@@ -108,16 +85,7 @@ func main() {
 
 			for _, group := range moduleConfig.ConfigurationGroups {
 				go func(group types.ModuleGroup) {
-					// Recover from panics to ensure the goroutine doesn't terminate
-					defer func() {
-						if r := recover(); r != nil {
-							_ = catcher.Error("recovered from panic in group processor", nil, map[string]any{
-								"panic": r,
-								"group": group.GroupName,
-							})
-							wg.Done()
-						}
-					}()
+					defer wg.Done()
 
 					var skip bool
 
