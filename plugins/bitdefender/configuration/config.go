@@ -30,6 +30,18 @@ const delayCheckConfig = 30 * time.Second
 var configsSent = make(map[string]ModuleConfig)
 
 func ConfigureModules(cnf *types.ConfigurationSection, mutex *sync.Mutex) {
+	// Recover from panics to ensure the function doesn't terminate
+	defer func() {
+		if r := recover(); r != nil {
+			_ = catcher.Error("recovered from panic in ConfigureModules", nil, map[string]any{
+				"panic": r,
+			})
+			// Restart the function after a brief delay
+			time.Sleep(5 * time.Second)
+			go ConfigureModules(cnf, mutex)
+		}
+	}()
+
 	for {
 		if err := utils.ConnectionChecker(UrlCheckConnection); err != nil {
 			_ = catcher.Error("External connection failure detected: %v", err, nil)
@@ -41,16 +53,41 @@ func ConfigureModules(cnf *types.ConfigurationSection, mutex *sync.Mutex) {
 
 		time.Sleep(delayCheckConfig)
 
-		tempModuleConfig, err := client.GetUTMConfig(enum.BITDEFENDER)
-		if err != nil {
+		// Retry logic for getting module configuration
+		maxRetries := 3
+		retryDelay := 2 * time.Second
+		var tempModuleConfig *types.ConfigurationSection
+		var err error
+
+		for retry := 0; retry < maxRetries; retry++ {
+			tempModuleConfig, err = client.GetUTMConfig(enum.BITDEFENDER)
+			if err == nil {
+				break
+			}
+
 			if strings.Contains(err.Error(), "invalid character '<'") {
-				continue
+				break // This is a special case, just continue with the main loop
 			}
+
 			if (err.Error() != "") && (err.Error() != " ") {
-				_ = catcher.Error("error getting configuration of the Bitdefender module", err, map[string]any{})
+				_ = catcher.Error("error getting configuration of the Bitdefender module, retrying", err, map[string]any{
+					"retry":      retry + 1,
+					"maxRetries": maxRetries,
+				})
 			}
+
+			if retry < maxRetries-1 {
+				time.Sleep(retryDelay)
+				// Increase delay for next retry
+				retryDelay *= 2
+			}
+		}
+
+		if err != nil {
+			// If there was an error, continue with the next iteration
 			continue
 		}
+
 		mutex.Lock()
 		*cnf = *tempModuleConfig
 		mutex.Unlock()
@@ -58,27 +95,46 @@ func ConfigureModules(cnf *types.ConfigurationSection, mutex *sync.Mutex) {
 		for _, group := range (*cnf).ConfigurationGroups {
 			isNecessaryConfig := compareConfigs(configsSent, group)
 			if isNecessaryConfig {
-				if !araAnyEmpty(group.Configurations[0].ConfValue, group.Configurations[1].ConfValue, group.Configurations[2].ConfValue, group.Configurations[3].ConfValue) {
-					if err := apiPush(group, "sendConf"); err != nil {
-						_ = catcher.Error("error sending configuration", err, map[string]any{})
-						continue
-					}
-					time.Sleep(15 * time.Second)
-					if err := apiPush(group, "getConf"); err != nil {
-						_ = catcher.Error("error getting configuration", err, map[string]any{})
-						continue
-					}
-					if err := apiPush(group, "sendTest"); err != nil {
-						_ = catcher.Error("error sending test event", err, map[string]any{})
-						continue
-					}
+				if !areAnyEmpty(group.Configurations[0].ConfValue, group.Configurations[1].ConfValue, group.Configurations[2].ConfValue, group.Configurations[3].ConfValue) {
+					// Retry logic for API operations
+					func() {
+						// Recover from panics in this block
+						defer func() {
+							if r := recover(); r != nil {
+								_ = catcher.Error("recovered from panic in API operations", nil, map[string]any{
+									"panic": r,
+									"group": group.GroupName,
+								})
+							}
+						}()
 
-					configsSent[group.GroupName] = ModuleConfig{
-						ConnectionKey: group.Configurations[0].ConfValue,
-						AccessUrl:     group.Configurations[1].ConfValue,
-						MasterIp:      group.Configurations[2].ConfValue,
-						CompaniesIDs:  strings.Split(group.Configurations[3].ConfValue, ","),
-					}
+						if err := apiPush(group, "sendConf"); err != nil {
+							_ = catcher.Error("error sending configuration", err, map[string]any{
+								"group": group.GroupName,
+							})
+							return
+						}
+						time.Sleep(15 * time.Second)
+						if err := apiPush(group, "getConf"); err != nil {
+							_ = catcher.Error("error getting configuration", err, map[string]any{
+								"group": group.GroupName,
+							})
+							return
+						}
+						if err := apiPush(group, "sendTest"); err != nil {
+							_ = catcher.Error("error sending test event", err, map[string]any{
+								"group": group.GroupName,
+							})
+							return
+						}
+
+						configsSent[group.GroupName] = ModuleConfig{
+							ConnectionKey: group.Configurations[0].ConfValue,
+							AccessUrl:     group.Configurations[1].ConfValue,
+							MasterIp:      group.Configurations[2].ConfValue,
+							CompaniesIDs:  strings.Split(group.Configurations[3].ConfValue, ","),
+						}
+					}()
 				}
 			}
 		}
@@ -140,7 +196,7 @@ func sendTestPushEvent(config types.ModuleGroup) (*http.Response, error) {
 	return sendRequest(body, config)
 }
 
-func araAnyEmpty(strings ...string) bool {
+func areAnyEmpty(strings ...string) bool {
 	for _, s := range strings {
 		if s == "" || s == " " {
 			return true
