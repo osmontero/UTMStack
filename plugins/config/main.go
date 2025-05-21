@@ -233,80 +233,103 @@ func (f *Filter) FromVar(id int, name any, filter any) {
 func main() {
 	mode := plugins.GetCfg().Env.Mode
 	if mode != "manager" {
-		os.Exit(0)
+		return
 	}
 
 	for {
-		db, err := connect()
-		if err != nil {
-			_ = catcher.Error("failed to connect to database", err, map[string]any{})
-			os.Exit(1)
-		}
+		func() {
+			db, err := connect()
+			if err != nil {
+				_ = catcher.Error("failed to connect to database", err, map[string]any{})
+				// Don't exit, just sleep and retry
+				time.Sleep(30 * time.Second)
+				return
+			}
+			defer func() { _ = db.Close() }()
 
-		filters, err := getFilters(db)
-		if err != nil {
-			_ = catcher.Error("failed to get filters", err, map[string]any{})
-			os.Exit(1)
-		}
+			filters, err := getFilters(db)
+			if err != nil {
+				_ = catcher.Error("failed to get filters", err, map[string]any{})
+				// Don't exit, just sleep and retry
+				time.Sleep(30 * time.Second)
+				return
+			}
 
-		assets, err := getAssets(db)
-		if err != nil {
-			_ = catcher.Error("failed to get assets", err, map[string]any{})
-			os.Exit(1)
-		}
+			assets, err := getAssets(db)
+			if err != nil {
+				_ = catcher.Error("failed to get assets", err, map[string]any{})
+				// Don't exit, just sleep and retry
+				time.Sleep(30 * time.Second)
+				return
+			}
 
-		rules, err := getRules(db)
-		if err != nil {
-			_ = catcher.Error("failed to get rules", err, map[string]any{})
-			os.Exit(1)
-		}
+			rules, err := getRules(db)
+			if err != nil {
+				_ = catcher.Error("failed to get rules", err, map[string]any{})
+				// Don't exit, just sleep and retry
+				time.Sleep(30 * time.Second)
+				return
+			}
 
-		patterns, err := getPatterns(db)
-		if err != nil {
-			_ = catcher.Error("failed to get patterns", err, map[string]any{})
-			os.Exit(1)
-		}
+			patterns, err := getPatterns(db)
+			if err != nil {
+				_ = catcher.Error("failed to get patterns", err, map[string]any{})
+				// Don't exit, just sleep and retry
+				time.Sleep(30 * time.Second)
+				return
+			}
 
-		_ = db.Close()
+			tenant := Tenant{}
+			tenant.FromVar([]int64{}, assets)
 
-		tenant := Tenant{}
-		tenant.FromVar([]int64{}, assets)
+			err = cleanUpFilters(filters)
+			if err != nil {
+				_ = catcher.Error("failed to clean up filters", err, map[string]any{})
+				// Don't exit, just sleep and retry
+				time.Sleep(30 * time.Second)
+				return
+			}
 
-		err = cleanUpFilters(filters)
-		if err != nil {
-			_ = catcher.Error("failed to clean up filters", err, map[string]any{})
-			os.Exit(1)
-		}
+			err = writeFilters(filters)
+			if err != nil {
+				_ = catcher.Error("failed to write filters", err, map[string]any{})
+				// Don't exit, just sleep and retry
+				time.Sleep(30 * time.Second)
+				return
+			}
 
-		err = writeFilters(filters)
-		if err != nil {
-			_ = catcher.Error("failed to write filters", err, map[string]any{})
-			os.Exit(1)
-		}
+			err = cleanUpRules(rules)
+			if err != nil {
+				_ = catcher.Error("failed to clean up rules", err, map[string]any{})
+				// Don't exit, just sleep and retry
+				time.Sleep(30 * time.Second)
+				return
+			}
 
-		err = cleanUpRules(rules)
-		if err != nil {
-			_ = catcher.Error("failed to clean up rules", err, map[string]any{})
-			os.Exit(1)
-		}
+			err = writeRules(rules)
+			if err != nil {
+				_ = catcher.Error("failed to write rules", err, map[string]any{})
+				// Don't exit, just sleep and retry
+				time.Sleep(30 * time.Second)
+				return
+			}
 
-		err = writeRules(rules)
-		if err != nil {
-			_ = catcher.Error("failed to write rules", err, map[string]any{})
-			os.Exit(1)
-		}
+			err = writeTenant(tenant)
+			if err != nil {
+				_ = catcher.Error("failed to write tenant", err, map[string]any{})
+				// Don't exit, just sleep and retry
+				time.Sleep(30 * time.Second)
+				return
+			}
 
-		err = writeTenant(tenant)
-		if err != nil {
-			_ = catcher.Error("failed to write tenant", err, map[string]any{})
-			os.Exit(1)
-		}
-
-		err = writePatterns(patterns)
-		if err != nil {
-			_ = catcher.Error("failed to write patterns", err, map[string]any{})
-			os.Exit(1)
-		}
+			err = writePatterns(patterns)
+			if err != nil {
+				_ = catcher.Error("failed to write patterns", err, map[string]any{})
+				// Don't exit, just sleep and retry
+				time.Sleep(30 * time.Second)
+				return
+			}
+		}()
 
 		time.Sleep(5 * time.Minute)
 	}
@@ -541,13 +564,12 @@ func listFiles(folder string) ([]string, error) {
 func cleanUpFilters(filters []Filter) error {
 	filtersPath, err := utils.MkdirJoin(plugins.WorkDir, "pipeline", "filters")
 	if err != nil {
-		_ = catcher.Error("cannot create filters directory", err, nil)
-		os.Exit(1)
+		return catcher.Error("cannot create filters directory", err, nil)
 	}
 
 	files, e := listFiles(filtersPath.String())
 	if e != nil {
-		os.Exit(1)
+		return catcher.Error("failed to list files", e, nil)
 	}
 
 	for _, file := range files {
@@ -574,14 +596,12 @@ func cleanUpFilters(filters []Filter) error {
 func cleanUpRules(rules []Rule) error {
 	rulesFolder, err := utils.MkdirJoin(plugins.WorkDir, "rules", "utmstack")
 	if err != nil {
-		_ = catcher.Error("cannot create filters directory", err, nil)
-		os.Exit(1)
+		return catcher.Error("cannot create rules directory", err, nil)
 	}
 
 	files, err := listFiles(rulesFolder.String())
 	if err != nil {
-		_ = catcher.Error("failed to list files", err, map[string]any{})
-		os.Exit(1)
+		return catcher.Error("failed to list files", err, map[string]any{})
 	}
 
 	for _, file := range files {
@@ -609,8 +629,7 @@ func writeFilters(filters []Filter) error {
 	for _, filter := range filters {
 		filtersFolder, err := utils.MkdirJoin(plugins.WorkDir, "pipeline", "filters")
 		if err != nil {
-			_ = catcher.Error("cannot create filters directory", err, nil)
-			os.Exit(1)
+			return catcher.Error("cannot create filters directory", err, nil)
 		}
 
 		file, err := os.Create(filtersFolder.FileJoin(fmt.Sprintf("%d.yaml", filter.Id)))
@@ -635,8 +654,7 @@ func writeFilters(filters []Filter) error {
 func writeTenant(tenant Tenant) error {
 	pipelineFolder, err := utils.MkdirJoin(plugins.WorkDir, "pipeline")
 	if err != nil {
-		_ = catcher.Error("cannot create pipeline directory", err, nil)
-		os.Exit(1)
+		return catcher.Error("cannot create pipeline directory", err, nil)
 	}
 
 	file, err := os.Create(pipelineFolder.FileJoin("tenants.yaml"))
@@ -672,8 +690,7 @@ func writeRules(rules []Rule) error {
 	for _, rule := range rules {
 		filePath, err := utils.MkdirJoin(plugins.WorkDir, "rules", "utmstack")
 		if err != nil {
-			_ = catcher.Error("cannot create rules directory", err, nil)
-			os.Exit(1)
+			return catcher.Error("cannot create rules directory", err, nil)
 		}
 
 		file, err := os.Create(filePath.FileJoin(fmt.Sprintf("%d.yaml", rule.Id)))
@@ -703,8 +720,7 @@ func writeRules(rules []Rule) error {
 func writePatterns(patterns map[string]string) error {
 	filePath, err := utils.MkdirJoin(plugins.WorkDir, "pipeline")
 	if err != nil {
-		_ = catcher.Error("cannot create pipeline directory", err, nil)
-		os.Exit(1)
+		return catcher.Error("cannot create pipeline directory", err, nil)
 	}
 	file, err := os.Create(filePath.FileJoin("patterns.yaml"))
 	if err != nil {
