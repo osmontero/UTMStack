@@ -21,6 +21,7 @@ import {IrSummaryComponent} from './component/ir-summary/ir-summary.component';
 import {IraHistoryComponent} from './component/ira-history/ira-history.component';
 import { ActionSidebarComponent } from './component/action-sidebar/action-sidebar.component';
 import { ActionTerminalComponent } from './component/action-terminal/action-terminal.component';
+import { ActionConditionalComponent } from './component/action-conditional/action-conditional.component';
 
 @NgModule({
   declarations: [IrJobCreateComponent,
@@ -37,7 +38,8 @@ import { ActionTerminalComponent } from './component/action-terminal/action-term
     ConditionItemComponent,
     ActionBuilderComponent,
     ActionSidebarComponent,
-    ActionTerminalComponent],
+    ActionTerminalComponent,
+    ActionConditionalComponent],
 
   entryComponents: [
     IrJobCreateComponent,
@@ -58,7 +60,8 @@ import { ActionTerminalComponent } from './component/action-terminal/action-term
     ConditionBuilderComponent,
     ActionBuilderComponent,
     ActionSidebarComponent,
-    ActionTerminalComponent
+    ActionTerminalComponent,
+    ActionConditionalComponent
   ],
   imports: [
     CommonModule,

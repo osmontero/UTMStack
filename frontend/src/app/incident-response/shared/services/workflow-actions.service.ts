@@ -1,12 +1,21 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject} from 'rxjs';
+import {
+  ActionConditionalEnum
+} from '../component/action-conditional/action-conditional.component';
+
+export interface WorkflowAction {
+  label: string;
+  description: string;
+  conditional?: { key: ActionConditionalEnum, value: string};
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class WorkflowActionsService {
 
-  private actionsBehaviorSubject: BehaviorSubject<any[]> = new BehaviorSubject([]);
+  private actionsBehaviorSubject: BehaviorSubject<WorkflowAction[]> = new BehaviorSubject([]);
   actions$ = this.actionsBehaviorSubject.asObservable();
 
   setActions(action: any) {
