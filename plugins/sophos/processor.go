@@ -50,21 +50,53 @@ func (p *SophosCentralProcessor) getAccessToken() (string, error) {
 		"Content-Type": "application/x-www-form-urlencoded",
 	}
 
-	response, _, err := utils.DoReq[map[string]any](authURL, []byte(data.Encode()), http.MethodPost, headers)
+	// Retry logic for getting access token
+	maxRetries := 3
+	retryDelay := 2 * time.Second
+
+	var response map[string]any
+	var err error
+
+	for retry := 0; retry < maxRetries; retry++ {
+		response, _, err = utils.DoReq[map[string]any](authURL, []byte(data.Encode()), http.MethodPost, headers)
+		if err == nil {
+			accessToken, ok := response["access_token"].(string)
+			if ok && accessToken != "" {
+				expiresIn, ok := response["expires_in"].(float64)
+				if ok {
+					p.AccessToken = accessToken
+					p.ExpiresAt = time.Now().Add(time.Duration(expiresIn) * time.Second)
+					return accessToken, nil
+				}
+			}
+		}
+
+		_ = catcher.Error("error getting access token, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		}
+	}
+
 	if err != nil {
-		return "", catcher.Error("error making auth request", err, map[string]any{})
+		return "", catcher.Error("all retries failed when getting access token", err, nil)
 	}
 
 	accessToken, ok := response["access_token"].(string)
 	if !ok || accessToken == "" {
-		return "", catcher.Error("access_token not found in response", nil, map[string]any{
+		return "", catcher.Error("access_token not found in response after all retries", nil, map[string]any{
 			"response": response,
 		})
 	}
 
 	expiresIn, ok := response["expires_in"].(float64)
 	if !ok {
-		return "", catcher.Error("expires_in not found in response", nil, map[string]any{
+		return "", catcher.Error("expires_in not found in response after all retries", nil, map[string]any{
 			"response": response,
 		})
 	}
@@ -90,20 +122,48 @@ func (p *SophosCentralProcessor) getTenantInfo(accessToken string) error {
 		"Authorization": "Bearer " + accessToken,
 	}
 
-	response, _, err := utils.DoReq[WhoamiResponse](whoamiURL, nil, http.MethodGet, headers)
+	// Retry logic for getting tenant info
+	maxRetries := 3
+	retryDelay := 2 * time.Second
+
+	var response WhoamiResponse
+	var err error
+
+	for retry := 0; retry < maxRetries; retry++ {
+		response, _, err = utils.DoReq[WhoamiResponse](whoamiURL, nil, http.MethodGet, headers)
+		if err == nil {
+			if response.ID != "" && response.ApiHosts.DataRegion != "" {
+				p.TenantID = response.ID
+				p.DataRegion = response.ApiHosts.DataRegion
+				return nil
+			}
+		}
+
+		_ = catcher.Error("error getting tenant info, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		}
+	}
+
 	if err != nil {
-		return catcher.Error("error making whoami request", err, map[string]any{})
+		return catcher.Error("all retries failed when getting tenant info", err, nil)
 	}
 
 	if response.ID == "" {
-		return catcher.Error("tenant ID not found in whoami response", nil, map[string]any{
+		return catcher.Error("tenant ID not found in whoami response after all retries", nil, map[string]any{
 			"response": response,
 		})
 	}
 	p.TenantID = response.ID
 
 	if response.ApiHosts.DataRegion == "" {
-		return catcher.Error("dataRegion not found in whoami response", nil, map[string]any{
+		return catcher.Error("dataRegion not found in whoami response after all retries", nil, map[string]any{
 			"response": response,
 		})
 	}
@@ -132,14 +192,57 @@ type Pages struct {
 }
 
 func (p *SophosCentralProcessor) getLogs(fromTime int, nextKey string) ([]string, string, error) {
-	accessToken, err := p.getValidAccessToken()
+	// Retry logic for getting access token
+	maxRetries := 3
+	retryDelay := 2 * time.Second
+
+	var accessToken string
+	var err error
+
+	for retry := 0; retry < maxRetries; retry++ {
+		accessToken, err = p.getValidAccessToken()
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("error getting access token, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		}
+	}
+
 	if err != nil {
-		return nil, "", fmt.Errorf("error getting access token: %v", err)
+		return nil, "", catcher.Error("all retries failed when getting access token", err, nil)
 	}
 
 	if p.TenantID == "" || p.DataRegion == "" {
-		if err := p.getTenantInfo(accessToken); err != nil {
-			return nil, "", fmt.Errorf("error getting tenant information: %v", err)
+		// Retry logic for getting tenant info
+		for retry := 0; retry < maxRetries; retry++ {
+			err = p.getTenantInfo(accessToken)
+			if err == nil {
+				break
+			}
+
+			_ = catcher.Error("error getting tenant info, retrying", err, map[string]any{
+				"retry":      retry + 1,
+				"maxRetries": maxRetries,
+			})
+
+			if retry < maxRetries-1 {
+				time.Sleep(retryDelay)
+				// Increase delay for next retry
+				retryDelay *= 2
+			}
+		}
+
+		if err != nil {
+			return nil, "", catcher.Error("all retries failed when getting tenant info", err, nil)
 		}
 	}
 
@@ -157,9 +260,28 @@ func (p *SophosCentralProcessor) getLogs(fromTime int, nextKey string) ([]string
 			"X-Tenant-ID":   p.TenantID,
 		}
 
-		response, _, err := utils.DoReq[EventAggregate](u.String(), nil, http.MethodGet, headers)
+		// Retry logic for getting logs
+		var response EventAggregate
+		for retry := 0; retry < maxRetries; retry++ {
+			response, _, err = utils.DoReq[EventAggregate](u.String(), nil, http.MethodGet, headers)
+			if err == nil {
+				break
+			}
+
+			_ = catcher.Error("error getting logs, retrying", err, map[string]any{
+				"retry":      retry + 1,
+				"maxRetries": maxRetries,
+			})
+
+			if retry < maxRetries-1 {
+				time.Sleep(retryDelay)
+				// Increase delay for next retry
+				retryDelay *= 2
+			}
+		}
+
 		if err != nil {
-			return nil, "", fmt.Errorf("error getting logs: %v", err)
+			return nil, "", catcher.Error("all retries failed when getting logs", err, nil)
 		}
 
 		for _, item := range response.Items {
