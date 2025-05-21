@@ -1,10 +1,10 @@
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, Observable, of} from 'rxjs';
+import {switchMap, tap} from 'rxjs/operators';
 import {SERVER_API_URL} from '../../app.constants';
 import {createRequestOption} from '../../shared/util/request-util';
 import {DataType} from '../models/rule.model';
-import {switchMap, tap} from 'rxjs/operators';
 
 const resourceUrl = `${SERVER_API_URL}api/data-types`;
 
@@ -42,7 +42,7 @@ export class DataTypeService {
        return this.http.delete<any>(`${resourceUrl}/${id}`, {observe: 'response'});
     }
 
-    public saveDataType( mode: string, type: Partial<DataType>){
+    public saveDataType( mode: string, type: Partial<DataType>) {
         return mode === 'ADD' ? this.save(type) : this.update(type);
     }
 
