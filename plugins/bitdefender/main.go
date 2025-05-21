@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
@@ -23,21 +24,83 @@ var (
 )
 
 func main() {
+	// Recover from panics to ensure the main function doesn't terminate
+	defer func() {
+		if r := recover(); r != nil {
+			_ = catcher.Error("recovered from panic in main function", nil, map[string]any{
+				"panic": r,
+			})
+			// Restart the main function after a brief delay
+			time.Sleep(5 * time.Second)
+			go main()
+		}
+	}()
+
 	mode := plugins.GetCfg().Env.Mode
 	if mode != "manager" {
-		os.Exit(0)
+		// Don't exit, just return
+		return
 	}
 
-	cert, key, err := loadCerts()
-	if err != nil {
-		_ = catcher.Error("cannot load certificates", err, nil)
-		os.Exit(1)
+	// Retry logic for loading certificates
+	maxRetries := 3
+	retryDelay := 2 * time.Second
+	var cert, key string
+	var err error
+
+	for retry := 0; retry < maxRetries; retry++ {
+		cert, key, err = loadCerts()
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("cannot load certificates, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		} else {
+			// If all retries failed, log the error and return
+			_ = catcher.Error("all retries failed when loading certificates", err, nil)
+			return
+		}
 	}
 
 	server.StartServer(&moduleConfig, cert, key)
-	go configuration.ConfigureModules(&moduleConfig, mutex)
 
-	go processor.ProcessLogs()
+	go func() {
+		// Recover from panics to ensure the goroutine doesn't terminate
+		defer func() {
+			if r := recover(); r != nil {
+				_ = catcher.Error("recovered from panic in ConfigureModules", nil, map[string]any{
+					"panic": r,
+				})
+				// Restart the goroutine after a brief delay
+				time.Sleep(5 * time.Second)
+				go configuration.ConfigureModules(&moduleConfig, mutex)
+			}
+		}()
+		configuration.ConfigureModules(&moduleConfig, mutex)
+	}()
+
+	go func() {
+		// Recover from panics to ensure the goroutine doesn't terminate
+		defer func() {
+			if r := recover(); r != nil {
+				_ = catcher.Error("recovered from panic in ProcessLogs", nil, map[string]any{
+					"panic": r,
+				})
+				// Restart the goroutine after a brief delay
+				time.Sleep(5 * time.Second)
+				go processor.ProcessLogs()
+			}
+		}()
+		processor.ProcessLogs()
+	}()
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT)
