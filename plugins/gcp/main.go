@@ -33,7 +33,7 @@ type GroupModule struct {
 func main() {
 	mode := plugins.GetCfg().Env.Mode
 	if mode != "worker" {
-		os.Exit(0)
+		return
 	}
 
 	for i := 0; i < 2*runtime.NumCPU(); i++ {
@@ -50,9 +50,36 @@ func main() {
 }
 
 func (g *GroupModule) PullLogs() {
-	client, err := pubsub.NewClient(g.CTX, g.ProjectID, option.WithCredentialsJSON([]byte(g.JsonKey)))
+
+	// Retry logic for creating client
+	maxRetries := 3
+	retryDelay := 2 * time.Second
+	var client *pubsub.Client
+	var err error
+
+	for retry := 0; retry < maxRetries; retry++ {
+		client, err = pubsub.NewClient(g.CTX, g.ProjectID, option.WithCredentialsJSON([]byte(g.JsonKey)))
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("failed to create client, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+			"group":      g.GroupName,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		}
+	}
+
 	if err != nil {
-		_ = catcher.Error("failed to create client", err, map[string]any{})
+		_ = catcher.Error("all retries failed when creating client", err, map[string]any{
+			"group": g.GroupName,
+		})
 		return
 	}
 
@@ -61,8 +88,7 @@ func (g *GroupModule) PullLogs() {
 	sub := client.Subscription(g.SubscriptionID)
 
 	for {
-
-		err = sub.Receive(g.CTX, func(ctx context.Context, msg *pubsub.Message) {
+		err := sub.Receive(g.CTX, func(ctx context.Context, msg *pubsub.Message) {
 			plugins.EnqueueLog(&plugins.Log{
 				Id:         uuid.NewString(),
 				TenantId:   defaultTenant,
@@ -77,6 +103,7 @@ func (g *GroupModule) PullLogs() {
 
 		if err != nil {
 			_ = catcher.Error("failed to receive message", err, map[string]any{})
+			time.Sleep(5 * time.Second)
 			continue
 		}
 	}
