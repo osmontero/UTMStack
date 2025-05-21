@@ -7,78 +7,94 @@ import (
 	"time"
 
 	"github.com/threatwinds/go-sdk/catcher"
-	"github.com/threatwinds/go-sdk/plugins"
 	"github.com/threatwinds/go-sdk/utils"
 )
 
-func update() {
-	first := true
-	for {
-		workdir, err := utils.MkdirJoin(plugins.WorkDir, "geolocation")
-		if err != nil {
-			_ = catcher.Error("could not create geolocation directory", err, nil)
-			continue
-		}
-		var files = map[string]string{
-			workdir.FileJoin("asn-blocks-v4.csv"): "https://cdn.utmstack.com/geoip/asn-blocks-v4.csv",
-			workdir.FileJoin("asn-blocks-v6.csv"): "https://cdn.utmstack.com/geoip/asn-blocks-v6.csv",
-			workdir.FileJoin("blocks-v4.csv"):     "https://cdn.utmstack.com/geoip/blocks-v4.csv",
-			workdir.FileJoin("blocks-v6.csv"):     "https://cdn.utmstack.com/geoip/blocks-v6.csv",
-			workdir.FileJoin("locations-en.csv"):  "https://cdn.utmstack.com/geoip/locations-en.csv",
-		}
+// loadGeolocationData loads the geolocation files and populates the maps
+func loadGeolocationData() {
+	// Get the geolocation directory from environment variable or use default
+	workdir := os.Getenv("GEOLOCATION_DIR")
+	if workdir == "" {
+		workdir = "/workdir/geolocation"
+	}
 
-		mode := os.Getenv("MODE")
-		if mode == "manager" {
-			if _, err := os.Stat(workdir.FileJoin("locations-en.csv")); os.IsNotExist(err) || !first {
-				for file, url := range files {
-					if err := utils.Download(url, file); err != nil {
-						_ = catcher.Error("could not download geolocation file", err, nil)
-						continue
-					}
+	// Define the geolocation files to be loaded
+	var files = []string{
+		"asn-blocks-v4.csv",
+		"asn-blocks-v6.csv",
+		"blocks-v4.csv",
+		"blocks-v6.csv",
+		"locations-en.csv",
+	}
+
+	// Use deferring to ensure the mutex is always unlocked, even if there's an error
+	func() {
+		mu.Lock()
+		defer mu.Unlock()
+
+		// Create new maps to avoid partial updates if there's an error
+		newAsnBlocks := make(map[string][]*asnBlock)
+		newCityBlocks := make(map[string][]*cityBlock)
+		newCityLocations := make(map[int64]*cityLocation)
+
+		// Process each file with retry logic
+		maxRetries := 3
+		for _, filename := range files {
+			filePath := workdir + "/" + filename
+			var csv [][]string
+			var err error
+
+			// Retry logic for reading the file
+			for retry := 0; retry < maxRetries; retry++ {
+				csv, err = utils.ReadCSV(filePath)
+				if err == nil {
+					break
+				}
+
+				_ = catcher.Error("could not read geolocation file, retrying", err, map[string]any{
+					"file":       filePath,
+					"retry":      retry + 1,
+					"maxRetries": maxRetries,
+				})
+
+				if retry < maxRetries-1 {
+					// Exponential backoff
+					time.Sleep(time.Duration(1<<uint(retry)) * time.Second)
 				}
 			}
-		} else {
-			time.Sleep(5 * time.Minute)
-		}
 
-		mu.Lock()
-
-		asnBlocks = make(map[string][]*asnBlock)
-		cityBlocks = make(map[string][]*cityBlock)
-		cityLocations = make(map[int64]*cityLocation)
-
-		for file := range files {
-			csv, err := utils.ReadCSV(file)
 			if err != nil {
-				_ = catcher.Error("could not read geolocation file", err, nil)
+				_ = catcher.Error("all retries failed when reading geolocation file", err, map[string]any{
+					"file": filePath,
+				})
 				continue
 			}
 
-			switch file {
-			case workdir.FileJoin("asn-blocks-v4.csv"):
-				populateASNBlocks(csv)
-			case workdir.FileJoin("asn-blocks-v6.csv"):
-				populateASNBlocks(csv)
-			case workdir.FileJoin("blocks-v4.csv"):
-				populateCityBlocks(csv)
-			case workdir.FileJoin("blocks-v6.csv"):
-				populateCityBlocks(csv)
-			case workdir.FileJoin("locations-en.csv"):
-				populateCityLocations(csv)
+			switch filename {
+			case "asn-blocks-v4.csv":
+				populateASNBlocksMap(csv, newAsnBlocks)
+			case "asn-blocks-v6.csv":
+				populateASNBlocksMap(csv, newAsnBlocks)
+			case "blocks-v4.csv":
+				populateCityBlocksMap(csv, newCityBlocks)
+			case "blocks-v6.csv":
+				populateCityBlocksMap(csv, newCityBlocks)
+			case "locations-en.csv":
+				populateCityLocationsMap(csv, newCityLocations)
 			}
 		}
 
-		mu.Unlock()
-
-		if first {
-			first = false
+		// Only update the global maps if all files were processed successfully
+		if len(newAsnBlocks) > 0 && len(newCityBlocks) > 0 && len(newCityLocations) > 0 {
+			asnBlocks = newAsnBlocks
+			cityBlocks = newCityBlocks
+			cityLocations = newCityLocations
 		}
-
-		time.Sleep(168 * time.Hour)
-	}
+	}()
 }
 
-func populateASNBlocks(csv [][]string) {
+// populateASNBlocksMap populates the provided ASN blocks map with data from the CSV
+func populateASNBlocksMap(csv [][]string, blocks map[string][]*asnBlock) {
 	for key, line := range csv {
 		if key == 0 {
 			continue
@@ -118,11 +134,12 @@ func populateASNBlocks(csv [][]string) {
 
 		start := getStart(n.IP.String())
 
-		asnBlocks[start] = append(asnBlocks[start], t)
+		blocks[start] = append(blocks[start], t)
 	}
 }
 
-func populateCityBlocks(csv [][]string) {
+// populateCityBlocksMap populates the provided city blocks map with data from the CSV
+func populateCityBlocksMap(csv [][]string, blocks map[string][]*cityBlock) {
 	for key, line := range csv {
 		if key == 0 {
 			continue
@@ -198,11 +215,12 @@ func populateCityBlocks(csv [][]string) {
 
 		start := getStart(n.IP.String())
 
-		cityBlocks[start] = append(cityBlocks[start], t)
+		blocks[start] = append(blocks[start], t)
 	}
 }
 
-func populateCityLocations(csv [][]string) {
+// populateCityLocationsMap populates the provided city locations map with data from the CSV
+func populateCityLocationsMap(csv [][]string, locations map[int64]*cityLocation) {
 	for key, line := range csv {
 		if key == 0 {
 			continue
@@ -223,6 +241,6 @@ func populateCityLocations(csv [][]string) {
 			cityName:       line[10],
 		}
 
-		cityLocations[geonameID] = t
+		locations[geonameID] = t
 	}
 }
