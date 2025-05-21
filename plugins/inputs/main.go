@@ -7,6 +7,7 @@ import (
 	"github.com/threatwinds/go-sdk/utils"
 	"os"
 	"runtime"
+	"time"
 )
 
 const defaultTenant string = "ce66672c-e36d-4761-a8c8-90058fee1a24"
@@ -16,20 +17,44 @@ var localLogsChannel chan *plugins.Log
 func main() {
 	mode := plugins.GetCfg().Env.Mode
 	if mode != "worker" {
-		os.Exit(0)
+		return
 	}
 
 	CheckAgentManagerHealth()
 
 	autService := NewLogAuthService()
-	go autService.SyncAuth()
+	go func() {
+		autService.SyncAuth()
+	}()
 
 	middlewares := NewMiddlewares(autService)
 
-	cert, key, err := loadCerts()
-	if err != nil {
-		_ = catcher.Error("cannot load certificates", err, nil)
-		os.Exit(1)
+	// Retry logic for loading certificates
+	maxRetries := 3
+	retryDelay := 2 * time.Second
+	var cert, key string
+	var err error
+
+	for retry := 0; retry < maxRetries; retry++ {
+		cert, key, err = loadCerts()
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("cannot load certificates, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		} else {
+			// If all retries failed, log the error and return
+			_ = catcher.Error("all retries failed when loading certificates", err, nil)
+			return
+		}
 	}
 
 	cpu := runtime.NumCPU()
@@ -41,7 +66,7 @@ func main() {
 	}
 
 	go startHTTPServer(middlewares, cert, key)
-	startGRPCServer(middlewares, cert, key)
+	_ = startGRPCServer(middlewares, cert, key)
 }
 
 func loadCerts() (string, string, error) {
