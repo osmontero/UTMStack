@@ -1,9 +1,9 @@
 import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {Subject} from 'rxjs';
+import {takeUntil} from 'rxjs/operators';
 import {VersionType, VersionTypeService} from '../../../../shared/services/util/version-type.service';
+import {UtmModulesEnum} from '../../enum/utm-module.enum';
 import {UtmModuleType} from '../../type/utm-module.type';
-import {Subject} from "rxjs";
-import {takeUntil} from "rxjs/operators";
-import {UtmModulesEnum} from "../../enum/utm-module.enum";
 
 @Component({
   selector: 'app-app-module-card',
@@ -16,6 +16,7 @@ export class AppModuleCardComponent implements OnInit, OnDestroy {
   @Output() showModuleIntegration = new EventEmitter<UtmModuleType>();
   versionType = VersionType;
   version: VersionType;
+  modules = UtmModulesEnum;
   destroy$: Subject<void> = new Subject<void>();
 
   constructor(private versionTypeService: VersionTypeService) {
@@ -36,5 +37,4 @@ export class AppModuleCardComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  protected readonly UtmModulesEnum = UtmModulesEnum;
 }
