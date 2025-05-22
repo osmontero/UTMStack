@@ -35,25 +35,60 @@ var successLock sync.Mutex
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	filePath, err := utils.MkdirJoin(plugins.WorkDir, "sockets")
-	if err != nil {
-		_ = catcher.Error("cannot create directory", err, nil)
-		os.Exit(1)
+	// Retry logic for initialization
+	var filePath utils.Folder
+	var err error
+	var socketPath string
+	var unixAddress *net.UnixAddr
+	var listener *net.UnixListener
+
+	// Retry logic for creating socket directory
+	maxRetries := 10
+	retryDelay := 5 * time.Second
+
+	for retry := 0; retry < maxRetries; retry++ {
+		filePath, err = utils.MkdirJoin(plugins.WorkDir, "sockets")
+		if err != nil {
+			_ = catcher.Error("cannot create directory, retrying", err, map[string]any{
+				"retry":      retry + 1,
+				"maxRetries": maxRetries,
+			})
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		socketPath = filePath.FileJoin("com.utmstack.stats_notification.sock")
+		_ = os.Remove(socketPath)
+
+		unixAddress, err = net.ResolveUnixAddr("unix", socketPath)
+		if err != nil {
+			_ = catcher.Error("cannot resolve unix address, retrying", err, map[string]any{
+				"retry":      retry + 1,
+				"maxRetries": maxRetries,
+			})
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		listener, err = net.ListenUnix("unix", unixAddress)
+		if err != nil {
+			_ = catcher.Error("cannot listen to unix socket, retrying", err, map[string]any{
+				"retry":      retry + 1,
+				"maxRetries": maxRetries,
+			})
+			time.Sleep(retryDelay)
+			continue
+		}
+
+		// If we got here, initialization was successful
+		break
 	}
 
-	socketPath := filePath.FileJoin("com.utmstack.stats_notification.sock")
-	_ = os.Remove(socketPath)
-
-	unixAddress, err := net.ResolveUnixAddr("unix", socketPath)
-
-	if err != nil {
-		_ = catcher.Error("cannot resolve unix address", err, nil)
-		os.Exit(1)
-	}
-
-	listener, err := net.ListenUnix("unix", unixAddress)
-	if err != nil {
-		_ = catcher.Error("cannot listen to unix socket", err, nil)
+	// If all retries failed, log a final error and exit
+	if listener == nil {
+		_ = catcher.Error("all retries failed when initializing socket", nil, map[string]any{
+			"maxRetries": maxRetries,
+		})
 		os.Exit(1)
 	}
 
@@ -67,8 +102,29 @@ func main() {
 	pCfg := plugins.PluginCfg("com.utmstack", false)
 	osUrl := pCfg.Get("opensearch").String()
 
-	if err := opensearch.Connect([]string{osUrl}); err != nil {
-		_ = catcher.Error("cannot connect to ElasticSearch/OpenSearch", err, nil)
+	// Retry logic for connecting to OpenSearch
+	maxOSRetries := 10
+	osRetryDelay := 5 * time.Second
+	var osConnected bool
+
+	for retry := 0; retry < maxOSRetries; retry++ {
+		err := opensearch.Connect([]string{osUrl})
+		if err == nil {
+			osConnected = true
+			break
+		}
+		_ = catcher.Error("cannot connect to ElasticSearch/OpenSearch, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxOSRetries,
+		})
+		time.Sleep(osRetryDelay)
+	}
+
+	// If all retries failed, log a final error and exit
+	if !osConnected {
+		_ = catcher.Error("all retries failed when connecting to OpenSearch", nil, map[string]any{
+			"maxRetries": maxOSRetries,
+		})
 		os.Exit(1)
 	}
 
@@ -79,7 +135,7 @@ func main() {
 		defer wg.Done()
 		if err := grpcServer.Serve(listener); err != nil {
 			_ = catcher.Error("cannot serve grpc", err, nil)
-			os.Exit(1)
+			// Instead of exiting, just log the error and let the main function handle it
 		}
 	}()
 
@@ -109,6 +165,8 @@ func main() {
 
 	grpcServer.GracefulStop()
 	cancel()
+
+	wg.Wait()
 }
 
 func (p *notificationServer) Notify(_ context.Context, msg *plugins.Message) (*emptypb.Empty, error) {
@@ -270,11 +328,35 @@ func sendStatistic(t string) {
 }
 
 func saveToOpenSearch[Data any](data Data) {
-	oCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-	defer cancel()
+	// Retry logic for indexing document
+	maxRetries := 3
+	retryDelay := 2 * time.Second
 
-	err := opensearch.IndexDoc(oCtx, &data, fmt.Sprintf("v11-statistics-%s", time.Now().UTC().Format("2006.01")), uuid.NewString())
-	if err != nil {
-		_ = catcher.Error("cannot index document", err, map[string]any{})
+	for retry := 0; retry < maxRetries; retry++ {
+		oCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+
+		err := opensearch.IndexDoc(oCtx, &data, fmt.Sprintf("v11-statistics-%s", time.Now().UTC().Format("2006.01")), uuid.NewString())
+		cancel()
+
+		if err == nil {
+			// Successfully indexed document
+			return
+		}
+
+		_ = catcher.Error("cannot index document, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry (exponential backoff)
+			retryDelay *= 2
+		}
 	}
+
+	// After all retries, log a final error
+	_ = catcher.Error("all retries failed when indexing document", nil, map[string]any{
+		"maxRetries": maxRetries,
+	})
 }

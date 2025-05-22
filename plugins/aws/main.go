@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -38,11 +37,13 @@ func main() {
 	mode := plugins.GetCfg().Env.Mode
 	if mode != "manager" {
 		utils.Logger.ErrorF("Plugin is not running in manager mode, exiting...")
-		os.Exit(0)
+		return
 	}
 
 	for t := 0; t < 2*runtime.NumCPU(); t++ {
-		go plugins.SendLogsFromChannel()
+		go func() {
+			plugins.SendLogsFromChannel()
+		}()
 	}
 
 	startTime := time.Now().UTC().Add(-1 * delayCheck * time.Second)
@@ -84,6 +85,8 @@ func main() {
 
 			for _, group := range moduleConfig.ConfigurationGroups {
 				go func(group types.ModuleGroup) {
+					defer wg.Done()
+
 					var skip bool
 
 					for _, cnf := range group.Configurations {
@@ -235,16 +238,60 @@ func (p *AWSProcessor) describeLogStreams(logGroup string) ([]string, error) {
 }
 
 func (p *AWSProcessor) getLogs(startTime, endTime time.Time) ([]string, error) {
-	awsConfig, err := p.createAWSSession()
+	// Retry logic for AWS session creation
+	maxRetries := 3
+	retryDelay := 2 * time.Second
+	var awsConfig aws.Config
+	var err error
+
+	for retry := 0; retry < maxRetries; retry++ {
+		awsConfig, err = p.createAWSSession()
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("cannot create AWS session, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		}
+	}
+
 	if err != nil {
-		return nil, catcher.Error("cannot create AWS session", err, nil)
+		return nil, catcher.Error("all retries failed when creating AWS session", err, nil)
 	}
 
 	cwl := cloudwatchlogs.NewFromConfig(awsConfig)
 
-	logGroups, err := p.describeLogGroups()
+	// Retry logic for describing log groups
+	retryDelay = 2 * time.Second
+	var logGroups []string
+
+	for retry := 0; retry < maxRetries; retry++ {
+		logGroups, err = p.describeLogGroups()
+		if err == nil {
+			break
+		}
+
+		_ = catcher.Error("cannot get log groups, retrying", err, map[string]any{
+			"retry":      retry + 1,
+			"maxRetries": maxRetries,
+		})
+
+		if retry < maxRetries-1 {
+			time.Sleep(retryDelay)
+			// Increase delay for next retry
+			retryDelay *= 2
+		}
+	}
+
 	if err != nil {
-		return nil, catcher.Error("cannot get log groups", err, nil)
+		return nil, catcher.Error("all retries failed when getting log groups", err, nil)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
@@ -252,9 +299,34 @@ func (p *AWSProcessor) getLogs(startTime, endTime time.Time) ([]string, error) {
 
 	transformedLogs := make([]string, 0, 10)
 	for _, logGroup := range logGroups {
-		logStreams, err := p.describeLogStreams(logGroup)
+		// Retry logic for describing log streams
+		retryDelay = 2 * time.Second
+		var logStreams []string
+
+		for retry := 0; retry < maxRetries; retry++ {
+			logStreams, err = p.describeLogStreams(logGroup)
+			if err == nil {
+				break
+			}
+
+			_ = catcher.Error("cannot get log streams, retrying", err, map[string]any{
+				"retry":      retry + 1,
+				"maxRetries": maxRetries,
+				"logGroup":   logGroup,
+			})
+
+			if retry < maxRetries-1 {
+				time.Sleep(retryDelay)
+				// Increase delay for next retry
+				retryDelay *= 2
+			}
+		}
+
 		if err != nil {
-			return nil, catcher.Error("cannot get log streams", err, nil)
+			_ = catcher.Error("all retries failed when getting log streams", err, map[string]any{
+				"logGroup": logGroup,
+			})
+			continue // Skip this log group and try the next one
 		}
 
 		for _, stream := range logStreams {
@@ -270,9 +342,40 @@ func (p *AWSProcessor) getLogs(startTime, endTime time.Time) ([]string, error) {
 			})
 
 			for paginator.HasMorePages() {
-				page, err := paginator.NextPage(ctx)
+				// Retry logic for getting log events
+				retryDelay = 2 * time.Second
+				var page *cloudwatchlogs.GetLogEventsOutput
+
+				for retry := 0; retry < maxRetries; retry++ {
+					page, err = paginator.NextPage(ctx)
+					if err == nil {
+						break
+					}
+
+					_ = catcher.Error("cannot get logs, retrying", err, map[string]any{
+						"retry":      retry + 1,
+						"maxRetries": maxRetries,
+						"logGroup":   logGroup,
+						"stream":     stream,
+					})
+
+					if retry < maxRetries-1 {
+						time.Sleep(retryDelay)
+						// Increase delay for next retry
+						retryDelay *= 2
+					}
+				}
+
 				if err != nil {
-					return nil, catcher.Error("cannot get logs", err, nil)
+					_ = catcher.Error("all retries failed when getting logs", err, map[string]any{
+						"logGroup": logGroup,
+						"stream":   stream,
+					})
+					continue // Skip this page and try the next one
+				}
+
+				if page == nil {
+					continue
 				}
 
 				for _, event := range page.Events {
