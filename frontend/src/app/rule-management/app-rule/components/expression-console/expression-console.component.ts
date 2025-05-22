@@ -133,4 +133,11 @@ export class ExpressionConsoleComponent implements ControlValueAccessor {
       this.suggestions = [];
     }
   }
+  @HostListener('input', ['$event'])
+  onInput(event: Event): void {
+    const textarea = this.consoleRef.nativeElement;
+    this.value = textarea.value;
+    this.onChange(this.value);
+  }
+
 }

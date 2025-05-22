@@ -6,6 +6,7 @@ import {ElasticSearchFieldInfoType} from '../../../../shared/types/elasticsearch
 import {singleTermValidator, variableTemplate} from '../../../custom-validators';
 import {VariableDataType} from '../../../models/rule.constant';
 import {Rule} from '../../../models/rule.model';
+import {containsVariable} from '../../validators/customs.validators';
 
 
 @Component({
@@ -29,7 +30,8 @@ export class AddVariableComponent implements OnInit {
 
     this.formGroup.setControl('definition', this.fb.group({
       ruleVariables: this.fb.array([this.fb.group(variableTemplate)]),
-      ruleExpression: [this.rule ? this.rule.definition.ruleExpression : '', Validators.required]
+      ruleExpression: [this.rule ? this.rule.definition.ruleExpression : '', [Validators.required,
+                containsVariable(this.savedVariables.map(v => v.as))]]
     }));
   }
 
@@ -43,6 +45,7 @@ export class AddVariableComponent implements OnInit {
 
   addVariable() {
     this.variables.push(this.fb.group(variableTemplate));
+    this.reloadExpressionContainVariableValidator();
   }
 
   removeVariable(index: number) {
@@ -99,8 +102,16 @@ export class AddVariableComponent implements OnInit {
   }
 
   onVariablesChange(updatedVars: { as: string; ofType: string; get: string }[]) {
-    this.savedVariables = updatedVars;
+    this.savedVariables = [
+      ...updatedVars,
+    ];
+    this.reloadExpressionContainVariableValidator();
   }
 
+  reloadExpressionContainVariableValidator(){
+    const control = this.formGroup.get('definition.ruleExpression');
+    control.setValidators([Validators.required, containsVariable(this.savedVariables.map(v => v.as))]);
+    control.updateValueAndValidity();
 
+  }
 }
