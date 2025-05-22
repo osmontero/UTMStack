@@ -12,8 +12,8 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
   }]
 })
 export class ExpressionConsoleComponent implements ControlValueAccessor {
-  @Input() variables: { as: string; of_type: string; get: string }[] = [];
-  @Output() variablesChange = new EventEmitter<{ as: string; of_type: string; get: string }[]>();
+  @Input() variables: { as: string; ofType: string; get: string }[] = [];
+  @Output() variablesChange = new EventEmitter<{ as: string; ofType: string; get: string }[]>();
   @ViewChild('console', {}) consoleRef!: ElementRef<HTMLTextAreaElement>;
 
   @Output() touched = new EventEmitter<void>();

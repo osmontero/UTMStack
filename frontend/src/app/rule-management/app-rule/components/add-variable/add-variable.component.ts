@@ -98,7 +98,7 @@ export class AddVariableComponent implements OnInit {
     control.markAsDirty();
   }
 
-  onVariablesChange(updatedVars: { as: string; of_type: string; get: string }[]) {
+  onVariablesChange(updatedVars: { as: string; ofType: string; get: string }[]) {
     this.savedVariables = updatedVars;
   }
 

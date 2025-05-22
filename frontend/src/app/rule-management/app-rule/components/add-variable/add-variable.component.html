@@ -16,7 +16,7 @@
           <label class="section-label">Variables</label>
           <button
             type="button"
-            [disabled]="variable.invalid || variable.get('of_type').value == null || variable.get('get').value == null"
+            [disabled]="variable.invalid || variable.get('ofType').value == null || variable.get('get').value == null"
             class="btn btn-icon btn-sm btn-outline-primary"
             (click)="saveVariable(i)"
             ngbTooltip="Add a new variable">
@@ -71,15 +71,15 @@
                 <div class="form-group-select">
                   <label>Type:</label>
                   <ng-select
-                    [ngClass]="{'is-invalid': variable.get('of_type').invalid && variable.get('of_type').touched}"
+                    [ngClass]="{'is-invalid': variable.get('ofType').invalid && variable.get('ofType').touched}"
                     [items]="variablesDataType"
                     class="flex-item type-select"
                     bindLabel="label"
                     bindValue="value"
-                    formControlName="of_type"
+                    formControlName="ofType"
                     placeholder="Select type">
                   </ng-select>
-                  <div *ngIf="variable.get('of_type').invalid && variable.get('of_type').touched"
+                  <div *ngIf="variable.get('ofType').invalid && variable.get('ofType').touched"
                        class="invalid-feedback">
                     Type is required.
                   </div>

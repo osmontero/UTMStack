@@ -1,6 +1,6 @@
 import {AbstractControl, FormArray, ValidationErrors, ValidatorFn} from "@angular/forms";
 
-export const variableTemplate = {get: [], as: [''], of_type: []};
+export const variableTemplate = {get: [], as: [''], ofType: []};
 export function urlValidator(control: AbstractControl): ValidationErrors | null {
   const urlPattern = /^(https?|ftp):\/\/[^\s/$.?#].\S*$/i;
   return urlPattern.test(control.value) ? null : {invalidUrl: true};
