@@ -80,7 +80,7 @@ public class UtmCorrelationRulesResource {
         final String ctx = CLASSNAME + ".addCorrelationRule";
 
         try {
-            if (!utmStackService.isInDevelop()) {
+            if (utmStackService.isInDevelop()) {
                 utmCorrelationRulesDTO.setId(rulesService.getSystemSequenceNextValue());
                 utmCorrelationRulesDTO.setSystemOwner(true);
             } else {
