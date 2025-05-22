@@ -97,7 +97,7 @@ export class AddRuleComponent implements OnInit, OnDestroy {
       const variables = this.savedVariables .length > 0 ?  this.savedVariables.map(variable => ({
         as: variable.as,
         get: variable.get,
-        of_type: variable.of_type
+        ofType: variable.ofType
       })) : [];
       this.isSubmitting = true;
       const rule: Rule = {
@@ -131,7 +131,7 @@ export class AddRuleComponent implements OnInit, OnDestroy {
       id: [rule ? rule.id : ''],
       dataTypes: [rule ? rule.dataTypes : '', Validators.required],
       name: [rule ? rule.name : '', Validators.required],
-      adversary: [rule ? rule.adversary : '', Validators.required],
+      adversary: [rule ? rule.adversary : null, Validators.required],
       confidentiality: [rule ? rule.confidentiality : 0, [Validators.required, Validators.min(0), Validators.max(3)]],
       integrity: [rule ? rule.integrity : 0, [Validators.required, Validators.min(0), Validators.max(3)]],
       availability: [rule ? rule.availability : 0, [Validators.required, Validators.min(0), Validators.max(3)]],

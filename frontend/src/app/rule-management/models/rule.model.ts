@@ -13,7 +13,7 @@ export const itemsPerPage = 25;
 export interface Variable {
     get: string;
     as: string;
-    of_type: string;
+    ofType: string;
 }
 
 export interface Definition {
