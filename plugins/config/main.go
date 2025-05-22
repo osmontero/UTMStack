@@ -231,11 +231,6 @@ func (f *Filter) FromVar(id int, name any, filter any) {
 }
 
 func main() {
-	mode := plugins.GetCfg().Env.Mode
-	if mode != "manager" {
-		return
-	}
-
 	for {
 		func() {
 			db, err := connect()
@@ -281,6 +276,35 @@ func main() {
 
 			tenant := Tenant{}
 			tenant.FromVar([]int64{}, assets)
+
+			// Try to acquire the lock before modifying configuration files
+			maxRetries := 5
+
+			for i := 0; i < maxRetries; i++ {
+				acquired, err := plugins.AcquireLock()
+				if err != nil {
+					_ = catcher.Error("failed to acquire lock", err, map[string]interface{}{"retry": i + 1})
+				}
+
+				if acquired {
+					break
+				}
+
+				// Lock not acquired, wait and retry
+				if i < maxRetries-1 {
+					time.Sleep(plugins.RandomDuration(10, 60))
+				} else {
+					_ = catcher.Error("failed to acquire lock after multiple retries", nil, nil)
+					return
+				}
+			}
+
+			// Make sure to release the lock when done
+			defer func() {
+				if err := plugins.ReleaseLock(); err != nil {
+					_ = catcher.Error("failed to release lock", err, nil)
+				}
+			}()
 
 			err = cleanUpFilters(filters)
 			if err != nil {
