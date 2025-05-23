@@ -1,6 +1,7 @@
 import {HttpResponse} from '@angular/common/http';
 import {Component, Input, OnInit} from '@angular/core';
-import {AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
+import {AbstractControl, FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {of} from 'rxjs';
 import {catchError, filter, map, tap} from 'rxjs/operators';
 import {UtmToastService} from '../../../../shared/alert/utm-toast.service';
 import {ALERT_INDEX_PATTERN} from '../../../../shared/constants/main-index-pattern.constant';
@@ -8,7 +9,6 @@ import {ElasticOperatorsEnum} from '../../../../shared/enums/elastic-operators.e
 import {ElasticSearchIndexService} from '../../../../shared/services/elasticsearch/elasticsearch-index.service';
 import {ElasticSearchFieldInfoType} from '../../../../shared/types/elasticsearch/elastic-search-field-info.type';
 import {IncidentRuleType} from '../../type/incident-rule.type';
-import {of} from "rxjs";
 
 @Component({
   selector: 'app-condition-builder',

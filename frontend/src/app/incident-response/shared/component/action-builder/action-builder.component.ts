@@ -8,8 +8,8 @@ import {NetScanType} from '../../../../assets-discover/shared/types/net-scan.typ
 import {UtmToastService} from '../../../../shared/alert/utm-toast.service';
 import {InputClassResolve} from '../../../../shared/util/input-class-resolve';
 import {WorkflowActionsService} from '../../services/workflow-actions.service';
+import {ActionConditionalEnum} from '../action-conditional/action-conditional.component';
 import {ActionTerminalComponent} from '../action-terminal/action-terminal.component';
-import {ActionConditionalEnum} from "../action-conditional/action-conditional.component";
 
 @Component({
   selector: 'app-action-builder',
@@ -28,25 +28,25 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
   noPlatforms = false;
 
   workflow$: Observable<any[]>;
+  command$: Observable<string>;
   destroy$: Subject<void> = new Subject<void>();
 
   constructor(private utmNetScanService: UtmNetScanService,
               public inputClass: InputClassResolve,
               private utmToastService: UtmToastService,
-              private workflowActionsService: WorkflowActionsService,
+              public workflowActionsService: WorkflowActionsService,
               private modalService: NgbModal) { }
 
   ngOnInit() {
     this.platforms$ = this.getPlatforms();
 
     this.workflow$ = this.workflowActionsService.actions$
+      .pipe(takeUntil(this.destroy$));
+
+    this.command$ = this.workflowActionsService.command$
       .pipe(takeUntil(this.destroy$),
-          map(actions => {
-            return actions.map(action => ({
-              ...action,
-              conditional: { key: ActionConditionalEnum.ALWAYS, value: ';'},
-            }))
-          }));
+            tap((command) => this.group.get('command').setValue(command))
+        );
   }
 
   getPlatforms() {
@@ -117,9 +117,9 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
         if (result) {
           this.workflowActionsService.setActions({
             label: 'Custom Action',
-            description: result.command
+            description: result.command,
+            command: result.command
           });
-          this.group.get('command').setValue(result.command);
         }
       },
       reason => {
@@ -139,5 +139,12 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
 
   select(always: string) {
 
+  }
+
+  updateAction(action: any, $event: { key: ActionConditionalEnum; value: string }) {
+    this.workflowActionsService.updateAction({
+      ...action,
+      conditional: $event
+    });
   }
 }

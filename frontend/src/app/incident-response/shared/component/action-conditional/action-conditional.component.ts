@@ -1,4 +1,4 @@
-import {Component, Input, OnInit, ViewChild} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, ViewChild} from '@angular/core';
 import {NgbDropdown} from '@ng-bootstrap/ng-bootstrap';
 
 export enum ActionConditionalEnum  {
@@ -16,11 +16,12 @@ export class ActionConditionalComponent implements OnInit {
 
   options = [
     { key: ActionConditionalEnum.ALWAYS, value: ';'},
-    { key: ActionConditionalEnum.SUCCESS, value: '&'},
+    { key: ActionConditionalEnum.SUCCESS, value: '&&'},
     { key: ActionConditionalEnum.FAILURE, value: '||'},
   ];
   actionConditionalEnum = ActionConditionalEnum;
-  @Input() option: { key: ActionConditionalEnum, value: string} =  { key: ActionConditionalEnum.ALWAYS, value: ';'};
+  @Input() option: { key: ActionConditionalEnum, value: string};
+  @Output() optionChange = new EventEmitter<{ key: ActionConditionalEnum, value: string}>();
   @ViewChild('dropTracker') dropTracker: NgbDropdown;
 
   constructor() { }
@@ -29,6 +30,7 @@ export class ActionConditionalComponent implements OnInit {
 
   select(conditional: ActionConditionalEnum) {
     this.option = this.options.find(option => option.key === conditional);
+    this.optionChange.emit(this.option);
     this.dropTracker.close();
   }
 
