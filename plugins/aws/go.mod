@@ -7,7 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.29.14
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.67
 	github.com/google/uuid v1.6.0
-	github.com/threatwinds/go-sdk v1.0.24
+	github.com/threatwinds/go-sdk v1.0.25
 	github.com/threatwinds/logger v1.2.1
 	github.com/utmstack/config-client-go v1.2.7
 )
