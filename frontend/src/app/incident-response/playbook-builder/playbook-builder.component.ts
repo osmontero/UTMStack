@@ -11,6 +11,7 @@ import {InputClassResolve} from '../../shared/util/input-class-resolve';
 import {createElementPrefix, getElementPrefix} from '../../shared/util/string-util';
 import {IncidentResponseRuleService} from '../shared/services/incident-response-rule.service';
 import {IncidentRuleType} from '../shared/type/incident-rule.type';
+import {UtmToastService} from "../../shared/alert/utm-toast.service";
 
 @Component({
   selector: 'app-playbook-builder',
@@ -41,7 +42,8 @@ export class PlaybookBuilderComponent implements OnInit {
   constructor(private incidentResponseRuleService: IncidentResponseRuleService,
               public activeModal: NgbActiveModal,
               private fb: FormBuilder,
-              public inputClass: InputClassResolve) {
+              public inputClass: InputClassResolve,
+              private utmToastService: UtmToastService) {
 
     this.formRule = this.fb.group({
       id: [null],
@@ -142,4 +144,36 @@ export class PlaybookBuilderComponent implements OnInit {
     return 100 - ((150 / this.viewportHeight) * 100) + 'vh';
   }
 
+  createRule() {
+    if (this.rule) {
+      this.editRule();
+    } else {
+      this.saveRule();
+    }
+  }
+
+  saveRule() {
+    const action = 'created';
+    const actionError = 'creating';
+    this.incidentResponseRuleService.create(this.formRule.value)
+      .subscribe(() => {
+            this.utmToastService.showSuccessBottom('Incident response automation ' + action + ' successfully');
+    }, () => this.errorSaving(actionError));
+  }
+
+  editRule() {
+    const action = 'edited';
+    const actionError = 'editing';
+    this.formRule.get('command').setValue(this.command);
+    this.incidentResponseRuleService.update(this.formRule.value).subscribe(() => {
+      this.utmToastService.showSuccessBottom('Incident response automation ' + action + ' successfully');
+    }, () => this.errorSaving(actionError));
+  }
+
+  errorSaving(action: string) {
+    const ruleName: string = this.formRule.get('name').value;
+    this.formRule.get('name').setValue(this.replacePrefixInName(ruleName));
+    this.utmToastService.showError('Error  ' + action + ' incident automation',
+      'An error has occur while trying to ' + action + ' an incident automation, please contact support team');
+  }
 }

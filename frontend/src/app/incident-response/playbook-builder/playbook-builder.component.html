@@ -72,7 +72,7 @@
             <i class="icon-eye mr-2"></i> Preview
           </button>
 
-          <button class="btn utm-button utm-button-primary ml-2 ng-star-inserted"
+          <button (click)="createRule()" class="btn utm-button utm-button-primary ml-2 ng-star-inserted"
           [disabled]="!formRule.valid">
             <i class="icon-terminal mr-2"></i> Create playbook
           </button>
