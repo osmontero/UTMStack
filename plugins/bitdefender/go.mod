@@ -5,7 +5,7 @@ go 1.23.1
 require (
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
-	github.com/threatwinds/go-sdk v1.0.26
+	github.com/threatwinds/go-sdk v1.0.27
 	github.com/utmstack/config-client-go v1.2.7
 	google.golang.org/grpc v1.72.1
 )

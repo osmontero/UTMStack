@@ -282,9 +282,6 @@ func main() {
 
 			for i := 0; i < maxRetries; i++ {
 				acquired, err := plugins.AcquireLock()
-				if err != nil {
-					_ = catcher.Error("failed to acquire lock", err, map[string]interface{}{"retry": i + 1})
-				}
 
 				if acquired {
 					break
@@ -292,6 +289,7 @@ func main() {
 
 				// Lock not acquired, wait and retry
 				if i < maxRetries-1 {
+					_ = catcher.Error("failed to acquire lock", err, map[string]interface{}{"retry": i + 1, "maxRetries": maxRetries})
 					time.Sleep(plugins.RandomDuration(10, 60))
 				} else {
 					_ = catcher.Error("failed to acquire lock after multiple retries", nil, nil)
