@@ -82,31 +82,14 @@
 
       <div *ngIf="workflow$ | async as workflow" class="card phantom-action py-4 px-5 workflow-card align-items-center">
 
-        <!--<div style="height: 88px" *ngFor="let action of workflow" class="d-flex flex-column align-items-center justify-content-center action-block w-100">
-          <div style="min-height: 70px !important;" class="card-body d-flex flex-column w-100 justify-content-center">
-            <div class="d-flex align-items-center justify-content-between mb-2">
-              <div class="d-flex align-items-center">
-                <div class="icon-box mr-2"></div>
-                <div>
-                  <div class="fw-bold">{{ action.label }}</div>
-                  <small class="text-muted">{{ action.description }}</small>
-                </div>
-              </div>
-              <div class="icon-bin text-danger cursor-pointer" (click)="removeAction()">
-              </div>
-            </div>
-          </div>
-        </div>-->
+        <div class="workflow-timeline mb-3">
 
-        <!-- Timeline container -->
-        <!-- Secuencia de acciones -->
-        <div class="workflow-timeline">
-
-          <div *ngFor="let action of workflow; let last = last" class="action-wrapper d-flex flex-column align-items-center w-100">
+          <div *ngFor="let action of workflow; let first = first" class="action-wrapper d-flex flex-column align-items-center w-100">
             <!-- Action block -->
             <div class="action-block d-flex flex-column align-items-center justify-content-center w-100" style="height: 130px;">
+
               <div class="d-flex flex-column w-100 justify-content-center">
-                <app-action-conditional class="pr-2"></app-action-conditional>
+                <app-action-conditional *ngIf="!first" [option]="action.conditional" (optionChange)="updateAction(action, $event)" class="pr-2"></app-action-conditional>
                 <div class="card-body pt-2 d-flex align-items-center justify-content-between mb-2" style="width: 100%;">
                   <div class="d-flex align-items-center">
                       <div class="icon-box mr-2" style="margin-right: 8px;"></div>
@@ -118,6 +101,7 @@
                   <div class="icon-bin font-size-xs text-danger cursor-pointer" (click)="removeAction(action)"></div>
                 </div>
               </div>
+
             </div>
 
             <div *ngIf="workflow" class="timeline-connector">
@@ -142,25 +126,8 @@
           </div>
         </div>
 
+        <app-utm-code-view style="width: 800px" class="mt-3" *ngIf="command$ | async as command" [code]="command" [allowCopy]="false"></app-utm-code-view>
 
-
-        <!--<ng-container *ngIf="workflow.length === 0">
-          <div style="border-radius: .2rem" class="d-flex flex-column align-items-center justify-content-center action-block w-25 cursor-pointer text-start hover-shadow"
-            (click)="openActionSidebar()"
-            role="button"
-            tabindex="0">
-            <div class="card-body d-flex flex-column w-100 justify-content-center">
-              <div class="d-flex align-items-center">
-                <div class="icon-plus2 mr-3">
-                </div>
-                <div>
-                  <div class="fw-semibold text-primary">Add Next Action</div>
-                  <small class="text-muted">Click an action or define your own</small>
-                </div>
-              </div>
-            </div>
-          </div>
-        </ng-container>-->
       </div>
 
     </div>
