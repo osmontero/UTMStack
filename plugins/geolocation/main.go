@@ -135,7 +135,27 @@ func (p *parsingServer) ParseLog(_ context.Context, transform *plugins.Transform
 		return transform.Draft, catcher.Error("'destination' parameter required", nil, nil)
 	}
 
-	value := gjson.Get(transform.Draft.Log, source.GetStringValue()).String()
+	sourceField := source.GetStringValue()
+	utils.SanitizeField(&sourceField)
+
+	err := utils.ValidateReservedField(sourceField, false)
+	if err != nil {
+		return transform.Draft, catcher.Error("cannot parse log", err, map[string]any{
+			"field": sourceField,
+		})
+	}
+
+	destinationField := destination.GetStringValue()
+	utils.SanitizeField(&destinationField)
+
+	err = utils.ValidateReservedField(destinationField, false)
+	if err != nil {
+		return transform.Draft, catcher.Error("cannot parse log", err, map[string]any{
+			"field": destinationField,
+		})
+	}
+
+	value := gjson.Get(transform.Draft.Log, sourceField).String()
 	if value == "" {
 		return transform.Draft, nil
 	}
@@ -146,8 +166,7 @@ func (p *parsingServer) ParseLog(_ context.Context, transform *plugins.Transform
 		return transform.Draft, nil
 	}
 
-	var err error
-	transform.Draft.Log, err = sjson.Set(transform.Draft.Log, destination.GetStringValue(), geo)
+	transform.Draft.Log, err = sjson.Set(transform.Draft.Log, destinationField, geo)
 	if err != nil {
 		return transform.Draft, catcher.Error("failed to set geolocation", err, nil)
 	}

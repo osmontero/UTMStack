@@ -1,8 +1,8 @@
 package main
 
 import (
+	"github.com/threatwinds/go-sdk/plugins"
 	"net"
-	"os"
 	"strconv"
 	"time"
 
@@ -13,9 +13,11 @@ import (
 // loadGeolocationData loads the geolocation files and populates the maps
 func loadGeolocationData() {
 	// Get the geolocation directory from environment variable or use default
-	workdir := os.Getenv("GEOLOCATION_DIR")
-	if workdir == "" {
-		workdir = "/workdir/geolocation"
+	workdir := plugins.WorkDir
+	geoDir, err := utils.MkdirJoin(workdir, "geolocation")
+	if err != nil {
+		_ = catcher.Error("could not create geolocation directory", err, nil)
+		return
 	}
 
 	// Define the geolocation files to be loaded
@@ -40,7 +42,7 @@ func loadGeolocationData() {
 		// Process each file with retry logic
 		maxRetries := 3
 		for _, filename := range files {
-			filePath := workdir + "/" + filename
+			filePath := geoDir.FileJoin(filename)
 			var csv [][]string
 			var err error
 
