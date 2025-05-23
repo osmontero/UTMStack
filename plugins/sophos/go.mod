@@ -4,7 +4,7 @@ go 1.23.1
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/threatwinds/go-sdk v1.0.27
+	github.com/threatwinds/go-sdk v1.0.28
 	github.com/utmstack/config-client-go v1.2.7
 )
 
