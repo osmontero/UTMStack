@@ -3,7 +3,7 @@ module github.com/utmstack/UTMStack/plugins/alerts
 go 1.23.1
 
 require (
-	github.com/threatwinds/go-sdk v1.0.24
+	github.com/threatwinds/go-sdk v1.0.25
 	github.com/tidwall/gjson v1.18.0
 	google.golang.org/grpc v1.72.1
 	google.golang.org/protobuf v1.36.6

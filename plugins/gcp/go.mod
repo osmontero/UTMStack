@@ -5,7 +5,7 @@ go 1.23.1
 require (
 	cloud.google.com/go/pubsub v1.49.0
 	github.com/google/uuid v1.6.0
-	github.com/threatwinds/go-sdk v1.0.24
+	github.com/threatwinds/go-sdk v1.0.25
 	github.com/utmstack/config-client-go v1.2.7
 	google.golang.org/api v0.234.0
 )
