@@ -6,6 +6,7 @@ import com.jayway.jsonpath.Criteria;
 import com.jayway.jsonpath.Filter;
 import com.jayway.jsonpath.Predicate;
 import com.park.utmstack.config.Constants;
+import com.park.utmstack.domain.alert_response_rule.UtmAlertResponseActionTemplate;
 import com.park.utmstack.domain.alert_response_rule.UtmAlertResponseRule;
 import com.park.utmstack.domain.alert_response_rule.UtmAlertResponseRuleExecution;
 import com.park.utmstack.domain.alert_response_rule.UtmAlertResponseRuleHistory;
@@ -15,6 +16,7 @@ import com.park.utmstack.domain.application_events.enums.ApplicationEventType;
 import com.park.utmstack.domain.chart_builder.types.query.FilterType;
 import com.park.utmstack.domain.chart_builder.types.query.OperatorType;
 import com.park.utmstack.domain.shared_types.AlertType;
+import com.park.utmstack.repository.alert_response_rule.UtmAlertResponseActionTemplateRepository;
 import com.park.utmstack.repository.alert_response_rule.UtmAlertResponseRuleExecutionRepository;
 import com.park.utmstack.repository.alert_response_rule.UtmAlertResponseRuleHistoryRepository;
 import com.park.utmstack.repository.alert_response_rule.UtmAlertResponseRuleRepository;
@@ -61,6 +63,9 @@ public class UtmAlertResponseRuleService {
     private final IncidentResponseCommandService incidentResponseCommandService;
     private final UtmAlertResponseRuleExecutionRepository alertResponseRuleExecutionRepository;
     private final UtmIncidentVariableService utmIncidentVariableService;
+    private final UtmAlertResponseActionTemplateRepository utmAlertResponseActionTemplateRepository;
+
+    private final UtmAlertResponseActionTemplateService utmAlertResponseActionTemplateService;
 
     public UtmAlertResponseRuleService(UtmAlertResponseRuleRepository alertResponseRuleRepository,
                                        UtmAlertResponseRuleHistoryRepository alertResponseRuleHistoryRepository,
@@ -69,7 +74,9 @@ public class UtmAlertResponseRuleService {
                                        AgentService agentService,
                                        IncidentResponseCommandService incidentResponseCommandService,
                                        UtmAlertResponseRuleExecutionRepository alertResponseRuleExecutionRepository,
-                                       UtmIncidentVariableService utmIncidentVariableService) {
+                                       UtmIncidentVariableService utmIncidentVariableService,
+                                       UtmAlertResponseActionTemplateRepository utmAlertResponseActionTemplateRepository,
+                                       UtmAlertResponseActionTemplateService utmAlertResponseActionTemplateService) {
         this.alertResponseRuleRepository = alertResponseRuleRepository;
         this.alertResponseRuleHistoryRepository = alertResponseRuleHistoryRepository;
         this.networkScanRepository = networkScanRepository;
@@ -78,6 +85,8 @@ public class UtmAlertResponseRuleService {
         this.incidentResponseCommandService = incidentResponseCommandService;
         this.alertResponseRuleExecutionRepository = alertResponseRuleExecutionRepository;
         this.utmIncidentVariableService = utmIncidentVariableService;
+        this.utmAlertResponseActionTemplateRepository = utmAlertResponseActionTemplateRepository;
+        this.utmAlertResponseActionTemplateService = utmAlertResponseActionTemplateService;
     }
 
     public UtmAlertResponseRule save(UtmAlertResponseRule alertResponseRule) {
@@ -88,6 +97,15 @@ public class UtmAlertResponseRuleService {
                         .orElseThrow(() -> new RuntimeException(String.format("Incident response rule with ID: %1$s not found", alertResponseRule.getId())));
                 alertResponseRuleHistoryRepository.save(new UtmAlertResponseRuleHistory(new UtmAlertResponseRuleDTO(current)));
             }
+
+            if (alertResponseRule.getUtmAlertResponseActionTemplates() != null) {
+                for (UtmAlertResponseActionTemplate action : alertResponseRule.getUtmAlertResponseActionTemplates()) {
+                    if (action.getId() == null || !utmAlertResponseActionTemplateRepository.existsById(action.getId())) {
+                        utmAlertResponseActionTemplateService.save(action);
+                    }
+                }
+            }
+
             return alertResponseRuleRepository.save(alertResponseRule);
         } catch (Exception e) {
             throw new RuntimeException(ctx + ": " + e.getLocalizedMessage());
