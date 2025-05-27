@@ -45,7 +45,11 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
 
     this.command$ = this.workflowActionsService.command$
       .pipe(takeUntil(this.destroy$),
-            tap((command) => this.group.get('command').setValue(command))
+            tap((command) => {
+              this.group.get('actions').setValue(this.workflowActionsService.getActions());
+              this.group.get('command').setValue(command);
+              this.group.get('agentPlatform').setValue('windows');
+            })
         );
   }
 
@@ -115,7 +119,7 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
     dialogRef.result.then(
       result => {
         if (result) {
-          this.workflowActionsService.setActions({
+          this.workflowActionsService.addActions({
             label: 'Custom Action',
             description: result.command,
             command: result.command

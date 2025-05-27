@@ -22,6 +22,7 @@ import {IraHistoryComponent} from './component/ira-history/ira-history.component
 import { ActionSidebarComponent } from './component/action-sidebar/action-sidebar.component';
 import { ActionTerminalComponent } from './component/action-terminal/action-terminal.component';
 import { ActionConditionalComponent } from './component/action-conditional/action-conditional.component';
+import {ActionSidebarService} from "./component/action-sidebar/action-sidebar.service";
 
 @NgModule({
   declarations: [IrJobCreateComponent,

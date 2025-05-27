@@ -74,7 +74,8 @@
 
           <button (click)="createRule()" class="btn utm-button utm-button-primary ml-2 ng-star-inserted"
           [disabled]="!formRule.valid">
-            <i class="icon-terminal mr-2"></i> Create playbook
+            <i class="icon-terminal mr-2"></i>
+            {{ (rule ? 'Update' : 'Create') + ' playbook' }}
           </button>
         </div>
       </div>

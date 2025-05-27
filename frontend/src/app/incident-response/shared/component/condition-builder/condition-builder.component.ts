@@ -27,19 +27,6 @@ export class ConditionBuilderComponent implements OnInit {
               private toastService: UtmToastService) { }
 
   ngOnInit() {
-    if (this.rule) {
-      for (const condition of this.rule.conditions) {
-        const ruleCondition = this.fb.group({
-          field: [condition.field, Validators.required],
-          value: [condition.value, Validators.required],
-          operator: [condition.operator]
-        });
-        this.ruleConditions.push(ruleCondition);
-      }
-    } else {
-      this.addRuleCondition();
-    }
-
     this.elasticSearchIndexService.getElasticIndexField( {
       indexPattern: ALERT_INDEX_PATTERN
     }).pipe(

@@ -1,22 +1,15 @@
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {ActionConditionalEnum} from '../component/action-conditional/action-conditional.component';
-import {map} from "rxjs/operators";
-
-export interface WorkflowAction {
-  id: number;
-  label: string;
-  description: string;
-  command: string;
-  conditional?: { key: ActionConditionalEnum, value: string };
-}
+import {IncidentResponseActionTemplate} from './incident-response-action-template.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WorkflowActionsService {
 
-  private actionsBehaviorSubject: BehaviorSubject<WorkflowAction[]> = new BehaviorSubject([]);
+  private actionsBehaviorSubject: BehaviorSubject<IncidentResponseActionTemplate[]> = new BehaviorSubject([]);
   actions$ = this.actionsBehaviorSubject.asObservable();
 
   readonly command$: Observable<string> = this.actions$.pipe(
@@ -36,7 +29,7 @@ export class WorkflowActionsService {
     })
   );
 
-  setActions(action: any) {
+  addActions(action: any) {
     const actions = this.actionsBehaviorSubject.value ? this.actionsBehaviorSubject.value : [];
 
     this.actionsBehaviorSubject.next([...actions, {
@@ -66,5 +59,9 @@ export class WorkflowActionsService {
 
   clear() {
     this.actionsBehaviorSubject.next([]);
+  }
+
+  getActions() {
+    return this.actionsBehaviorSubject.value ? this.actionsBehaviorSubject.value : [];
   }
 }

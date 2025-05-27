@@ -1,24 +1,35 @@
-import {Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, ViewChild} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostListener,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+  ViewChild
+} from '@angular/core';
 import {FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {ActivatedRoute, Router} from '@angular/router';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
-import {debounceTime} from 'rxjs/operators';
+import {debounceTime, filter, map, switchMap} from 'rxjs/operators';
 import {NetScanType} from '../../assets-discover/shared/types/net-scan.type';
-import {ALERT_NAME_FIELD} from '../../shared/constants/alert/alert-field.constant';
+import {UtmToastService} from '../../shared/alert/utm-toast.service';
 import {ElasticOperatorsEnum} from '../../shared/enums/elastic-operators.enum';
 import {PrefixElementEnum} from '../../shared/enums/prefix-element.enum';
 import {getValueFromPropertyPath} from '../../shared/util/get-value-object-from-property-path.util';
 import {InputClassResolve} from '../../shared/util/input-class-resolve';
 import {createElementPrefix, getElementPrefix} from '../../shared/util/string-util';
 import {IncidentResponseRuleService} from '../shared/services/incident-response-rule.service';
+import {WorkflowActionsService} from "../shared/services/workflow-actions.service";
 import {IncidentRuleType} from '../shared/type/incident-rule.type';
-import {UtmToastService} from "../../shared/alert/utm-toast.service";
 
 @Component({
   selector: 'app-playbook-builder',
   templateUrl: './playbook-builder.component.html',
   styleUrls: ['./playbook-builder.component.css']
 })
-export class PlaybookBuilderComponent implements OnInit {
+export class PlaybookBuilderComponent implements OnInit, OnDestroy {
 
   @Input() alert: any;
   @Input() rule: IncidentRuleType;
@@ -37,13 +48,14 @@ export class PlaybookBuilderComponent implements OnInit {
   maxLength = 512;
   viewportHeight: number;
 
-  workflow: any[] = [];
-
   constructor(private incidentResponseRuleService: IncidentResponseRuleService,
               public activeModal: NgbActiveModal,
               private fb: FormBuilder,
               public inputClass: InputClassResolve,
-              private utmToastService: UtmToastService) {
+              private utmToastService: UtmToastService,
+              private route: ActivatedRoute,
+              private workflowService: WorkflowActionsService,
+              private router: Router) {
 
     this.formRule = this.fb.group({
       id: [null],
@@ -51,6 +63,7 @@ export class PlaybookBuilderComponent implements OnInit {
       description: ['', Validators.required],
       conditions: this.fb.array([]),
       command: ['', Validators.required],
+      actions: [[]],
       active: [true],
       agentType: [false],
       excludedAgents: [[]],
@@ -66,38 +79,46 @@ export class PlaybookBuilderComponent implements OnInit {
   }
 
   ngOnInit() {
-    if (this.rule) {
-      this.exist = false;
-      this.typing = false;
-      this.rulePrefix = getElementPrefix(this.rule.name);
-      this.formRule.patchValue(this.rule, {emitEvent: false});
-      const name = this.formRule.get('name').value;
-      this.formRule.get('name').setValue(this.replacePrefixInName(name));
-      for (const condition of this.rule.conditions) {
-        // this.getValuesForField(condition.field);
-        const ruleCondition = this.fb.group({
-          field: [condition.field, Validators.required],
-          value: [condition.value, Validators.required],
-          operator: [condition.operator]
-        });
+    this.route.queryParams
+      .pipe(
+        filter(params => !!params && !!params.id),
+        map(params => params.id),
+        switchMap(id => {
+          return this.incidentResponseRuleService.find(id)
+            .pipe(
+              map(res => res.body));
+        })
+      ).subscribe(rule => {
+        console.log(rule.conditions);
+        this.rule = rule;
+        this.exist = false;
+        this.typing = false;
+        this.rulePrefix = getElementPrefix(this.rule.name);
+        this.formRule.patchValue(this.rule, {emitEvent: false});
+        const name = this.formRule.get('name').value;
+        this.formRule.get('name').setValue(this.replacePrefixInName(name));
+
+        for (const condition of rule.conditions) {
+
+          const ruleCondition = this.fb.group({
+            field: [condition.field, Validators.required],
+            value: [condition.value, Validators.required],
+            operator: [condition.operator]
+          });
+
+          this.ruleConditions.push(ruleCondition);
+        }
         this.command = this.rule.command;
-        this.ruleConditions.push(ruleCondition);
         this.formRule.get('excludedAgents').setValue(this.rule.excludedAgents);
         this.formRule.get('agentType').setValue(this.rule.excludedAgents.length === 0 && this.rule.defaultAgent !== '');
         this.formRule.get('defaultAgent').setValue(this.rule.defaultAgent);
-      }
-    } else if (this.alert) {
-      const alertName = this.getValueFromAlert(ALERT_NAME_FIELD);
-      const ruleName = this.rulePrefix + alertName;
-      this.formRule.get('name').setValue(alertName);
-      this.searchRule(ruleName);
-      this.addRuleCondition();
-      this.ruleConditions.at(0).get('field').setValue(ALERT_NAME_FIELD);
-      this.ruleConditions.at(0).get('value').setValue(alertName);
-      if (alertName.toLowerCase().includes('window')) {
-        this.formRule.get('agentPlatform').setValue('windows');
-      }
-    }
+        this.rule.actions.forEach(action => this.workflowService.addActions(action));
+
+      },
+      error => {
+        this.utmToastService.showError('Error', 'An error has occurred while fetching a rule');
+      });
+
     this.formRule.get('name').valueChanges.pipe(debounceTime(1000)).subscribe(value => {
       this.searchRule(this.rulePrefix + value);
     });
@@ -158,6 +179,7 @@ export class PlaybookBuilderComponent implements OnInit {
     this.incidentResponseRuleService.create(this.formRule.value)
       .subscribe(() => {
             this.utmToastService.showSuccessBottom('Incident response automation ' + action + ' successfully');
+            this.router.navigate(['incident-response/playbooks']);
     }, () => this.errorSaving(actionError));
   }
 
@@ -167,6 +189,7 @@ export class PlaybookBuilderComponent implements OnInit {
     this.formRule.get('command').setValue(this.command);
     this.incidentResponseRuleService.update(this.formRule.value).subscribe(() => {
       this.utmToastService.showSuccessBottom('Incident response automation ' + action + ' successfully');
+      this.router.navigate(['incident-response/playbooks']);
     }, () => this.errorSaving(actionError));
   }
 
@@ -175,5 +198,9 @@ export class PlaybookBuilderComponent implements OnInit {
     this.formRule.get('name').setValue(this.replacePrefixInName(ruleName));
     this.utmToastService.showError('Error  ' + action + ' incident automation',
       'An error has occur while trying to ' + action + ' an incident automation, please contact support team');
+  }
+
+  ngOnDestroy(): void {
+    this.workflowService.clear();
   }
 }
