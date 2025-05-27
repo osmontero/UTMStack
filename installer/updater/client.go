@@ -70,7 +70,7 @@ func (c *UpdaterClient) UpdateProcess() {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		if IsInMaintenanceWindow() {
+		if !config.Updating && IsInMaintenanceWindow() {
 			err := c.CheckUpdate()
 			if err != nil {
 				config.Logger().ErrorF("error checking update: %v", err)
