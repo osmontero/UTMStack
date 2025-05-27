@@ -1,0 +1,59 @@
+<div class="container-fluid pr-3 pl-3 pt-2">
+  <div class="d-flex align-items-center gap-1">
+    <div class="d-flex justify-content-between align-items-center mb-2 w-100">
+      <h5 class="card-title mb-0 label-header">Workflows</h5>
+      <div class="d-flex w-50 justify-content-end align-items-center">
+        <app-utm-search-input
+          (searchFor)="onSearchInAll($event)"
+          [placeholder]="'Search workflows '"
+          class="w-50">
+        </app-utm-search-input>
+        <div class="header-elements ml-2">
+          <button routerLink="/incident-response/create" class="btn utm-button utm-button-primary"> New flow </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row gy-4">
+    <div class="col-md-3 col-sm-6" *ngFor="let item of rules">
+      <div class="justify-between text-card-foreground shadow-sm transition-all my-1 flex flex-col rounded-lg border border-border bg-background p-3 hover:border-placeholder-foreground hover:shadow-sm cursor-pointer">
+        <div class="card-header p-0 d-flex align-items-center gap-3">
+          <div class="icon-code d-flex justify-content-center align-items-center">
+          </div>
+          <div class="w-100">
+            <div class="d-flex justify-content-between">
+              <div class="d-flex flex-column">
+                <div class="text-md truncate font-semibold">{{ item.name }}</div>
+                <div class="truncate text-xs text-muted-foreground">{{ item.createdDate | relativeTime }}</div>
+              </div>
+              <div  autoClose="outside" class="list-icons-item dropdown cursor-pointer"
+                    placement="bottom-right" ngbDropdown>
+                <button class="btn btn-link p-0" ngbDropdownToggle>
+                  <i class="icon-menu"></i>
+                </button>
+                <div ngbDropdownMenu>
+                  <button [routerLink]="['/incident-response/create']"
+                          [queryParams]="{ id: item.id }" ngbDropdownItem (click)="onEdit(item)">
+                    <i class="icon-pencil mr-2 text-xs text-muted-foreground"></i>
+                    <span class="text-sm">
+                      Edit
+                    </span>
+                  </button>
+                  <button ngbDropdownItem (click)="onDelete(item)">
+                    <i class="icon-trash mr-2 text-xs"></i>
+                     <span class="text-sm">
+                      Delete
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="line-clamp-2 h-full pt-3 text-sm">
+          {{ item.description }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
