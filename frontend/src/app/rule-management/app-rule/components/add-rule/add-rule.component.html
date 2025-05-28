@@ -79,6 +79,10 @@
                    class="invalid-feedback">
                 Name is required.
               </div>
+              <div *ngIf="ruleForm.get('name').errors && ruleForm.get('name').errors['minWords'] && ruleForm.get('name').touched" class="invalid-feedback">
+                Please enter at least {{ ruleForm.get('name').errors['minWords'].requiredWords }} words,
+                each with at least {{ ruleForm.get('name').errors['minWords'].minLengthPerWord }} characters.
+              </div>
             </div>
           </div>
           <div class="col-6">
@@ -90,6 +94,10 @@
               <div *ngIf="ruleForm.get('category').invalid && ruleForm.get('category').touched"
                    class="invalid-feedback">
                 Category is required.
+              </div>
+              <div *ngIf="ruleForm.get('category').errors && ruleForm.get('category').errors['minWords'] && ruleForm.get('category').touched" class="invalid-feedback">
+                Please enter at least {{ ruleForm.get('category').errors['minWords'].requiredWords }} words,
+                each with at least {{ ruleForm.get('category').errors['minWords'].minLengthPerWord }} characters.
               </div>
             </div>
           </div>
@@ -104,6 +112,10 @@
               <div *ngIf="ruleForm.get('technique').invalid && ruleForm.get('technique').touched"
                    class="invalid-feedback">
                 Technique is required.
+              </div>
+              <div *ngIf="ruleForm.get('technique').errors && ruleForm.get('technique').errors['minWords'] && ruleForm.get('technique').touched" class="invalid-feedback">
+                Please enter at least {{ ruleForm.get('technique').errors['minWords'].requiredWords }} words,
+                each with at least {{ ruleForm.get('technique').errors['minWords'].minLengthPerWord }} characters.
               </div>
             </div>
           </div>
@@ -217,6 +229,10 @@
               <div *ngIf="ruleForm.get('description').invalid && ruleForm.get('description').touched"
                    class="invalid-feedback">
                 Description is required.
+              </div>
+              <div *ngIf="ruleForm.get('description').errors && ruleForm.get('description').errors['minWords'] && ruleForm.get('description').touched" class="invalid-feedback">
+                Please enter at least {{ ruleForm.get('description').errors['minWords'].requiredWords }} words,
+                each with at least {{ ruleForm.get('description').errors['minWords'].minLengthPerWord }} characters.
               </div>
             </div>
           </div>
