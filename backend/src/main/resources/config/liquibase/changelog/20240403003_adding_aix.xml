@@ -197,8 +197,8 @@ AS
     if ![dataType] {
 # The log destination is already identified by the agent so, don''t need an entry point
 #......................................................................#
-            
-            #......................................................................# 
+
+            #......................................................................#
             #Generating dataType field required by CurrelationRulesEngine
             mutate {
                 add_field => { "dataType" => "ibm-aix" }
@@ -225,7 +225,7 @@ AS
                     if [msg_all]{
                         #...................................................................#
                         #Checking that the message contains TTY= or PWD= or COMMAND= or USER=
-                        if (("TTY=" in [msg_all] and ";" in [msg_all]) or ("PWD=" in [msg_all] and ";" in [msg_all]) or ("USER=" in [msg_all] and ";" in [msg_all]) or 
+                        if (("TTY=" in [msg_all] and ";" in [msg_all]) or ("PWD=" in [msg_all] and ";" in [msg_all]) or ("USER=" in [msg_all] and ";" in [msg_all]) or
                         ("COMMAND=" in [msg_all] and ";" in [msg_all])){
                             #......................................................................#
                             #Using grok to parse msg_all
@@ -328,7 +328,7 @@ AS
                             }
                         }
                     }
-                    
+
                 }else{
                     grok {
                         match => {
@@ -336,7 +336,7 @@ AS
                         }
                     }
                 }
-               
+
             }
             #.....................................................................#
             #Generating dataSource field required by Correlation Engine

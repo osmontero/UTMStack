@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
 
-    <changeSet id="20250527001" author="JocLRojas">
-
-        <sql dbms="postgresql" splitStatements="true" stripComments="true">
+    <changeSet id="20250528001" author="JocLRojas">
+        <sql>
             <![CDATA[
-
-            UPDATE public.utm_logstash_filter
-            SET filter_version='1.0.0',
-	        logstash_filter='# Sophos_Central filter, version 1.0.0 using "SF syslog file guide 20.0"
+            INSERT INTO utm_logstash_filter (id, logstash_filter, filter_name, filter_group_id, system_owner, module_name, is_active, filter_version, data_type_id)
+            VALUES (1527, '# Sophos_Central filter using "SF syslog file guide 20.0", version 1.0.0
 
 # See: https://docs.sophos.com/nsg/sophos-firewall/20.0/pdf/sf-syslog-guide-20.0.pdf
 # and https://docs.sophos.com/nsg/sophos-firewall/20.0/Help/en-us/webhelp/onlinehelp/AdministratorHelp/Logs/TroubleshootingLogs/LogFileDetails/index.html#https-ftp-waf
@@ -61,9 +58,12 @@ pipeline:
       - rename:
           from:
             - log.sourceinfo
-          to: log.sourceInfo'
-	WHERE id=1527;
+          to: log.sourceInfo', 'sophos-central', null, true, 'SOPHOS', false, '1.0.0', 30);
+
+            INSERT INTO utm_group_logstash_pipeline_filters (filter_id, pipeline_id, relation)
+            VALUES (1527, 52, 'PIPELINE_FILTER');
             ]]>
         </sql>
     </changeSet>
+
 </databaseChangeLog>
