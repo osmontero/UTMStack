@@ -66,7 +66,10 @@ func UpdateDependencies(cnf *config.Config) {
 				}
 			}
 
-			utils.Execute(fmt.Sprintf(config.UpdaterSelf, ""), utils.GetMyPath())
+			err = utils.Execute(filepath.Join(utils.GetMyPath(), fmt.Sprintf(config.UpdaterSelf, "")), utils.GetMyPath())
+			if err != nil {
+				utils.Logger.ErrorF("error executing updater: %v", err)
+			}
 		}
 
 		os.Remove(filepath.Join(utils.GetMyPath(), "version_new.json"))
