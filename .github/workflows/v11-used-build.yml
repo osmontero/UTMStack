@@ -63,8 +63,6 @@ jobs:
           $env:GOOS = "linux"
           $env:GOARCH = "amd64"
           go build -o utmstack_agent_service -v .
-          # $env:GOARCH = "arm64"
-          # go build -o utmstack_agent_service_arm64 -v .
       
           $env:GOOS = "windows"
           $env:GOARCH = "amd64"

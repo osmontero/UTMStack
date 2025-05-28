@@ -73,7 +73,6 @@ func (w Windows) Install() error {
 }
 
 func (w Windows) SendLogs() {
-	host, _ := os.Hostname()
 	logLinesChan := make(chan string)
 	path := utils.GetMyPath()
 	winbLogPath := filepath.Join(path, "beats", "winlogbeat", "logs")
