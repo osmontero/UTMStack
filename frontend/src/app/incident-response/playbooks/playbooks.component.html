@@ -1,10 +1,20 @@
 <div class="container-fluid pr-3 pl-3 pt-2">
   <div class="d-flex align-items-center gap-1">
-    <div class="d-flex justify-content-between align-items-center mb-2 w-100">
+    <div class="d-flex justify-content-between align-items-center mb-3 w-100">
       <h5 class="card-title mb-0 label-header">Workflows</h5>
       <div class="d-flex w-50 justify-content-end align-items-center">
+        <ng-select (change)="onPlatformChange($event)"
+                   placeholder="Select platform"
+                   [clearable]="true"
+                   [items]="platforms$ | async"
+                   [loadingText]="'Loading platforms...'"
+                   [loading]="loadingPlatform"
+                   id="platform"
+                   class="mr-3"
+                   style="min-width: 300px">
+        </ng-select>
         <app-utm-search-input
-          (searchFor)="onSearchInAll($event)"
+          (searchFor)="searchByRule($event)"
           [placeholder]="'Search workflows '"
           class="w-50">
         </app-utm-search-input>
@@ -15,7 +25,7 @@
     </div>
   </div>
   <div class="row gy-4">
-    <div class="col-md-3 col-sm-6" *ngFor="let item of rules">
+    <div class="col-md-3 col-sm-6" *ngFor="let item of playbookService.playbooks$ | async; trackBy: trackByFn">
       <div class="justify-between text-card-foreground shadow-sm transition-all my-1 flex flex-col rounded-lg border border-border bg-background p-3 hover:border-placeholder-foreground hover:shadow-sm cursor-pointer">
         <div class="card-header p-0 d-flex align-items-center gap-3">
           <div class="icon-code d-flex justify-content-center align-items-center">
@@ -33,7 +43,7 @@
                 </button>
                 <div ngbDropdownMenu>
                   <button [routerLink]="['/incident-response/create']"
-                          [queryParams]="{ id: item.id }" ngbDropdownItem (click)="onEdit(item)">
+                          [queryParams]="{ id: item.id }" ngbDropdownItem>
                     <i class="icon-pencil mr-2 text-xs text-muted-foreground"></i>
                     <span class="text-sm">
                       Edit
@@ -42,7 +52,7 @@
                   <button ngbDropdownItem (click)="onDelete(item)">
                     <i class="icon-trash mr-2 text-xs"></i>
                      <span class="text-sm">
-                      Delete
+                      {{ item.active ? 'Inactive' : 'Active' }}
                     </span>
                   </button>
                 </div>
@@ -56,4 +66,21 @@
       </div>
     </div>
   </div>
+
+  <div *ngIf="playbookService.totalItems$ | async as totalItems" class="mb-4 mt-3">
+    <div class="row justify-content-center">
+      <ngb-pagination (pageChange)="loadPage($event)"
+                      [boundaryLinks]="true"
+                      [collectionSize]="totalItems"
+                      [maxSize]="10"
+                      [pageSize]="5"
+                      [rotate]="true"
+                      [size]="'sm'"></ngb-pagination>
+
+      <app-utm-items-per-page (itemsInPage)="onItemsPerPageChange($event)"
+                              class="ml-3">
+      </app-utm-items-per-page>
+    </div>
+  </div>
+
 </div>
