@@ -1,21 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
 
-    <changeSet id="20250527002" author="JocLRojas">
-
-        <sql dbms="postgresql" splitStatements="true" stripComments="true">
+    <changeSet id="20250528002" author="JocLRojas">
+        <sql>
             <![CDATA[
+            INSERT INTO utm_logstash_filter (id, logstash_filter, filter_name, filter_group_id, system_owner, module_name, is_active, filter_version, data_type_id)
+            VALUES (1528, '# Microsoft 365 filter, version 1.0.0
 
-            UPDATE public.utm_logstash_filter
-            SET filter_version='1.0.0',
-	          logstash_filter='# Microsoft 365 filter, version 1.0.0
 # Based on Official documentation
 # See https://learn.microsoft.com/en-us/compliance/assurance/assurance-microsoft-365-audit-log-collection
 # https://learn.microsoft.com/es-es/office/office-365-management-api/aip-unified-audit-logs-best-practices
 # https://learn.microsoft.com/en-us/purview/audit-log-activities
+
 pipeline:
   - dataTypes:
       - o365
@@ -95,9 +94,12 @@ pipeline:
       # Removing unused fields
       - delete:
           fields:
-            - log.AppAccessContext'
-	WHERE id=1527;
+            - log.AppAccessContext', 'o365', null, true, 'O365', false, '1.0.0', 4);
+
+            INSERT INTO utm_group_logstash_pipeline_filters (filter_id, pipeline_id, relation)
+            VALUES (1528, 54, 'PIPELINE_FILTER');
             ]]>
         </sql>
     </changeSet>
+
 </databaseChangeLog>
