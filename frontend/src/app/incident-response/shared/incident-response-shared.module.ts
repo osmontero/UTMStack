@@ -7,6 +7,9 @@ import {InfiniteScrollModule} from 'ngx-infinite-scroll';
 import {UtmDashboardSharedModule} from '../../dashboard/shared/utm-dashboard-shared.module';
 import {UtmSharedModule} from '../../shared/utm-shared.module';
 import { ActionBuilderComponent } from './component/action-builder/action-builder.component';
+import { ActionConditionalComponent } from './component/action-conditional/action-conditional.component';
+import { ActionSidebarComponent } from './component/action-sidebar/action-sidebar.component';
+import { ActionTerminalComponent } from './component/action-terminal/action-terminal.component';
 import { ConditionBuilderComponent } from './component/condition-builder/condition-builder.component';
 import { ConditionItemComponent } from './component/condition-item/condition-item.component';
 import {IncidentResponseFilterComponent} from './component/incident-response-filter/incident-response-filter.component';
@@ -19,10 +22,7 @@ import {IrFullLogComponent} from './component/ir-full-log/ir-full-log.component'
 import {IrJobCreateComponent} from './component/ir-job-create/ir-job-create.component';
 import {IrSummaryComponent} from './component/ir-summary/ir-summary.component';
 import {IraHistoryComponent} from './component/ira-history/ira-history.component';
-import { ActionSidebarComponent } from './component/action-sidebar/action-sidebar.component';
-import { ActionTerminalComponent } from './component/action-terminal/action-terminal.component';
-import { ActionConditionalComponent } from './component/action-conditional/action-conditional.component';
-import {ActionSidebarService} from "./component/action-sidebar/action-sidebar.service";
+import {NewPlaybookComponent} from './component/new-playbook/new-playbook.component';
 
 @NgModule({
   declarations: [IrJobCreateComponent,
@@ -40,13 +40,15 @@ import {ActionSidebarService} from "./component/action-sidebar/action-sidebar.se
     ActionBuilderComponent,
     ActionSidebarComponent,
     ActionTerminalComponent,
-    ActionConditionalComponent],
+    ActionConditionalComponent,
+    NewPlaybookComponent],
 
   entryComponents: [
     IrJobCreateComponent,
     IrActionCreateComponent,
     IrCreateRuleComponent,
     ActionTerminalComponent,
+    NewPlaybookComponent
   ],
 
   exports: [
@@ -62,7 +64,8 @@ import {ActionSidebarService} from "./component/action-sidebar/action-sidebar.se
     ActionBuilderComponent,
     ActionSidebarComponent,
     ActionTerminalComponent,
-    ActionConditionalComponent
+    ActionConditionalComponent,
+    NewPlaybookComponent
   ],
   imports: [
     CommonModule,

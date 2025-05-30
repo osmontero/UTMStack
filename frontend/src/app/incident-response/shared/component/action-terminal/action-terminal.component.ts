@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import {INCIDENT_AUTOMATION_ALERT_FIELDS} from '../../../../shared/constants/alert/alert-field.constant';
-import {FormBuilder} from "@angular/forms";
 
 @Component({
   selector: 'app-action-terminal',
@@ -10,6 +10,7 @@ import {FormBuilder} from "@angular/forms";
 })
 export class ActionTerminalComponent implements OnInit {
 
+  form: FormGroup;
   alertFields = INCIDENT_AUTOMATION_ALERT_FIELDS;
   command: any;
 
@@ -17,6 +18,11 @@ export class ActionTerminalComponent implements OnInit {
               private fb: FormBuilder) { }
 
   ngOnInit() {
+    this.form = this.fb.group({
+      title: ['', [Validators.required, Validators.minLength(5)]],
+      description: ['', [Validators.required, Validators.minLength(5)]],
+      command: ['', Validators.required],
+    });
   }
 
   insertVariablePlaceholder($event: string) {
@@ -28,12 +34,12 @@ export class ActionTerminalComponent implements OnInit {
   }
 
   close() {
-    this.activeModal.close(true);
+    this.activeModal.dismiss();
   }
 
   create() {
     this.activeModal.close({
-      command: this.command,
+      ...this.form.value
     });
   }
 }

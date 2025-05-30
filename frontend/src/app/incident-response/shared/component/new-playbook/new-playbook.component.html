@@ -1,0 +1,42 @@
+<div class="d-flex flex-1 flex-column gap-8 overflow-hidden p-4 ma-h-620 h-50">
+  <div class="d-flex flex-1 flex-column gap-6 overflow-hidden">
+    <div class="d-flex flex-1 flex-grow-0 flex-column space-y-1 text-left">
+      <h2 id="radix-:rf8:" class="font-semibold tracking-tight line-clamp-1 flex items-center pb-0.5 text-base">Get started</h2>
+      <p id="radix-:rf9:" class="text-muted-foreground line-clamp-2 text-sm">Start with templates showcasing common response playbooks and workflows.</p>
+
+      <div class="d-flex w-100 mt-3">
+        <app-utm-search-input
+          (searchFor)="searchByRule($event)"
+          [placeholder]="'Search workflows '"
+          class="w-100">
+        </app-utm-search-input>
+      </div>
+
+      <div class="col-12 text-center py-5">
+        <div class="d-flex flex-column align-items-center justify-content-center">
+          <i class="bi bi-diagram-3 text-muted mb-3" style="font-size: 48px;"></i>
+          <h4 class="mb-2 fw-semibold text-muted">Let’s get started</h4>
+          <p class="text-muted mb-0">No predefined flows were found. Create your first one to begin.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="d-flex flex-shrink-0 flex-row-reverse">
+    <div class="d-flex w-100 justify-content-between gap-4 pb-4">
+      <div class="d-flex flex-column items-start justify-center">
+        <div class="font-semibold">Start from scratch</div>
+        <div class="text-sm text-muted-foreground">Begin with a fresh flow to build from scratch.</div>
+      </div>
+      <button (click)="createNewPlaybook()" class="btn utm-button utm-button-primary">
+        <i class="icon-plus2 mr-1"></i>
+        New blank flow </button>
+    </div>
+  </div>
+</div>
+<button (click)="activeModal.dismiss('closed')" aria-label="Close"
+        class="position-absolute right-2 top-2 h-8 w-8" data-dismiss="modal"
+        type="button">
+  <div class="close-modal-icon"></div>
+</button>
+

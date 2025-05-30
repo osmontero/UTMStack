@@ -21,7 +21,7 @@ import {getValueFromPropertyPath} from '../../shared/util/get-value-object-from-
 import {InputClassResolve} from '../../shared/util/input-class-resolve';
 import {createElementPrefix, getElementPrefix} from '../../shared/util/string-util';
 import {IncidentResponseRuleService} from '../shared/services/incident-response-rule.service';
-import {WorkflowActionsService} from "../shared/services/workflow-actions.service";
+import {WorkflowActionsService} from '../shared/services/workflow-actions.service';
 import {IncidentRuleType} from '../shared/type/incident-rule.type';
 
 @Component({

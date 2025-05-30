@@ -23,7 +23,7 @@ export class ActionSidebarService {
 
   constructor(private incidentResponseActionTemplateService: IncidentResponseActionTemplateService) {}
 
-  setRequest(request: any) {
+  loadData(request: any) {
     this.request.next(request);
   }
 

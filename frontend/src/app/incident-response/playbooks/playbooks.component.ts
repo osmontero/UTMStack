@@ -12,6 +12,7 @@ import {TimeFilterType} from '../../shared/types/time-filter.type';
 import {IncidentResponseRuleService} from '../shared/services/incident-response-rule.service';
 import {IncidentRuleType} from '../shared/type/incident-rule.type';
 import {PlaybookService} from './playbook.service';
+import {NewPlaybookComponent} from "../shared/component/new-playbook/new-playbook.component";
 
 @Component({
   selector: 'app-playbooks',
@@ -26,7 +27,7 @@ export class PlaybooksComponent implements OnInit, AfterViewInit {
   itemsPerPage = ITEMS_PER_PAGE;
   request = {
     page: 0,
-    size: 5,
+    size: 25,
     sort: '',
     'active.equals': null,
     'agentPlatform.equals': null,
@@ -60,19 +61,23 @@ export class PlaybooksComponent implements OnInit, AfterViewInit {
     this.playbookService.loadData({...this.request});
   }
 
-  deactivateRuleAction(rule: IncidentRuleType, active: boolean) {
-    const deleteModalRef = this.modalService.open(ModalConfirmationComponent, {backdrop: 'static', centered: true});
-    deleteModalRef.componentInstance.header = 'Deactivate incident response automation';
-    deleteModalRef.componentInstance.message = 'Are you sure that you want to deactivate the rule: \n' + rule.name;
-    deleteModalRef.componentInstance.confirmBtnText = 'Inactive';
-    deleteModalRef.componentInstance.confirmBtnIcon = 'icon-cancel-circle2';
-    deleteModalRef.componentInstance.confirmBtnType = 'delete';
-    deleteModalRef.componentInstance.textDisplay = 'If you inactive this rule, future alerts' +
-      ' will not trigger incident response commands.';
-    deleteModalRef.componentInstance.textType = 'warning';
-    deleteModalRef.result.then(() => {
-      this.setActive(rule, active);
-    });
+  deactivateRuleAction(rule: IncidentRuleType) {
+    if (rule.active){
+      const deleteModalRef = this.modalService.open(ModalConfirmationComponent, {backdrop: 'static', centered: true});
+      deleteModalRef.componentInstance.header = 'Deactivate incident response automation';
+      deleteModalRef.componentInstance.message = 'Are you sure that you want to deactivate the rule: \n' + rule.name;
+      deleteModalRef.componentInstance.confirmBtnText = 'Inactive';
+      deleteModalRef.componentInstance.confirmBtnIcon = 'icon-cancel-circle2';
+      deleteModalRef.componentInstance.confirmBtnType = 'delete';
+      deleteModalRef.componentInstance.textDisplay = 'If you inactive this rule, future alerts' +
+        ' will not trigger incident response commands.';
+      deleteModalRef.componentInstance.textType = 'warning';
+      deleteModalRef.result.then(() => {
+        this.setActive(rule, !rule.active);
+      });
+    } else {
+      this.setActive(rule, !rule.active);
+    }
   }
 
 
@@ -115,11 +120,27 @@ export class PlaybooksComponent implements OnInit, AfterViewInit {
   }
 
 
-  onDelete(item: IncidentRuleType) {
-
-  }
-
   trackByFn(index: number, playbook: UtmAlertType): any {
     return playbook.id;
+  }
+
+  clearFilters() {
+    this.request = {
+      ...this.request,
+      'active.equals': null,
+    };
+    this.playbookService.loadData(this.request);
+  }
+
+  filterByStatus(status: boolean) {
+    this.request = {
+      ...this.request,
+      'active.equals': status,
+    };
+    this.playbookService.loadData(this.request);
+  }
+
+  newPlaybook() {
+    this.modalService.open(NewPlaybookComponent, {size: 'lg', backdrop: 'static', centered: true});
   }
 }

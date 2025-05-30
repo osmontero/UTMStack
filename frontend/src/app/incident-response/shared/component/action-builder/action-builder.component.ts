@@ -120,9 +120,7 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
       result => {
         if (result) {
           this.workflowActionsService.addActions({
-            label: 'Custom Action',
-            description: result.command,
-            command: result.command
+            ...result
           });
         }
       },
