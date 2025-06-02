@@ -28,16 +28,17 @@ const (
 )
 
 var (
-	BackendConfigEndpoint = "https://127.0.0.1/api/utm-configuration-parameters?page=0&size=10000&sectionId.equals=%d&sort=id,asc"
-	ConfigPath            = filepath.Join("/root", "utmstack.yml")
-	InstanceConfigPath    = filepath.Join(GetConfig().UpdatesFolder, "instance-config.yml")
-	ServiceLogPath        = filepath.Join(GetConfig().UpdatesFolder, "logs", "utmstack-updater.log")
-	VersionFilePath       = filepath.Join(GetConfig().UpdatesFolder, "version.json")
-	LicenseFilePath       = filepath.Join(GetConfig().UpdatesFolder, "LICENSE")
-	CheckUpdatesEvery     = 5 * time.Minute
-	SyncSystemLogsEvery   = 5 * time.Minute
-	ConnectedToInternet   = false
-	Updating              = false
+	BackendConfigEndpoint  = "https://127.0.0.1/api/utm-configuration-parameters?page=0&size=10000&sectionId.equals=%d&sort=id,asc"
+	ConfigPath             = filepath.Join("/root", "utmstack.yml")
+	InstanceConfigPath     = filepath.Join(GetConfig().UpdatesFolder, "instance-config.yml")
+	ServiceLogPath         = filepath.Join(GetConfig().UpdatesFolder, "logs", "utmstack-updater.log")
+	VersionFilePath        = filepath.Join(GetConfig().UpdatesFolder, "version.json")
+	LicenseFilePath        = filepath.Join(GetConfig().UpdatesFolder, "LICENSE")
+	EventProcessorLogsPath = filepath.Join(GetConfig().DataDir, "events-engine-workdir", "logs")
+	CheckUpdatesEvery      = 5 * time.Minute
+	SyncSystemLogsEvery    = 5 * time.Minute
+	ConnectedToInternet    = false
+	Updating               = false
 )
 
 func GetCMServer() string {

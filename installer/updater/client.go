@@ -70,7 +70,7 @@ func (c *UpdaterClient) UpdateProcess() {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		if IsInMaintenanceWindow() {
+		if !config.Updating && IsInMaintenanceWindow() {
 			err := c.CheckUpdate()
 			if err != nil {
 				config.Logger().ErrorF("error checking update: %v", err)
@@ -146,6 +146,11 @@ func (c *UpdaterClient) UpdateToNewVersion(version, edition, changelog string) e
 
 	config.Logger().Info("UTMStack updated to version %s-%s", version, edition)
 	config.Updating = false
+
+	err = utils.RunCmd("docker", "system", "prune", "-f")
+	if err != nil {
+		config.Logger().ErrorF("error cleaning up Docker system after update: %v", err)
+	}
 
 	return nil
 }

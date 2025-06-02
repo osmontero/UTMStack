@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/signal"
+	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/docker/docker/api/types"
@@ -21,17 +24,23 @@ const (
 )
 
 func SyncSystemLogs() {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
+	rootCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
 
 	for {
+		select {
+		case <-rootCtx.Done():
+			return
+		default:
+		}
+
 		active, err := isLogSenderEnabled()
 		if err != nil {
 			config.Logger().ErrorF("Error getting log sender config: %v", err)
 		}
 
-		if active {
-			err := CollectAndShipSwarmLogs(ctx)
+		if !config.Updating && active {
+			err := CollectAndShipSwarmLogs()
 			if err != nil {
 				config.Logger().ErrorF("Error collecting and shipping logs: %v", err)
 			} else {
@@ -52,7 +61,10 @@ func isLogSenderEnabled() (bool, error) {
 	return backConf[0].ConfParamValue == "true", nil
 }
 
-func CollectAndShipSwarmLogs(ctx context.Context) error {
+func CollectAndShipSwarmLogs() error {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return fmt.Errorf("unable to create Docker client: %v", err)
@@ -122,7 +134,39 @@ func createZip(
 		}
 		rc.Close()
 	}
+	if info, err := os.Stat(config.EventProcessorLogsPath); err == nil && info.IsDir() {
+		if err := addDirToZip(zipWriter, config.EventProcessorLogsPath, "events-engine"); err != nil {
+			return fmt.Errorf("error adding events-engine logs to zip: %v", err)
+		}
+	}
+
 	return nil
+}
+
+func addDirToZip(zipWriter *zip.Writer, dirPath, baseInZip string) error {
+	return filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		relPath, err := filepath.Rel(dirPath, path)
+		if err != nil {
+			return err
+		}
+		zipEntry, err := zipWriter.Create(filepath.Join(baseInZip, relPath))
+		if err != nil {
+			return err
+		}
+		file, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+		_, err = io.Copy(zipEntry, file)
+		return err
+	})
 }
 
 func sanitize(name string) string { return strings.TrimPrefix(name, "/") }

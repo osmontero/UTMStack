@@ -7,7 +7,8 @@ export interface Platform {
   restart: string;
 }
 
-export const createPlatforms = (windowsCommand: string,
+export const createPlatforms = (windowsCommandAMD64: string,
+                                windowsCommandARM64: string,
                                 linuxCommand: string,
                                 windowsPath?: string,
                                 windowsRestart?: string,
@@ -15,14 +16,22 @@ export const createPlatforms = (windowsCommand: string,
                                 linuxRestart?: string) => [
   {
     id: 1,
-    name: 'WINDOWS',
-    command: windowsCommand,
+    name: 'WINDOWS (AMD64)',
+    command: windowsCommandAMD64,
     shell: 'Run the following powershell script as “ADMINISTRATOR” in a Server with the UTMStack agent Installed.',
     path: windowsPath,
     restart: windowsRestart
   },
   {
     id: 2,
+    name: 'WINDOWS (ARM64)',
+    command: windowsCommandARM64,
+    shell: 'Run the following powershell script as “ADMINISTRATOR” in a Server with the UTMStack agent Installed.',
+    path: windowsPath,
+    restart: windowsRestart
+  },
+  {
+    id: 3,
     name: 'LINUX',
     command: linuxCommand,
     shell: 'Run the following bash script as “ADMINISTRATOR” in a Server with the UTMStack agent Installed.',
@@ -34,6 +43,8 @@ export const createPlatforms = (windowsCommand: string,
 
 export const PLATFORMS = createPlatforms(
   'Start-Process "C:\\Program Files\\UTMStack\\UTMStack Agent\\utmstack_agent_service.exe" -ArgumentList \'ACTION\',' +
+  ' \'AGENT_NAME\', \'PORT\' -NoNewWindow -Wait\n',
+  'Start-Process "C:\\Program Files\\UTMStack\\UTMStack Agent\\utmstack_agent_service_arm64.exe" -ArgumentList \'ACTION\',' +
   ' \'AGENT_NAME\', \'PORT\' -NoNewWindow -Wait\n',
   'sudo bash -c "/opt/utmstack-linux-agent/utmstack_agent_service ACTION AGENT_NAME PORT"'
 );

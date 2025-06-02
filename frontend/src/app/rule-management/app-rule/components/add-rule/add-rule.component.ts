@@ -8,6 +8,7 @@ import {AddRuleStepEnum, DataType, Mode, Rule, SearchRequest} from '../../../mod
 import {AfterEventFormService} from '../../../services/after-event-form.service';
 import {DataTypeService} from '../../../services/data-type.service';
 import {RuleService} from '../../../services/rule.service';
+import {minWordsValidator} from "../../validators/customs.validators";
 
 @Component({
   selector: 'app-add-rule',
@@ -130,14 +131,14 @@ export class AddRuleComponent implements OnInit, OnDestroy {
     this.ruleForm = this.fb.group({
       id: [rule ? rule.id : ''],
       dataTypes: [rule ? rule.dataTypes : '', Validators.required],
-      name: [rule ? rule.name : '', Validators.required],
+      name: [rule ? rule.name : '', [Validators.required, minWordsValidator(2, 3)]],
       adversary: [rule ? rule.adversary : null, Validators.required],
       confidentiality: [rule ? rule.confidentiality : 0, [Validators.required, Validators.min(0), Validators.max(3)]],
       integrity: [rule ? rule.integrity : 0, [Validators.required, Validators.min(0), Validators.max(3)]],
       availability: [rule ? rule.availability : 0, [Validators.required, Validators.min(0), Validators.max(3)]],
-      category: [rule ? rule.category : '', Validators.required],
-      technique: [rule ? rule.technique : '', Validators.required],
-      description: [rule ? rule.description : '', Validators.required],
+      category: [rule ? rule.category : '', [Validators.required, minWordsValidator(2, 3)]],
+      technique: [rule ? rule.technique : '', [Validators.required, minWordsValidator(2, 3)]],
+      description: [rule ? rule.description : '', [Validators.required, minWordsValidator(2, 3)]],
       systemOwner: [rule ? rule.systemOwner : false],
       deduplicateBy: [rule ? rule.deduplicateBy || [] : []],
       afterEvents: this.fb.array(
@@ -192,7 +193,7 @@ export class AddRuleComponent implements OnInit, OnDestroy {
     }
   }
 
-  back(){
+  back() {
     this.stepCompleted.pop();
     switch (this.currentStep) {
       case 3: this.currentStep = AddRuleStepEnum.STEP2;

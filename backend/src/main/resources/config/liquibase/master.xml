@@ -218,4 +218,10 @@
 
     <include file="/config/liquibase/changelog/20250516001_udpate_sophos_name.xml" relativeToChangelogFile="false"/>
 
+    <include file="/config/liquibase/changelog/20250528001_insert_filter_sophos_central.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250528002_insert_filter_o365.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250528003_insert_filter_aws.xml" relativeToChangelogFile="false"/>
+
 </databaseChangeLog>
