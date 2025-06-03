@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/threatwinds/go-sdk/catcher"
-	"github.com/utmstack/UTMStack/plugins/soc-ai/utils"
 )
 
 func RegisterError(message string, id string) {
@@ -12,6 +11,5 @@ func RegisterError(message string, id string) {
 	if err != nil {
 		_ = catcher.Error("error while indexing error in elastic: %v", err, nil)
 	}
-	_ = catcher.Error("%s", errors.New(message), nil)
-	utils.Logger.ErrorF("Error: %s", message)
+	_ = catcher.Error("TODO: Explain this error", errors.New(message), nil)
 }

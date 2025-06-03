@@ -52,7 +52,7 @@ func infiniteRetryIfXError(f func() error, exception string) error {
 		err := f()
 		if err != nil && is(err, exception) {
 			if !xErrorWasLogged {
-				_ = catcher.Error("An error occurred (%s), will keep retrying indefinitely...", err, nil)
+				_ = catcher.Error("An error occurred, will keep retrying indefinitely...", err, nil)
 				xErrorWasLogged = true
 			}
 			time.Sleep(wait)
