@@ -95,8 +95,6 @@ func main() {
 					if !skip {
 						pull(startTime, endTime, group)
 					}
-
-					wg.Done()
 				}(group)
 			}
 
@@ -124,7 +122,7 @@ func pull(startTime time.Time, endTime time.Time, group types.ModuleGroup) {
 	}
 
 	for _, log := range logs {
-		plugins.EnqueueLog(&plugins.Log{
+		_ = plugins.EnqueueLog(&plugins.Log{
 			Id:         uuid.NewString(),
 			TenantId:   defaultTenant,
 			DataType:   "aws",
