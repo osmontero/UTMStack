@@ -1,11 +1,11 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {Observable, of, Subject} from 'rxjs';
-import {catchError, filter, map, takeUntil, tap} from 'rxjs/operators';
+import {catchError, filter, finalize, map, takeUntil, tap} from 'rxjs/operators';
 import {UtmToastService} from '../../shared/alert/utm-toast.service';
 import {SYSTEM_MENU_ICONS_PATH} from '../../shared/constants/menu_icons.constants';
-import {ModuleResolverService} from '../services/module.resolver.service';
+import {ModuleService} from '../services/module.service';
 import {ModuleRefreshBehavior} from '../shared/behavior/module-refresh.behavior';
 import {UtmModulesEnum} from '../shared/enum/utm-module.enum';
 import {UtmModulesService} from '../shared/services/utm-modules.service';
@@ -16,12 +16,13 @@ import {UtmServerType} from '../shared/type/utm-server.type';
 @Component({
   selector: 'app-app-module-view',
   templateUrl: './app-module-view.component.html',
-  styleUrls: ['./app-module-view.component.scss']
+  styleUrls: ['./app-module-view.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AppModuleViewComponent implements OnInit, OnDestroy {
   modules: UtmModuleType[];
   modules$: Observable<UtmModuleType[]>;
-  loading = true;
+  loading = false;
   setUpModule: UtmModulesEnum;
   utmModulesEnum = UtmModulesEnum;
   confValid = true;
@@ -48,7 +49,19 @@ export class AppModuleViewComponent implements OnInit, OnDestroy {
               private moduleRefreshBehavior: ModuleRefreshBehavior,
               private utmModulesService: UtmModulesService,
               private utmToastService: UtmToastService,
-              private moduleResolver: ModuleResolverService) {
+              public moduleResolver: ModuleService) {
+  }
+
+  ngOnInit() {
+    /*this.modules$ = this.activatedRoute.data
+      .pipe(
+        map(data => data.response),
+        tap(() => {
+          this.server = this.moduleResolver.server;
+          this.req['serverId.equals'] = this.server.id;
+          this.getCategories();
+        })
+      );*/
 
     this.activatedRoute.queryParams.subscribe(params => {
       if (params) {
@@ -61,27 +74,20 @@ export class AppModuleViewComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         filter(value => !!value))
       .subscribe(refresh => {
-      this.refreshModules();
-    });
-  }
+        this.resetRequest();
+        this.moduleResolver.loadModules({
+          ...this.req
+        });
+      });
 
-  ngOnInit() {
-    this.modules$ = this.activatedRoute.data
-      .pipe(
-        map(data => data.response),
-        tap(() => {
-          this.server = this.moduleResolver.server;
-          this.req['serverId.equals'] = this.server.id;
-          this.getCategories();
-        })
-      );
+    this.refreshModules();
   }
 
   getCategories() {
       this.categories$ = this.utmModulesService
-          .getModuleCategories({serverId: this.server.id, sort: 'moduleCategory,asc'})
+          .getModuleCategories({serverId: this.moduleResolver.server.id, sort: 'moduleCategory,asc'})
             .pipe(
-                tap(() => this.loading = !this.loading),
+                tap(() => this.loading = true),
                 map( res => {
                   return res.body ? res.body.sort((a, b) => a > b ? 1 : -1) : [];
                 }),
@@ -90,13 +96,15 @@ export class AppModuleViewComponent implements OnInit, OnDestroy {
                     this.utmToastService.showError('Failed to fetch categories',
                         'An error occurred while fetching module data.');
                     return of([]);
-                })
+                }),
+              finalize(() => this.loading = false),
             );
   }
 
   refreshModules() {
-    this.loading = true;
-    this.modules$ = this.moduleResolver.getModules(this.req);
+    this.moduleResolver.loadModules({
+      ...this.req
+    });
   }
 
   showModule($event: UtmModuleType) {
@@ -117,17 +125,20 @@ export class AppModuleViewComponent implements OnInit, OnDestroy {
     this.refreshModules();
   }
 
-  filterByServer($event: any) {
-    this.req['serverId.equals'] = $event.id;
-    this.req['moduleCategory.equals'] = null;
-    this.server = $event;
-    this.category = undefined;
-    this.getCategories();
-    this.refreshModules();
-  }
-
   trackByFn(index: number, module: UtmModuleType): any {
     return module.id;
+  }
+
+  resetRequest() {
+    this.req = {
+      'moduleCategory.equals': null,
+      'prettyName.contains': null,
+      'serverId.equals': null,
+      sort: 'moduleCategory,asc',
+      'moduleName.equals': null,
+      page: 0,
+      size: 100,
+    };
   }
 
   ngOnDestroy() {

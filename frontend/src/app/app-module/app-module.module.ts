@@ -60,7 +60,7 @@ import {InstallLogCollectorComponent} from './guides/shared/components/install-l
 import {StepComponent, StepDirective} from './guides/shared/components/step.component';
 import {UtmListComponent} from './guides/shared/components/utm-list.component';
 import {ModuleIntegrationComponent} from './module-integration/module-integration.component';
-import {ModuleResolverService} from './services/module.resolver.service';
+import {ModuleService} from './services/module.service';
 import {AppModuleSharedModule} from './shared/app-module-shared.module';
 
 
@@ -133,7 +133,7 @@ import {AppModuleSharedModule} from './shared/app-module-shared.module';
     NgSelectModule,
   ],
   providers: [
-    ModuleResolverService,
+    ModuleService,
     GenericConfiguration,
     CollectorConfiguration,
     IntegrationConfigFactory
