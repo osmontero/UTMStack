@@ -5,7 +5,7 @@
     </h4>
   </div>
   <div class="card-body">
-    <ol class="setup_list">
+    <!--<ol class="setup_list">
       <li>
         <p class="step-guide">
           <span class="step_number">1</span>
@@ -166,6 +166,38 @@
                                         [serverId]="serverId">
         </app-app-module-activate-button>
       </li>
+    </ol>-->
+    <ol class="setup_list">
+      <app-utm-list [items]="steps">
+        <ng-template stepTemplateRef let-step>
+          <li>
+            <app-step>
+              <span stepNumber>{{step.id}}</span>
+              <div [innerHtml]="step.name"></div>
+              <ng-container *ngIf="step.content">
+
+
+                <ng-template [ngIf]="step.content.id === 'stepContent5'">
+                  <app-int-generic-group-config [moduleId]="integrationId"
+                                                (configValidChange)="configValidChange($event)"
+                                                [serverId]="serverId"></app-int-generic-group-config>
+                </ng-template>
+
+                <ng-template [ngIf]="step.content.id === 'stepContent6'">
+                  <div  class="mt-3">
+                    <app-app-module-activate-button [module]="module.AZURE"
+                                                    [disabled]="configValidity"
+                                                    [type]="'integration'" class="mt-3"
+                                                    [serverId]="serverId">
+                    </app-app-module-activate-button>
+                  </div>
+                </ng-template>
+
+              </ng-container>
+            </app-step>
+          </li>
+        </ng-template>
+      </app-utm-list>
     </ol>
   </div>
 </div>
