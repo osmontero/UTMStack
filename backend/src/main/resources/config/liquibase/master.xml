@@ -224,4 +224,6 @@
 
     <include file="/config/liquibase/changelog/20250528003_insert_filter_aws.xml" relativeToChangelogFile="false"/>
 
+    <include file="/config/liquibase/changelog/20250604001_udpate_azure_config.xml" relativeToChangelogFile="false"/>
+
 </databaseChangeLog>

@@ -41,45 +41,46 @@ public class ModuleAzure implements IModule {
     public List<ModuleConfigurationKey> getConfigurationKeys(Long groupId) throws Exception {
         List<ModuleConfigurationKey> keys = new ArrayList<>();
 
-        // eventHubConnection
+        // workspaceId
         keys.add(ModuleConfigurationKey.builder()
-            .withGroupId(groupId)
-            .withConfKey("eventHubConnection")
-            .withConfName("Event Hub Shared access policies - Connection string")
-            .withConfDescription("Configure the event hub connection")
-            .withConfDataType("text")
-            .withConfRequired(true)
-            .build());
+                .withGroupId(groupId)
+                .withConfKey("workspaceId")
+                .withConfName("Workspace ID")
+                .withConfDescription("Azure Log Analytics Workspace ID")
+                .withConfDataType("text")
+                .withConfRequired(true)
+                .build());
 
-        // consumerGroup
+        // clientId
         keys.add(ModuleConfigurationKey.builder()
-            .withGroupId(groupId)
-            .withConfKey("consumerGroup")
-            .withConfName("Consumer Group Name")
-            .withConfDescription("Configure the consumer group")
-            .withConfDataType("text")
-            .withConfRequired(true)
-            .build());
+                .withGroupId(groupId)
+                .withConfKey("clientId")
+                .withConfName("Application (client) ID")
+                .withConfDescription("Azure AD Application (client) ID")
+                .withConfDataType("text")
+                .withConfRequired(true)
+                .build());
 
-        // storageContainer
+        // tenantId
         keys.add(ModuleConfigurationKey.builder()
-            .withGroupId(groupId)
-            .withConfKey("storageContainer")
-            .withConfName("Storage Container Name")
-            .withConfDescription("Configure the storage container")
-            .withConfDataType("text")
-            .withConfRequired(true)
-            .build());
+                .withGroupId(groupId)
+                .withConfKey("tenantId")
+                .withConfName("Directory (tenant) ID")
+                .withConfDescription("Azure Active Directory (tenant) ID")
+                .withConfDataType("text")
+                .withConfRequired(true)
+                .build());
 
-        // storageConnection
+        // clientSecret
         keys.add(ModuleConfigurationKey.builder()
-            .withGroupId(groupId)
-            .withConfKey("storageConnection")
-            .withConfName("Storage account connection string with key")
-            .withConfDescription("Configure the storage connection")
-            .withConfDataType("text")
-            .withConfRequired(true)
-            .build());
+                .withGroupId(groupId)
+                .withConfKey("clientSecret")
+                .withConfName("Client Secret Value")
+                .withConfDescription("Azure AD Application Client Secret")
+                .withConfDataType("text")
+                .withConfRequired(true)
+                .build());
+
         return keys;
     }
 }
