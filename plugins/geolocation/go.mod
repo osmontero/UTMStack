@@ -3,7 +3,7 @@ module github.com/utmstack/UTMStack/plugins/geolocation
 go 1.24.2
 
 require (
-	github.com/threatwinds/go-sdk v1.0.38
+	github.com/threatwinds/go-sdk v1.0.39
 	github.com/tidwall/gjson v1.18.0
 	github.com/tidwall/sjson v1.2.5
 	google.golang.org/grpc v1.72.2
@@ -18,7 +18,6 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect
 	github.com/gin-gonic/gin v1.10.1 // indirect
-	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.26.0 // indirect
