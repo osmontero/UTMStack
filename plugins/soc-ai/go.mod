@@ -12,6 +12,7 @@ require (
 	cel.dev/expr v0.24.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/gin-gonic/gin v1.10.1 // indirect
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/google/cel-go v0.25.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/stoewer/go-strcase v1.3.0 // indirect

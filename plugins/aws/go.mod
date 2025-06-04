@@ -13,6 +13,7 @@ require (
 )
 
 require (
+	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	go.opentelemetry.io/otel/metric v1.36.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.36.0 // indirect
