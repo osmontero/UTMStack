@@ -7,13 +7,12 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.29.14
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.67
 	github.com/google/uuid v1.6.0
-	github.com/threatwinds/go-sdk v1.0.38
+	github.com/threatwinds/go-sdk v1.0.39
 	github.com/threatwinds/logger v1.2.1
 	github.com/utmstack/config-client-go v1.2.7
 )
 
 require (
-	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	go.opentelemetry.io/otel/metric v1.36.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.36.0 // indirect

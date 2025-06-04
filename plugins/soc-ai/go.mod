@@ -12,7 +12,6 @@ require (
 	cel.dev/expr v0.24.0 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect
 	github.com/gin-gonic/gin v1.10.1 // indirect
-	github.com/go-logr/logr v1.4.3 // indirect
 	github.com/google/cel-go v0.25.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/stoewer/go-strcase v1.3.0 // indirect
@@ -47,7 +46,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.4 // indirect
-	github.com/threatwinds/go-sdk v1.0.38
+	github.com/threatwinds/go-sdk v1.0.39
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.14 // indirect
 	golang.org/x/arch v0.17.0 // indirect
