@@ -48,5 +48,7 @@ export class UtmModulesService {
     return this.http.get<boolean>(this.resourceUrl + '/is-active', {params: request, observe: 'response'});
   }
 
-
+  getModuleById(id: number): Observable<UtmModuleType> {
+    return this.http.get<UtmModuleType>(`${this.resourceUrl}/${id}`);
+  }
 }
