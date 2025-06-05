@@ -52,7 +52,6 @@ public class UtmModuleResource {
     private final ModuleFactory moduleFactory;
     private final UtmModuleQueryService utmModuleQueryService;
     private final ApplicationEventService eventService;
-    private final UtmStackService utmStackService;
     private final UtmServerRepository utmServerRepository;
     // List of configurations of type 'file' that needs content decryption
     private final List<ModuleName> typeFileNeedsDecryptList = List.of(ModuleName.GCP);
@@ -61,13 +60,11 @@ public class UtmModuleResource {
                              ModuleFactory moduleFactory,
                              UtmModuleQueryService utmModuleQueryService,
                              ApplicationEventService eventService,
-                             UtmStackService utmStackService,
                              UtmServerRepository utmServerRepository) {
         this.moduleService = moduleService;
         this.moduleFactory = moduleFactory;
         this.utmModuleQueryService = utmModuleQueryService;
         this.eventService = eventService;
-        this.utmStackService = utmStackService;
         this.utmServerRepository = utmServerRepository;
     }
 
@@ -100,6 +97,19 @@ public class UtmModuleResource {
             Page<ModuleDTO> page = utmModuleQueryService.findByCriteria(criteria, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/utm-modules");
             return ResponseEntity.ok().headers(headers).body(page.getContent());
+        } catch (Exception e) {
+            String msg = ctx + ": " + e.getMessage();
+            log.error(msg);
+            eventService.createEvent(msg, ApplicationEventType.ERROR);
+            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+        }
+    }
+
+    @GetMapping("/utm-modules/{id}")
+    public ResponseEntity<ModuleDTO> getModuleById(@PathVariable Long id) {
+        final String ctx = CLASSNAME + ".getModuleById";
+        try {
+            return ResponseEntity.ok().body(utmModuleQueryService.findById(id));
         } catch (Exception e) {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
