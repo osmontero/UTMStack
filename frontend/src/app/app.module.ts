@@ -56,11 +56,6 @@ export function initTimezoneFormat(
     });
 }
 
-/*export function initTimezoneFormat(timezoneService: TimezoneFormatService) {
-  return () => timezoneService.loadTimezoneAndFormat();
-}*/
-
-
 @NgModule({
   declarations: [
     AppComponent,
