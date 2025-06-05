@@ -17,6 +17,7 @@ import {NgxFlagIconCssModule} from 'ngx-flag-icon-css';
 import {InfiniteScrollModule} from 'ngx-infinite-scroll';
 import {NgxSpinnerModule} from 'ngx-spinner';
 import {LocalStorageService, Ng2Webstorage, SessionStorageService} from 'ngx-webstorage';
+import {first} from 'rxjs/operators';
 import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {AuthExpiredInterceptor} from './blocks/interceptor/auth-expired.interceptor';
@@ -25,21 +26,40 @@ import {ErrorHandlerInterceptor} from './blocks/interceptor/errorhandler.interce
 import {ManageHttpInterceptor} from './blocks/interceptor/managehttp.interceptor';
 import {NotificationInterceptor} from './blocks/interceptor/notification.interceptor';
 import {HttpCancelService} from './blocks/service/httpcancel.service';
+import {AccountService} from './core/auth/account.service';
+import {ApiServiceCheckerService} from './core/auth/api-checker-service';
 import {AuthServerProvider} from './core/auth/auth-jwt.service';
 import {UtmstackCoreModule} from './core/core.module';
 import {UtmDashboardModule} from './dashboard/dashboard.module';
+import {AlertManagementSharedModule} from './data-management/alert-management/shared/alert-management-shared.module';
 import {AlertIncidentStatusChangeBehavior} from './shared/behaviors/alert-incident-status-change.behavior';
 import {GettingStartedBehavior} from './shared/behaviors/getting-started.behavior';
 import {NavBehavior} from './shared/behaviors/nav.behavior';
 import {NewAlertBehavior} from './shared/behaviors/new-alert.behavior';
 import {TimezoneFormatService} from './shared/services/utm-timezone.service';
 import {UtmSharedModule} from './shared/utm-shared.module';
-import {AccountService} from "./core/auth/account.service";
-import {AlertManagementSharedModule} from "./data-management/alert-management/shared/alert-management-shared.module";
 
-export function initTimezoneFormat(timezoneService: TimezoneFormatService) {
-  return () => timezoneService.loadTimezoneAndFormat();
+export function initTimezoneFormat(
+  timezoneService: TimezoneFormatService,
+  apiChecker: ApiServiceCheckerService
+) {
+  return () =>
+    new Promise<void>((resolve, reject) => {
+      apiChecker.isOnlineApi$
+        .pipe(first(val => val === true))
+        .subscribe({
+          next: () => {
+            timezoneService.loadTimezoneAndFormat().then(resolve).catch(reject);
+          },
+          error: reject
+        });
+    });
 }
+
+/*export function initTimezoneFormat(timezoneService: TimezoneFormatService) {
+  return () => timezoneService.loadTimezoneAndFormat();
+}*/
+
 
 @NgModule({
   declarations: [
@@ -114,7 +134,7 @@ export function initTimezoneFormat(timezoneService: TimezoneFormatService) {
     {
       provide: APP_INITIALIZER,
       useFactory: initTimezoneFormat,
-      deps: [TimezoneFormatService],
+      deps: [TimezoneFormatService, ApiServiceCheckerService],
       multi: true
     },
     NewAlertBehavior,
