@@ -98,5 +98,20 @@ export class ModuleService {
   loadModules(request: RequestModule): void {
     this.requestBehaviorSubject.next(request);
   }
+
+  getModuleDetail(id: number) {
+    this.loadingBehaviorSubject$.next(true);
+    return this.utmModulesService.getModuleById(id)
+      .pipe(
+        catchError(() => {
+          this.utmToastService.showError(
+            'Failed to get module detail',
+            'An error occurred while fetching module detail.'
+          );
+          return of(null);
+        }),
+        finalize(() => this.loadingBehaviorSubject$.next(false))
+      );
+  }
 }
 
