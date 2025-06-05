@@ -19,8 +19,6 @@ import (
 	"github.com/utmstack/config-client-go/types"
 )
 
-const delayCheck = 300
-
 const (
 	loginUrl                  = "https://login.microsoftonline.com/"
 	GRANTTYPE                 = "client_credentials"
@@ -50,7 +48,7 @@ func GetTenantId() string {
 
 func main() {
 	mode := plugins.GetCfg().Env.Mode
-	if mode != "worker" {
+	if mode != "manager" {
 		return
 	}
 
@@ -58,66 +56,81 @@ func main() {
 		go plugins.SendLogsFromChannel()
 	}
 
-	st := time.Now().Add(-delayCheck * time.Second)
+	delay := 5 * time.Minute
+	ticker := time.NewTicker(delay)
+	defer ticker.Stop()
 
-	for {
+	startTime := time.Now().UTC().Add(-delay)
+
+	for range ticker.C {
+		endTime := time.Now().UTC()
+
 		if err := ConnectionChecker(loginUrl); err != nil {
 			_ = catcher.Error("External connection failure detected: %v", err, nil)
 		}
 
-		pConfig := plugins.PluginCfg("com.utmstack", false)
-		backend := pConfig.Get("backend").String()
-		internalKey := pConfig.Get("internalKey").String()
-
-		client := utmconf.NewUTMClient(internalKey, backend)
-
-		et := st.Add(299 * time.Second)
-		startTime := st.UTC().Format("2006-01-02T15:04:05")
-		endTime := et.UTC().Format("2006-01-02T15:04:05")
-
-		moduleConfig, err := client.GetUTMConfig(enum.O365)
-		if err != nil {
-			if strings.Contains(err.Error(), "invalid character '<'") {
-				time.Sleep(time.Second * delayCheck)
-				continue
-			}
-			if (err.Error() != "") && (err.Error() != " ") {
-				_ = catcher.Error("cannot obtain module configuration", err, nil)
-			}
-
-			time.Sleep(time.Second * delayCheck)
-			st = time.Now().Add(-delayCheck * time.Second)
+		utmConfig := plugins.PluginCfg("com.utmstack", false)
+		backend := utmConfig.Get("backend").String()
+		internalKey := utmConfig.Get("internalKey").String()
+		if backend == "" || internalKey == "" {
 			continue
 		}
 
-		if moduleConfig.ModuleActive {
+		client := utmconf.NewUTMClient(internalKey, backend)
+		moduleConfig, err := client.GetUTMConfig(enum.O365)
+		if err == nil && moduleConfig.ModuleActive {
 			var wg sync.WaitGroup
 			wg.Add(len(moduleConfig.ConfigurationGroups))
 
-			for _, group := range moduleConfig.ConfigurationGroups {
+			for _, grp := range moduleConfig.ConfigurationGroups {
 				go func(group types.ModuleGroup) {
 					defer wg.Done()
-
-					var skip bool
-
-					for _, cnf := range group.Configurations {
-						if cnf.ConfValue == "" || cnf.ConfValue == " " {
-							skip = true
+					var invalid bool
+					for _, c := range group.Configurations {
+						if strings.TrimSpace(c.ConfValue) == "" {
+							invalid = true
 							break
 						}
 					}
 
-					if !skip {
-						PullLogs(startTime, endTime, group)
+					if !invalid {
+						pull(startTime, endTime, group)
 					}
-				}(group)
+				}(grp)
 			}
 
 			wg.Wait()
 		}
 
-		time.Sleep(time.Second * delayCheck)
-		st = time.Now().Add(-delayCheck * time.Second)
+		startTime = endTime.Add(1 * time.Nanosecond)
+	}
+}
+
+func pull(startTime time.Time, endTime time.Time, group types.ModuleGroup) {
+	agent := GetOfficeProcessor(group)
+
+	err := agent.GetAuth()
+	if err != nil {
+		_ = catcher.Error("error getting auth", err, map[string]any{})
+		return
+	}
+
+	err = agent.StartSubscriptions()
+	if err != nil {
+		_ = catcher.Error("error starting subscriptions", err, map[string]any{})
+		return
+	}
+
+	logs := agent.GetLogs(startTime, endTime)
+	for _, log := range logs {
+		plugins.EnqueueLog(&plugins.Log{
+			Id:         uuid.New().String(),
+			TenantId:   GetTenantId(),
+			DataType:   "o365",
+			DataSource: group.GroupName,
+			Timestamp:  time.Now().UTC().Format(time.RFC3339Nano),
+			Raw:        log,
+		})
 	}
 }
 
@@ -271,7 +284,7 @@ func (o *OfficeProcessor) StartSubscriptions() error {
 	return nil
 }
 
-func (o *OfficeProcessor) GetContentList(subscription string, startTime string, endTime string) ([]ContentList, error) {
+func (o *OfficeProcessor) GetContentList(subscription string, startTime time.Time, endTime time.Time) ([]ContentList, error) {
 	link := GetContentLink(o.TenantId) + fmt.Sprintf("?startTime=%s&endTime=%s&contentType=%s", startTime, endTime, subscription)
 
 	headers := map[string]string{
@@ -353,7 +366,7 @@ func (o *OfficeProcessor) GetContentDetails(url string) (ContentDetailsResponse,
 	})
 }
 
-func (o *OfficeProcessor) GetLogs(startTime string, endTime string) []string {
+func (o *OfficeProcessor) GetLogs(startTime, endTime time.Time) []string {
 	logs := make([]string, 0, 10)
 	for _, subscription := range o.Subscriptions {
 		contentList, err := o.GetContentList(subscription, startTime, endTime)
@@ -383,32 +396,4 @@ func (o *OfficeProcessor) GetLogs(startTime string, endTime string) []string {
 		}
 	}
 	return logs
-}
-
-func PullLogs(startTime string, endTime string, group types.ModuleGroup) {
-	agent := GetOfficeProcessor(group)
-
-	err := agent.GetAuth()
-	if err != nil {
-		_ = catcher.Error("error getting auth", err, map[string]any{})
-		return
-	}
-
-	err = agent.StartSubscriptions()
-	if err != nil {
-		_ = catcher.Error("error starting subscriptions", err, map[string]any{})
-		return
-	}
-
-	logs := agent.GetLogs(startTime, endTime)
-	for _, log := range logs {
-		plugins.EnqueueLog(&plugins.Log{
-			Id:         uuid.New().String(),
-			TenantId:   GetTenantId(),
-			DataType:   "o365",
-			DataSource: group.GroupName,
-			Timestamp:  time.Now().UTC().Format(time.RFC3339Nano),
-			Raw:        log,
-		})
-	}
 }
