@@ -27,8 +27,6 @@ type notificationServer struct {
 }
 
 var statisticsQueue chan map[string]plugins.DataProcessingMessage
-var fails map[string]map[string]map[string]map[string]int64
-var failsLock sync.Mutex
 var success map[string]map[string]int64
 var successLock sync.Mutex
 
@@ -93,7 +91,6 @@ func main() {
 	}
 
 	statisticsQueue = make(chan map[string]plugins.DataProcessingMessage, runtime.NumCPU()*100)
-	fails = make(map[string]map[string]map[string]map[string]int64)
 	success = make(map[string]map[string]int64)
 
 	grpcServer := grpc.NewServer()
@@ -153,12 +150,6 @@ func main() {
 		saveToDB(ctx, "success")
 	}()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		saveToDB(ctx, "failure")
-	}()
-
 	signs := make(chan os.Signal, 1)
 	signal.Notify(signs, syscall.SIGINT, syscall.SIGTERM)
 	<-signs
@@ -172,10 +163,6 @@ func main() {
 func (p *notificationServer) Notify(_ context.Context, msg *plugins.Message) (*emptypb.Empty, error) {
 	switch plugins.Topic(msg.Topic) {
 	case plugins.TopicEnqueueSuccess:
-	case plugins.TopicEnqueueFailure:
-	case plugins.TopicParsingFailure:
-	case plugins.TopicAnalysisFailure:
-	case plugins.TopicCorrelationFailure:
 	default:
 		return &emptypb.Empty{}, nil
 	}
@@ -198,41 +185,16 @@ func processStatistics(ctx context.Context) {
 	for {
 		select {
 		case msg := <-statisticsQueue:
-			for k, v := range msg {
-				switch plugins.Topic(k) {
-				case plugins.TopicEnqueueSuccess:
-					successLock.Lock()
-					if _, ok := success[v.DataSource]; !ok {
-						success[v.DataSource] = make(map[string]int64)
-					}
-
-					if _, ok := success[v.DataSource][v.DataType]; !ok {
-						success[v.DataSource][v.DataType] = 0
-					}
-
-					success[v.DataSource][v.DataType]++
-					successLock.Unlock()
-				default:
-					failsLock.Lock()
-					if _, ok := fails[k]; !ok {
-						fails[k] = make(map[string]map[string]map[string]int64)
-					}
-
-					if _, ok := fails[k][v.DataSource]; !ok {
-						fails[k][v.DataSource] = make(map[string]map[string]int64)
-					}
-
-					if _, ok := fails[k][v.DataSource][v.DataType]; !ok {
-						fails[k][v.DataSource][v.DataType] = make(map[string]int64)
-					}
-
-					if _, ok := fails[k][v.DataSource][v.DataType][v.Error.Code]; !ok {
-						fails[k][v.DataSource][v.DataType][v.Error.Code] = 0
-					}
-
-					fails[k][v.DataSource][v.DataType][v.Error.Code]++
-					failsLock.Unlock()
+			for _, v := range msg {
+				successLock.Lock()
+				if _, ok := success[v.DataSource]; !ok {
+					success[v.DataSource] = make(map[string]int64)
 				}
+				if _, ok := success[v.DataSource][v.DataType]; !ok {
+					success[v.DataSource][v.DataType] = 0
+				}
+				success[v.DataSource][v.DataType]++
+				successLock.Unlock()
 			}
 		case <-ctx.Done():
 			return
@@ -241,12 +203,11 @@ func processStatistics(ctx context.Context) {
 }
 
 type Statistic struct {
-	Timestamp  string  `json:"@timestamp"`
-	DataSource string  `json:"dataSource"`
-	DataType   string  `json:"dataType"`
-	Cause      *string `json:"cause,omitempty"`
-	Count      int64   `json:"count"`
-	Type       string  `json:"type"`
+	Timestamp  string `json:"@timestamp"`
+	DataSource string `json:"dataSource"`
+	DataType   string `json:"dataType"`
+	Count      int64  `json:"count"`
+	Type       string `json:"type"`
 }
 
 func saveToDB(ctx context.Context, t string) {
@@ -283,47 +244,10 @@ func extractSuccess() []Statistic {
 	return result
 }
 
-func extractFails() []Statistic {
-	failsLock.Lock()
-	defer failsLock.Unlock()
-
-	var result []Statistic
-
-	for topic, dataSources := range fails {
-		for dataSource, dataTypes := range dataSources {
-			for dataType, causes := range dataTypes {
-				for cause, count := range causes {
-					result = append(result, Statistic{
-						Timestamp:  time.Now().UTC().Format(time.RFC3339Nano),
-						DataSource: dataSource,
-						DataType:   dataType,
-						Cause:      utils.PointerOf(cause),
-						Count:      count,
-						Type:       topic,
-					})
-				}
-			}
-		}
-	}
-
-	fails = make(map[string]map[string]map[string]map[string]int64)
-
-	return result
-}
-
 func sendStatistic(t string) {
-	switch t {
-	case "success":
-		success := extractSuccess()
-		for _, s := range success {
-			saveToOpenSearch(s)
-		}
-
-	case "failure":
-		fails := extractFails()
-		for _, f := range fails {
-			saveToOpenSearch(f)
-		}
+	success := extractSuccess()
+	for _, s := range success {
+		saveToOpenSearch(s)
 	}
 }
 
