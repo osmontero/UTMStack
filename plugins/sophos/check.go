@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -10,20 +9,10 @@ import (
 	"github.com/threatwinds/go-sdk/catcher"
 )
 
-const (
-	connectionTimeout = 5 * time.Second
-	wait              = 3 * time.Second
-)
-
-const CHECKCON = "https://id.sophos.com"
-
-func ConnectionChecker(url string) error {
+func connectionChecker(url string) error {
 	checkConn := func() error {
-		ctx, cancel := context.WithTimeout(context.Background(), connectionTimeout)
-		defer cancel()
-
-		if err := checkConnection(url, ctx); err != nil {
-			return fmt.Errorf("connection failed")
+		if err := checkConnection(url); err != nil {
+			return fmt.Errorf("connection failed: %v", err)
 		}
 		return nil
 	}
@@ -35,10 +24,12 @@ func ConnectionChecker(url string) error {
 	return nil
 }
 
-func checkConnection(url string, ctx context.Context) error {
-	client := &http.Client{}
+func checkConnection(url string) error {
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return err
 	}

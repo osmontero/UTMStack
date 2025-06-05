@@ -10,20 +10,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/threatwinds/go-sdk/catcher"
-	"github.com/threatwinds/go-sdk/plugins"
-
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/Azure/azure-sdk-for-go/sdk/monitor/azquery"
 	"github.com/google/uuid"
+	"github.com/threatwinds/go-sdk/catcher"
+	"github.com/threatwinds/go-sdk/plugins"
+
 	utmconf "github.com/utmstack/config-client-go"
 	"github.com/utmstack/config-client-go/enum"
 	"github.com/utmstack/config-client-go/types"
 )
 
 const (
-	delayCheck                = 300
 	defaultTenant      string = "ce66672c-e36d-4761-a8c8-90058fee1a24"
 	urlCheckConnection        = "https://login.microsoftonline.com/"
 	wait                      = 1 * time.Second
@@ -41,7 +40,15 @@ func main() {
 		}()
 	}
 
-	for {
+	delay := 5 * time.Minute
+	ticker := time.NewTicker(delay)
+	defer ticker.Stop()
+
+	startTime := time.Now().UTC().Add(-delay)
+
+	for range ticker.C {
+		endTime := time.Now().UTC()
+
 		if err := connectionChecker(urlCheckConnection); err != nil {
 			_ = catcher.Error("External connection failure detected: %v", err, nil)
 		}
@@ -50,85 +57,41 @@ func main() {
 		internalKey := utmConfig.Get("internalKey").String()
 		backendUrl := utmConfig.Get("backend").String()
 		if internalKey == "" || backendUrl == "" {
-			time.Sleep(5 * time.Second)
 			continue
 		}
 
 		client := utmconf.NewUTMClient(internalKey, backendUrl)
-
 		moduleConfig, err := client.GetUTMConfig(enum.AZURE)
-		if err != nil {
-			if strings.Contains(err.Error(), "invalid character '<'") {
-				time.Sleep(time.Second * delayCheck)
-				continue
-			}
-			if (err.Error() != "") && (err.Error() != " ") {
-				_ = catcher.Error("cannot obtain module configuration", err, nil)
-			}
-
-			time.Sleep(time.Second * delayCheck)
-			continue
-		}
-
-		if moduleConfig.ModuleActive {
+		if err == nil && moduleConfig.ModuleActive {
 			var wg sync.WaitGroup
 			wg.Add(len(moduleConfig.ConfigurationGroups))
 
-			for _, group := range moduleConfig.ConfigurationGroups {
+			for _, grp := range moduleConfig.ConfigurationGroups {
 				go func(group types.ModuleGroup) {
 					defer wg.Done()
-
-					var skip bool
-
+					var invalid bool
 					for _, cnf := range group.Configurations {
-						if cnf.ConfValue == "" || cnf.ConfValue == " " {
-							skip = true
+						if strings.TrimSpace(cnf.ConfValue) == "" {
+							invalid = true
 							break
 						}
 					}
-
-					if !skip {
-						azureProcessor := getAzureProcessor(group)
-						azureProcessor.pull()
+					if !invalid {
+						pull(startTime, endTime, group)
 					}
-				}(group)
+				}(grp)
 			}
 
 			wg.Wait()
 		}
 
-		time.Sleep(time.Second * delayCheck)
+		startTime = endTime.Add(1 * time.Nanosecond)
 	}
 }
 
-type AzureConfig struct {
-	GroupName         string
-	TenantID          string
-	ClientID          string
-	ClientSecretValue string
-	WorkspaceID       string
-}
+func pull(startTime time.Time, endTime time.Time, group types.ModuleGroup) {
+	agent := getAzureProcessor(group)
 
-// Debug Change to real config names
-func getAzureProcessor(group types.ModuleGroup) AzureConfig {
-	azurePro := AzureConfig{}
-	azurePro.GroupName = group.GroupName
-	for _, cnf := range group.Configurations {
-		switch cnf.ConfName {
-		case "Event Hub Shared access policies - Connection string":
-			azurePro.TenantID = cnf.ConfValue
-		case "Consumer Group Name":
-			azurePro.ClientID = cnf.ConfValue
-		case "Storage Container Name":
-			azurePro.ClientSecretValue = cnf.ConfValue
-		case "Storage account connection string with key":
-			azurePro.WorkspaceID = cnf.ConfValue
-		}
-	}
-	return azurePro
-}
-
-func (ap *AzureConfig) pull() {
 	// Retry logic for Azure credential creation
 	maxRetries := 3
 	retryDelay := 2 * time.Second
@@ -136,13 +99,13 @@ func (ap *AzureConfig) pull() {
 	var err error
 
 	for retry := 0; retry < maxRetries; retry++ {
-		cred, err = azidentity.NewClientSecretCredential(ap.TenantID, ap.ClientID, ap.ClientSecretValue, nil)
+		cred, err = azidentity.NewClientSecretCredential(agent.TenantID, agent.ClientID, agent.ClientSecretValue, nil)
 		if err == nil {
 			break
 		}
 
 		_ = catcher.Error("cannot obtain Azure credentials, retrying", err, map[string]any{
-			"group":      ap.GroupName,
+			"group":      agent.GroupName,
 			"retry":      retry + 1,
 			"maxRetries": maxRetries,
 		})
@@ -156,7 +119,7 @@ func (ap *AzureConfig) pull() {
 
 	if err != nil {
 		_ = catcher.Error("all retries failed when obtaining Azure credentials", err, map[string]any{
-			"group": ap.GroupName,
+			"group": agent.GroupName,
 		})
 		return
 	}
@@ -172,7 +135,7 @@ func (ap *AzureConfig) pull() {
 		}
 
 		_ = catcher.Error("cannot create Logs client, retrying", err, map[string]any{
-			"group":      ap.GroupName,
+			"group":      agent.GroupName,
 			"retry":      retry + 1,
 			"maxRetries": maxRetries,
 		})
@@ -186,7 +149,7 @@ func (ap *AzureConfig) pull() {
 
 	if err != nil {
 		_ = catcher.Error("all retries failed when creating Logs client", err, map[string]any{
-			"group": ap.GroupName,
+			"group": agent.GroupName,
 		})
 		return
 	}
@@ -199,13 +162,20 @@ func (ap *AzureConfig) pull() {
 	retryDelay = 2 * time.Second
 	var tables []*azquery.Table
 	var queryErr error
+	query := fmt.Sprintf(`
+		union *
+		| where TimeGenerated >= datetime(%s) and TimeGenerated < datetime(%s)
+		| order by TimeGenerated desc`,
+		startTime.Format(time.RFC3339Nano),
+		endTime.Format(time.RFC3339Nano),
+	)
 
 	for retry := 0; retry < maxRetries; retry++ {
 		resp, err := client.QueryWorkspace(
 			ctx,
-			ap.WorkspaceID,
+			agent.WorkspaceID,
 			azquery.Body{
-				Query: to.Ptr("union * | where TimeGenerated >= ago(5m)| order by TimeGenerated desc"),
+				Query: to.Ptr(query),
 			},
 			nil,
 		)
@@ -223,7 +193,7 @@ func (ap *AzureConfig) pull() {
 		}
 
 		_ = catcher.Error("cannot query Logs, retrying", queryErr, map[string]any{
-			"group":      ap.GroupName,
+			"group":      agent.GroupName,
 			"retry":      retry + 1,
 			"maxRetries": maxRetries,
 		})
@@ -237,7 +207,7 @@ func (ap *AzureConfig) pull() {
 
 	if queryErr != nil {
 		_ = catcher.Error("all retries failed when querying Logs", queryErr, map[string]any{
-			"group": ap.GroupName,
+			"group": agent.GroupName,
 		})
 		return
 	}
@@ -263,7 +233,7 @@ func (ap *AzureConfig) pull() {
 			jsonLog, err := json.Marshal(log)
 			if err != nil {
 				_ = catcher.Error("cannot encode log to JSON", err, map[string]any{
-					"group": ap.GroupName,
+					"group": agent.GroupName,
 				})
 				continue
 			}
@@ -271,12 +241,38 @@ func (ap *AzureConfig) pull() {
 				Id:         uuid.New().String(),
 				TenantId:   defaultTenant,
 				DataType:   "azure",
-				DataSource: ap.GroupName,
+				DataSource: agent.GroupName,
 				Timestamp:  time.Now().UTC().Format(time.RFC3339Nano),
 				Raw:        string(jsonLog),
 			})
 		}
 	}
+}
+
+type AzureConfig struct {
+	GroupName         string
+	TenantID          string
+	ClientID          string
+	ClientSecretValue string
+	WorkspaceID       string
+}
+
+func getAzureProcessor(group types.ModuleGroup) AzureConfig {
+	azurePro := AzureConfig{}
+	azurePro.GroupName = group.GroupName
+	for _, cnf := range group.Configurations {
+		switch cnf.ConfKey {
+		case "tenantId":
+			azurePro.TenantID = cnf.ConfValue
+		case "clientId":
+			azurePro.ClientID = cnf.ConfValue
+		case "clientSecret":
+			azurePro.ClientSecretValue = cnf.ConfValue
+		case "workspaceId":
+			azurePro.WorkspaceID = cnf.ConfValue
+		}
+	}
+	return azurePro
 }
 
 func connectionChecker(url string) error {
