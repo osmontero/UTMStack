@@ -225,7 +225,7 @@ pipeline:
               - get: log.eventName
                 as: name
                 oftype: string
-            expression: source=="dynamodb.amazonaws.com" && (name=="PutItem || name=="GetItem || name=="ListTables")
+            expression: source=="dynamodb.amazonaws.com" && (name=="PutItem" || name=="GetItem" || name=="ListTables")
 
       - drop:
           where:
@@ -643,7 +643,7 @@ pipeline:
               - get: log.eventName
                 as: name
                 oftype: string
-            expression: source=="elasticbeanstalk.amazonaws.com" && (name=="DescribeApplications || name=="DescribeEnvironments" || name=="DescribeApplicationVersions" || name=="DescribeAccessPoints" || name=="DescribeTags")
+            expression: source=="elasticbeanstalk.amazonaws.com" && (name=="DescribeApplications" || name=="DescribeEnvironments" || name=="DescribeApplicationVersions" || name=="DescribeAccessPoints" || name=="DescribeTags")
 
       - drop:
           where:
@@ -1193,7 +1193,7 @@ pipeline:
               - get: log.eventName
                 as: name
                 oftype: string
-            expression: source=="rds.amazonaws.com" && (name=="DescribeDBInstances" || name=="DescribeEventCategories" || name=="FailoverDBCluster" || name=="CreateDBSnapshot || name=="DescribeDBClusterParameterGroups" || name=="DescribeOptionGroups" || name=="DescribeDBSubnetGroups" || name=="DescribeDBClusters" || name=="DescribeDBClusterSnapshots" || name=="DescribeEventSubscriptions" || name=="DescribeDBSnapshots" || name=="DescribeDBParameterGroups" || name=="DescribeBlueGreenDeployments" || name=="DescribeDBEngineVersions" || name=="DescribeDBInstanceAutomatedBackups" || name=="DescribeReservedDBInstances" || name=="DescribeDBClusterEndpoints" || name=="DescribeDBProxies" || name=="DescribeDBProxyEndpoints")
+            expression: source=="rds.amazonaws.com" && (name=="DescribeDBInstances" || name=="DescribeEventCategories" || name=="FailoverDBCluster" || name=="CreateDBSnapshot" || name=="DescribeDBClusterParameterGroups" || name=="DescribeOptionGroups" || name=="DescribeDBSubnetGroups" || name=="DescribeDBClusters" || name=="DescribeDBClusterSnapshots" || name=="DescribeEventSubscriptions" || name=="DescribeDBSnapshots" || name=="DescribeDBParameterGroups" || name=="DescribeBlueGreenDeployments" || name=="DescribeDBEngineVersions" || name=="DescribeDBInstanceAutomatedBackups" || name=="DescribeReservedDBInstances" || name=="DescribeDBClusterEndpoints" || name=="DescribeDBProxies" || name=="DescribeDBProxyEndpoints")
 
       - drop:
           where:
