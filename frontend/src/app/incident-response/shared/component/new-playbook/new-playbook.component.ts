@@ -23,7 +23,7 @@ export class NewPlaybookComponent implements OnInit {
   ngOnInit() {}
 
   createNewPlaybook() {
-    this.router.navigate(['/incident-response/create']);
+    this.router.navigate(['/soar/create-flow']);
     this.activeModal.close();
   }
 

@@ -109,7 +109,7 @@ const routes: Routes = [
   },
 
   {
-    path: 'incident-response',
+    path: 'soar',
     loadChildren: './incident-response/incident-response.module#IncidentResponseModule',
     canActivate: [UserRouteAccessService],
     data: {authorities: [USER_ROLE, ADMIN_ROLE]}

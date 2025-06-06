@@ -13,8 +13,8 @@ import {IncidentResponseCommandComponent} from './incident-response-command/inci
 import {IncidentResponseRoutingModule} from './incident-response-routing.module';
 import {IncidentResponseViewComponent} from './incident-response-view/incident-response-view.component';
 import { PlaybookBuilderComponent } from './playbook-builder/playbook-builder.component';
-import {IncidentResponseSharedModule} from './shared/incident-response-shared.module';
 import {PlaybooksComponent} from "./playbooks/playbooks.component";
+import {IncidentResponseSharedModule} from './shared/incident-response-shared.module';
 
 @NgModule({
   declarations:

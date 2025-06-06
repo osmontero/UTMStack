@@ -48,7 +48,6 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
             tap((command) => {
               this.group.get('actions').setValue(this.workflowActionsService.getActions());
               this.group.get('command').setValue(command);
-              this.group.get('agentPlatform').setValue('windows');
             })
         );
   }

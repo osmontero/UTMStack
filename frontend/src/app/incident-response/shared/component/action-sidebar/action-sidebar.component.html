@@ -1,27 +1,32 @@
-<div class="card h-100">
-  <div class="card-header header-elements-sm-inline p-2 bg-white card-header-title">
+<div class="card h-100 d-flex flex-column">
+  <div class="card-header p-2">
     <label class="card-title d-flex align-items-center">
       <i class="icon-gear mr-2 fs-4 text-blue-800"></i>
       Actions
     </label>
   </div>
 
-  <div class="card-body p-0">
-    <div class="p-2 mb-1">
+  <div class="card-body d-flex flex-column p-0 flex-grow-1">
+    <!-- search -->
+    <div class="p-2">
       <app-utm-search-input (searchFor)="searchReport($event)"
                             [searching]="searching"
                             placeholder="Search more actions ..."></app-utm-search-input>
     </div>
 
+    <!-- título -->
+    <div class="text-muted small px-3 mb-2">
+      Click an action to add it to the workflow
+    </div>
 
-    <div class="p-3">
-      <div class="text-muted mb-2 small">Click an action to add it to the workflow</div>
-
-      <div *ngFor="let action of actionSidebarService.actionTemplates$ | async" class="card mb-3 action-block shadow-sm cursor-pointer" (click)="addToWorkFlow(action)">
+    <!-- aquí comienza la sección con scroll -->
+    <div class="px-3 pb-3 overflow-auto flex-grow-1">
+      <div *ngFor="let action of actionSidebarService.actionTemplates$ | async"
+           class="card mb-3 action-block shadow-sm cursor-pointer"
+           (click)="addToWorkFlow(action)">
         <div class="card-body d-flex flex-column">
           <div class="d-flex align-items-center mb-2">
-            <div class="icon-box mr-2">
-            </div>
+            <div class="icon-box mr-2"></div>
             <div>
               <div class="fw-bold fs-md">{{ action.title }}</div>
               <div class="text-muted fs-xs">{{ action.description }}</div>
@@ -29,27 +34,19 @@
           </div>
         </div>
       </div>
-      <div class="card mb-3 available-action phantom-action" (click)="openActionSidebar()">
+
+      <div class="card mb-3 available-action phantom-action"
+           (click)="openActionSidebar()">
         <div class="card-body d-flex flex-column">
           <div class="d-flex align-items-center mb-2">
             <div class="icon-terminal mr-2"></div>
-              <div>
-                <div class="fw-bold">
-                  Define Custom Action
-                </div>
-                <small class="text-muted"> Enter a command to run </small>
+            <div>
+              <div class="fw-bold">Define Custom Action</div>
+              <small class="text-muted">Enter a command to run</small>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    <!--<div class="mt-3 p-3 position-absolute w-100 bottom-0">
-      <button class="btn w-100 custom-add-action" (click)="openAddCustomActionModal()">
-        <i class="bi bi-plus-circle me-1"></i>
-         Create Your Own Action
-      </button>
-    </div>-->
-
   </div>
 </div>

@@ -1,7 +1,7 @@
 <div class="app-container">
   <app-header *appHasAnyAuthority="roles" [hidden]="isInExportRoute()"></app-header>
   <div [class]="isInExportRoute() ? 'h-100 wrapper wrapper-no-top' : 'h-100 wrapper'" [ngClass]="menu ? 'menu-open': 'menu-close'">
-    <div [ngStyle]="{'min-height': getContentHeight(), 'height': getContentHeight()}" class="main-content">
+    <div class="main-content">
       <router-outlet></router-outlet>
     </div>
 

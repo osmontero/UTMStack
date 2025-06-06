@@ -31,14 +31,13 @@ import {ApiServiceCheckerService} from './core/auth/api-checker-service';
 import {AuthServerProvider} from './core/auth/auth-jwt.service';
 import {UtmstackCoreModule} from './core/core.module';
 import {UtmDashboardModule} from './dashboard/dashboard.module';
+import {AlertManagementSharedModule} from './data-management/alert-management/shared/alert-management-shared.module';
 import {AlertIncidentStatusChangeBehavior} from './shared/behaviors/alert-incident-status-change.behavior';
 import {GettingStartedBehavior} from './shared/behaviors/getting-started.behavior';
 import {NavBehavior} from './shared/behaviors/nav.behavior';
 import {NewAlertBehavior} from './shared/behaviors/new-alert.behavior';
 import {TimezoneFormatService} from './shared/services/utm-timezone.service';
 import {UtmSharedModule} from './shared/utm-shared.module';
-import {AccountService} from "./core/auth/account.service";
-import {AlertManagementSharedModule} from "./data-management/alert-management/shared/alert-management-shared.module";
 
 export function initTimezoneFormat(
   timezoneService: TimezoneFormatService,

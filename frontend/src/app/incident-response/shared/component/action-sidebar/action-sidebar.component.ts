@@ -15,6 +15,7 @@ export class ActionSidebarComponent implements OnInit {
   request = {
     page: 0,
     size: 25,
+    'systemOwner.equals': true
   };
 
   searching: any;
@@ -51,9 +52,6 @@ export class ActionSidebarComponent implements OnInit {
           });
         }
       },
-      reason => {
-        console.log('Modal cerrado por:', reason);
-      }
     );
   }
 }

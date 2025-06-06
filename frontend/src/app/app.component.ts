@@ -143,6 +143,6 @@ export class AppComponent implements OnInit {
   }
 
   getContentHeight() {
-    return this.isAuth ? 100 - ((150 / this.viewportHeight) * 100) + 'vh' : '100vh';
+    return this.isAuth ? 100 - ((120 / this.viewportHeight) * 100) + 'vh' : '100vh';
   }
 }

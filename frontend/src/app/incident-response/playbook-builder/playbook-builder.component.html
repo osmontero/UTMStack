@@ -1,11 +1,20 @@
-<div [ngStyle]="{'min-height': getMenuHeight(), 'height': getMenuHeight()}" class="container-fluid px-3 py-4">
+
+<div class="container-fluid pr-3 pl-3 pt-2">
+  <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+    <h5 class="card-title mb-0 text-uppercase label-header">Add flow</h5>
+    <div class="header-elements">
+      <button class="btn utm-button utm-button-primary" routerLink="/soar/flows">
+        <i  class="icon-arrow-left32 mr-2"></i> Flows
+      </button>
+    </div>
+  </div>
   <form [formGroup]="formRule" class="h-100">
     <div class="d-flex h-100">
       <div class="col-auto px-0 sidebar-section h-100">
         <app-action-sidebar></app-action-sidebar>
       </div>
 
-      <div class="col overflow-auto h-100 d-flex flex-column">
+      <div class="col overflow-auto h-100 d-flex flex-column px-0 pl-2">
         <div class="card mb-4">
           <div class="card-body">
             <div class="mb-3">
@@ -53,7 +62,7 @@
             <app-utm-toggle (toggleChange)="formRule.get('active').setValue($event)"
                             [active]="formRule.get('active').value"
                             [emitAtStart]="false"
-                            [label]="'Incident response automation is active'">
+                            [label]="'Flow is active'">
             </app-utm-toggle>
           </div>
         </div>
@@ -68,14 +77,14 @@
         </div>
 
         <div class="button-container d-flex justify-content-end mt-auto pt-3 border-top w-100">
-          <button class="btn utm-button utm-button-outline-primary ng-star-inserted">
+          <!--<button class="btn utm-button utm-button-outline-primary ng-star-inserted">
             <i class="icon-eye mr-2"></i> Preview
-          </button>
+          </button>-->
 
           <button (click)="createRule()" class="btn utm-button utm-button-primary ml-2 ng-star-inserted"
           [disabled]="!formRule.valid">
             <i class="icon-terminal mr-2"></i>
-            {{ (rule ? 'Update' : 'Create') + ' playbook' }}
+            {{ (rule ? 'Update' : 'Create') + ' flow' }}
           </button>
         </div>
       </div>
