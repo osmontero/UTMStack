@@ -51,6 +51,15 @@ public class UtmModuleQueryService extends QueryService<UtmModule> {
         return utmModuleRepository.findAll(specification);
     }
 
+    @Transactional(readOnly = true)
+    public ModuleDTO findById(Long id) throws Exception {
+        UtmModule module = utmModuleRepository.findById(id)
+                .orElseThrow(() -> new Exception(String.format("Module with ID: %1$s not found", id)));
+
+        return utmModuleMapper.toDto(module, true);
+    }
+
+
     /**
      * Return a {@link Page} of {@link UtmModule} which matches the criteria from the database
      *
@@ -64,7 +73,7 @@ public class UtmModuleQueryService extends QueryService<UtmModule> {
         final Specification<UtmModule> specification = createSpecification(criteria);
         Page<UtmModule> data = utmModuleRepository.findAll(specification, page);
 
-        return data.map(utmModuleMapper::toDto);
+        return data.map(m -> utmModuleMapper.toDto(m, false));
     }
 
     /**

@@ -82,6 +82,7 @@ export class AppComponent implements OnInit {
             this.init();
           }
           this.online = true;
+          console.log('status', this.online);
         }),
         delay(1000)
       )

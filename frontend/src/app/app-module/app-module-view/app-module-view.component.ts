@@ -16,8 +16,7 @@ import {UtmServerType} from '../shared/type/utm-server.type';
 @Component({
   selector: 'app-app-module-view',
   templateUrl: './app-module-view.component.html',
-  styleUrls: ['./app-module-view.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./app-module-view.component.scss']
 })
 export class AppModuleViewComponent implements OnInit, OnDestroy {
   modules: UtmModuleType[];
@@ -108,7 +107,12 @@ export class AppModuleViewComponent implements OnInit, OnDestroy {
   }
 
   showModule($event: UtmModuleType) {
-    this.module = $event;
+    this.moduleResolver.getModuleDetail($event.id)
+      .subscribe((module: UtmModuleType) => {
+        console.log(module);
+        this.module = module;
+        this.loading = false;
+      });
   }
 
   filterByCategory($event: any) {

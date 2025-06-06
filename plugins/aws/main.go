@@ -24,7 +24,6 @@ import (
 )
 
 const (
-	delayCheck         = 300
 	defaultTenant      = "ce66672c-e36d-4761-a8c8-90058fee1a24"
 	urlCheckConnection = "https://sts.amazonaws.com"
 	wait               = 1 * time.Second
@@ -42,9 +41,15 @@ func main() {
 		}()
 	}
 
-	startTime := time.Now().UTC().Add(-1 * delayCheck * time.Second)
-	endTime := time.Now().UTC()
-	for {
+	delay := 5 * time.Minute
+	ticker := time.NewTicker(delay)
+	defer ticker.Stop()
+
+	startTime := time.Now().UTC().Add(-delay)
+
+	for range ticker.C {
+		endTime := time.Now().UTC()
+
 		if err := connectionChecker(urlCheckConnection); err != nil {
 			_ = catcher.Error("External connection failure detected: %v", err, nil)
 		}
@@ -53,58 +58,35 @@ func main() {
 		internalKey := utmConfig.Get("internalKey").String()
 		backendUrl := utmConfig.Get("backend").String()
 		if internalKey == "" || backendUrl == "" {
-			time.Sleep(5 * time.Second)
 			continue
 		}
 
 		client := utmconf.NewUTMClient(internalKey, backendUrl)
-
 		moduleConfig, err := client.GetUTMConfig(enum.AWS_IAM_USER)
-		if err != nil {
-			if strings.Contains(err.Error(), "invalid character '<'") {
-				time.Sleep(time.Second * delayCheck)
-				continue
-			}
-			if (err.Error() != "") && (err.Error() != " ") {
-				_ = catcher.Error("cannot obtain module configuration", err, nil)
-			}
-
-			time.Sleep(time.Second * delayCheck)
-			startTime = time.Now().UTC().Add(-1 * delayCheck * time.Second)
-			endTime = time.Now().UTC()
-			continue
-		}
-
-		if moduleConfig.ModuleActive {
+		if err == nil && moduleConfig.ModuleActive {
 			var wg sync.WaitGroup
 			wg.Add(len(moduleConfig.ConfigurationGroups))
 
-			for _, group := range moduleConfig.ConfigurationGroups {
+			for _, grp := range moduleConfig.ConfigurationGroups {
 				go func(group types.ModuleGroup) {
 					defer wg.Done()
-
-					var skip bool
-
-					for _, cnf := range group.Configurations {
-						if cnf.ConfValue == "" || cnf.ConfValue == " " {
-							skip = true
+					var invalid bool
+					for _, c := range group.Configurations {
+						if strings.TrimSpace(c.ConfValue) == "" {
+							invalid = true
 							break
 						}
 					}
 
-					if !skip {
+					if !invalid {
 						pull(startTime, endTime, group)
 					}
-				}(group)
+				}(grp)
 			}
-
 			wg.Wait()
 		}
 
-		time.Sleep(time.Second * delayCheck)
-
-		startTime = endTime.Add(1)
-		endTime = time.Now().UTC()
+		startTime = endTime.Add(1 * time.Nanosecond)
 	}
 }
 

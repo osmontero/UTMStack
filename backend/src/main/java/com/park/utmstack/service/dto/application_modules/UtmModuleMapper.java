@@ -15,12 +15,9 @@ public class UtmModuleMapper {
 
     private final Logger logger = LoggerFactory.getLogger(UtmModuleMapper.class);
 
-    public ModuleDTO toDto(UtmModule entity) {
-        Optional<UtmLogstashFilter> optionalFilter = entity.getFilters().stream().findFirst();
-
+    public ModuleDTO toDto(UtmModule entity, boolean includeDataType) {
         ModuleDTO dto = new ModuleDTO();
         dto.setId(entity.getId());
-        dto.setServer(entity.getServer());
         dto.setServerId(entity.getServerId());
         dto.setPrettyName(entity.getPrettyName());
         dto.setModuleName(entity.getModuleName());
@@ -32,13 +29,18 @@ public class UtmModuleMapper {
         dto.setNeedsRestart(entity.getNeedsRestart());
         dto.setIsActivatable(entity.getActivatable());
         dto.setModuleGroups(entity.getModuleGroups());
-        optionalFilter.ifPresent(filter -> dto.setDataType(filter.getDatatype()));
+
+        if (includeDataType) {
+            entity.getFilters().stream().findFirst().ifPresent(filter ->
+                    dto.setDataType(filter.getDatatype()));
+        }
+
         return dto;
     }
 
     public List<ModuleDTO> toListDTO(List<UtmModule> modules) {
         return modules.stream()
-                .map(this::toDto)
+                .map((m) -> this.toDto(m, false))
                 .collect(Collectors.toList());
     }
 }
