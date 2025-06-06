@@ -232,6 +232,7 @@ import {TimezoneOffsetPipe} from './pipes/timezone-offset.pipe';
 import {UtmNotifier} from './websocket/utm-notifier';
 import {UtmInstanceInfoComponent} from "./components/getting-started/utm-instance-info/utm-instance-info.component";
 import {UtmCpCronEditorComponent} from "./components/utm-cp-cron-editor/utm-cp-cron-editor.component";
+import {RelativeTimePipe} from "./pipes/relative-time.pipe";
 
 
 
@@ -387,7 +388,8 @@ import {UtmCpCronEditorComponent} from "./components/utm-cp-cron-editor/utm-cp-c
     UtmCollapsibleTextComponent,
     FilterPipe,
     UtmInstanceInfoComponent,
-    UtmCpCronEditorComponent
+    UtmCpCronEditorComponent,
+    RelativeTimePipe
   ],
   exports: [
     IndexPatternCreateComponent,
@@ -492,7 +494,8 @@ import {UtmCpCronEditorComponent} from "./components/utm-cp-cron-editor/utm-cp-c
     UtmCollapsibleTextComponent,
     FilterPipe,
     UtmInstanceInfoComponent,
-    UtmCpCronEditorComponent
+    UtmCpCronEditorComponent,
+    RelativeTimePipe
   ],
   entryComponents: [
     LoginComponent,
@@ -547,7 +550,7 @@ import {UtmCpCronEditorComponent} from "./components/utm-cp-cron-editor/utm-cp-c
     VersionUpdateBehavior,
     AuthServerProvider,
     NgbActiveModal,
-    LocalStorageService,],
+    LocalStorageService, ],
   schemas: [NO_ERRORS_SCHEMA, CUSTOM_ELEMENTS_SCHEMA]
 })
 export class UtmSharedModule {

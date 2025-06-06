@@ -6,6 +6,12 @@ import {NgSelectModule} from '@ng-select/ng-select';
 import {InfiniteScrollModule} from 'ngx-infinite-scroll';
 import {UtmDashboardSharedModule} from '../../dashboard/shared/utm-dashboard-shared.module';
 import {UtmSharedModule} from '../../shared/utm-shared.module';
+import { ActionBuilderComponent } from './component/action-builder/action-builder.component';
+import { ActionConditionalComponent } from './component/action-conditional/action-conditional.component';
+import { ActionSidebarComponent } from './component/action-sidebar/action-sidebar.component';
+import { ActionTerminalComponent } from './component/action-terminal/action-terminal.component';
+import { ConditionBuilderComponent } from './component/condition-builder/condition-builder.component';
+import { ConditionItemComponent } from './component/condition-item/condition-item.component';
 import {IncidentResponseFilterComponent} from './component/incident-response-filter/incident-response-filter.component';
 import {IncidentResponseStatusComponent} from './component/incident-response-status/incident-response-status.component';
 import {IrActionCreateComponent} from './component/ir-action-create/ir-action-create.component';
@@ -14,8 +20,9 @@ import {IrCreateRuleComponent} from './component/ir-create-rule/ir-create-rule.c
 import {IrExecuteCommandComponent} from './component/ir-execute-command/ir-execute-command.component';
 import {IrFullLogComponent} from './component/ir-full-log/ir-full-log.component';
 import {IrJobCreateComponent} from './component/ir-job-create/ir-job-create.component';
+import {IrSummaryComponent} from './component/ir-summary/ir-summary.component';
 import {IraHistoryComponent} from './component/ira-history/ira-history.component';
-import {IrSummaryComponent} from "./component/ir-summary/ir-summary.component";
+import {NewPlaybookComponent} from './component/new-playbook/new-playbook.component';
 
 @NgModule({
   declarations: [IrJobCreateComponent,
@@ -27,16 +34,39 @@ import {IrSummaryComponent} from "./component/ir-summary/ir-summary.component";
     IrCommandSelectComponent,
     IrCreateRuleComponent,
     IraHistoryComponent,
-    IrSummaryComponent],
-  entryComponents: [IrJobCreateComponent, IrActionCreateComponent, IrCreateRuleComponent],
-    exports: [IrJobCreateComponent,
-        IncidentResponseFilterComponent,
-        IncidentResponseStatusComponent,
-        IrFullLogComponent,
-        IrExecuteCommandComponent,
-        IrCreateRuleComponent,
-        IraHistoryComponent,
-        IrSummaryComponent],
+    IrSummaryComponent,
+    ConditionBuilderComponent,
+    ConditionItemComponent,
+    ActionBuilderComponent,
+    ActionSidebarComponent,
+    ActionTerminalComponent,
+    ActionConditionalComponent,
+    NewPlaybookComponent],
+
+  entryComponents: [
+    IrJobCreateComponent,
+    IrActionCreateComponent,
+    IrCreateRuleComponent,
+    ActionTerminalComponent,
+    NewPlaybookComponent
+  ],
+
+  exports: [
+    IrJobCreateComponent,
+    IncidentResponseFilterComponent,
+    IncidentResponseStatusComponent,
+    IrFullLogComponent,
+    IrExecuteCommandComponent,
+    IrCreateRuleComponent,
+    IraHistoryComponent,
+    IrSummaryComponent,
+    ConditionBuilderComponent,
+    ActionBuilderComponent,
+    ActionSidebarComponent,
+    ActionTerminalComponent,
+    ActionConditionalComponent,
+    NewPlaybookComponent
+  ],
   imports: [
     CommonModule,
     NgbModule,

@@ -228,4 +228,8 @@
 
     <include file="/config/liquibase/changelog/20250605001_update_typos_config_report_status _values.xml" relativeToChangelogFile="false"/>
 
+<!--    <include file="/config/liquibase/changelog/202505230001_utm_response_action_template.xml" relativeToChangelogFile="false"/>-->
+
+    <include file="/config/liquibase/changelog/202506060001_udpate_incident_menu_options.xml" relativeToChangelogFile="false"/>
+
 </databaseChangeLog>

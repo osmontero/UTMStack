@@ -286,6 +286,24 @@ p {
   }
 }
 
+.utm-button-outline-primary {
+  color: $primary-color;
+  background-color: transparent;
+  border: 1px solid $primary-color;
+
+  &:hover {
+    background-color: rgba($primary-color, 0.05);
+    box-shadow: 0 0 1px 2px rgba($primary-color, 0.2),
+    0 0 1px 4px rgba($primary-color, 0.05);
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba($primary-color, 0.25);
+  }
+}
+
+
 .utm-button-grey {
   background: #f5f5f5;
   color: $grey-color;

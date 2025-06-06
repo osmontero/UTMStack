@@ -1,4 +1,5 @@
 import {ElasticFilterType} from '../../../shared/types/filter/elastic-filter.type';
+import {IncidentResponseActionTemplate} from "../services/incident-response-action-template.service";
 
 export class IncidentRuleType {
   id: number;
@@ -14,6 +15,7 @@ export class IncidentRuleType {
   lastModifiedBy: string;
   lastModifiedDate: Date;
   defaultAgent: string;
+  actions?: IncidentResponseActionTemplate[];
 }
 
 
