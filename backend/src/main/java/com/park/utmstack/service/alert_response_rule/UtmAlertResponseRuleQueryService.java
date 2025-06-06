@@ -4,12 +4,15 @@ import com.park.utmstack.domain.alert_response_rule.UtmAlertResponseRule;
 import com.park.utmstack.domain.alert_response_rule.UtmAlertResponseRule_;
 import com.park.utmstack.repository.alert_response_rule.UtmAlertResponseRuleRepository;
 import com.park.utmstack.service.dto.UtmAlertResponseRuleCriteria;
+import com.park.utmstack.service.dto.UtmAlertResponseRuleDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.jhipster.service.QueryService;
+
+import java.util.NoSuchElementException;
 
 @Service
 @Transactional(readOnly = true)
@@ -22,15 +25,35 @@ public class UtmAlertResponseRuleQueryService extends QueryService<UtmAlertRespo
         this.utmAlertResponseRuleRepository = utmAlertResponseRuleRepository;
     }
 
+///*    @Transactional(readOnly = true)
+//    public Page<UtmAlertResponseRule> findByCriteria(UtmAlertResponseRuleCriteria criteria, Pageable page) {
+//        final String ctx = CLASSNAME + ".findByCriteria";
+//        try {
+//            final Specification<UtmAlertResponseRule> specification = createSpecification(criteria);
+//            return utmAlertResponseRuleRepository.findAll(specification, page);
+//        } catch (Exception e) {
+//            throw new RuntimeException(ctx + ": " + e.getLocalizedMessage());
+//        }
+//    }*/
+
     @Transactional(readOnly = true)
-    public Page<UtmAlertResponseRule> findByCriteria(UtmAlertResponseRuleCriteria criteria, Pageable page) {
+    public Page<UtmAlertResponseRuleDTO> findByCriteria(UtmAlertResponseRuleCriteria criteria, Pageable page) {
         final String ctx = CLASSNAME + ".findByCriteria";
         try {
             final Specification<UtmAlertResponseRule> specification = createSpecification(criteria);
-            return utmAlertResponseRuleRepository.findAll(specification, page);
+            return utmAlertResponseRuleRepository.findAll(specification, page)
+                    .map(UtmAlertResponseRuleDTO::new);
         } catch (Exception e) {
             throw new RuntimeException(ctx + ": " + e.getLocalizedMessage());
         }
+    }
+
+    @Transactional(readOnly = true)
+    public UtmAlertResponseRuleDTO findById(Long id) {
+        final String ctx = CLASSNAME + ".findById";
+        UtmAlertResponseRule utmAlertResponseRule = utmAlertResponseRuleRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException(String.format("Response rule  %1$s not found", id)));
+        return new UtmAlertResponseRuleDTO(utmAlertResponseRule);
     }
 
     private Specification<UtmAlertResponseRule> createSpecification(UtmAlertResponseRuleCriteria criteria) {

@@ -3,21 +3,27 @@ package com.park.utmstack.domain.alert_response_rule;
 
 import com.google.gson.Gson;
 import com.park.utmstack.service.dto.UtmAlertResponseRuleDTO;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "utm_alert_response_rule")
+@Getter
+@Setter
 @EntityListeners(AuditingEntityListener.class)
 public class UtmAlertResponseRule implements Serializable {
 
@@ -56,6 +62,16 @@ public class UtmAlertResponseRule implements Serializable {
     @Column(name = "last_modified_date")
     private Instant lastModifiedDate;
 
+    @ManyToMany
+    @JoinTable(
+            name = "utm_alert_response_rule_template",
+            joinColumns = @JoinColumn(name = "rule_id"),
+            inverseJoinColumns = @JoinColumn(name = "template_id")
+    )
+    private List<UtmAlertResponseActionTemplate> utmAlertResponseActionTemplates = new ArrayList<>();
+
+
+
     public UtmAlertResponseRule() {
     }
 
@@ -72,109 +88,21 @@ public class UtmAlertResponseRule implements Serializable {
             this.excludedAgents = String.join(",", dto.getExcludedAgents());
         else
             this.excludedAgents = null;
+
+
+        if (dto.getActions() != null) {
+            this.utmAlertResponseActionTemplates = dto.getActions()
+                    .stream()
+                    .map(templateDto -> {
+                        UtmAlertResponseActionTemplate template = new UtmAlertResponseActionTemplate();
+                        template.setId(templateDto.getId());
+                        template.setTitle(templateDto.getTitle());
+                        template.setDescription(templateDto.getDescription());
+                        template.setCommand(templateDto.getCommand());
+                        return template;
+                    })
+                    .collect(Collectors.toList());
+        }
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getRuleName() {
-        return ruleName;
-    }
-
-    public void setRuleName(String ruleName) {
-        this.ruleName = ruleName;
-    }
-
-    public String getRuleDescription() {
-        return ruleDescription;
-    }
-
-    public void setRuleDescription(String ruleDescription) {
-        this.ruleDescription = ruleDescription;
-    }
-
-    public String getRuleConditions() {
-        return ruleConditions;
-    }
-
-    public void setRuleConditions(String ruleConditions) {
-        this.ruleConditions = ruleConditions;
-    }
-
-    public String getRuleCmd() {
-        return ruleCmd;
-    }
-
-    public void setRuleCmd(String ruleCmd) {
-        this.ruleCmd = ruleCmd;
-    }
-
-    public Boolean getRuleActive() {
-        return ruleActive;
-    }
-
-    public void setRuleActive(Boolean ruleActive) {
-        this.ruleActive = ruleActive;
-    }
-
-    public String getAgentPlatform() {
-        return agentPlatform;
-    }
-
-    public void setAgentPlatform(String agentPlatform) {
-        this.agentPlatform = agentPlatform;
-    }
-
-    public String getExcludedAgents() {
-        return excludedAgents;
-    }
-
-    public void setExcludedAgents(String excludedAgents) {
-        this.excludedAgents = excludedAgents;
-    }
-
-    public String getDefaultAgent() {
-        return defaultAgent;
-    }
-
-    public void setDefaultAgent(String defaultAgent) {
-        this.defaultAgent = defaultAgent;
-    }
-
-    public String getCreatedBy() {
-        return createdBy;
-    }
-
-    public void setCreatedBy(String createdBy) {
-        this.createdBy = createdBy;
-    }
-
-    public Instant getCreatedDate() {
-        return createdDate;
-    }
-
-    public void setCreatedDate(Instant createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    public String getLastModifiedBy() {
-        return lastModifiedBy;
-    }
-
-    public void setLastModifiedBy(String lastModifiedBy) {
-        this.lastModifiedBy = lastModifiedBy;
-    }
-
-    public Instant getLastModifiedDate() {
-        return lastModifiedDate;
-    }
-
-    public void setLastModifiedDate(Instant lastModifiedDate) {
-        this.lastModifiedDate = lastModifiedDate;
-    }
 }
