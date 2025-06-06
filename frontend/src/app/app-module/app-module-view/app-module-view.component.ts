@@ -109,7 +109,6 @@ export class AppModuleViewComponent implements OnInit, OnDestroy {
   showModule($event: UtmModuleType) {
     this.moduleResolver.getModuleDetail($event.id)
       .subscribe((module: UtmModuleType) => {
-        console.log(module);
         this.module = module;
         this.loading = false;
       });
