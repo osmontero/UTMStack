@@ -232,4 +232,12 @@
 
     <include file="/config/liquibase/changelog/202506060001_udpate_incident_menu_options.xml" relativeToChangelogFile="false"/>
 
+    <include file="/config/liquibase/changelog/20250606002_update_filter_m365.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250606003_update_filter_aws.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250606004_update_filter_wineventlog.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250606005_update_filter_google.xml" relativeToChangelogFile="false"/>
+
 </databaseChangeLog>
