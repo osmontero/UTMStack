@@ -49,6 +49,9 @@ public class UtmAlertResponseActionTemplateQueryService extends QueryService<Utm
             if (criteria.getCommand() != null) {
                 specification = specification.and(buildStringSpecification(criteria.getCommand(), UtmAlertResponseActionTemplate_.command));
             }
+            if (criteria.getSystemOwner() != null) {
+                specification = specification.and(buildSpecification(criteria.getSystemOwner(), UtmAlertResponseActionTemplate_.systemOwner));
+            }
         }
         return specification;
     }

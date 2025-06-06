@@ -18,14 +18,6 @@
                                                           system_owner boolean not null
             );
 
-            insert into utm_response_action_template (id, title, description, command, system_owner) values
-                                                                                       (1, 'Create Incident', 'Creates a new incident', 'Invoke-Incident -Create -Title "New Security Incident"', true),
-                                                                                       (2, 'Change Status to "under_review"', 'Marks alert as under review', 'Update-AlertStatus -Id $AlertId -Status "under_review"', true),
-                                                                                       (3, 'Send Email', 'Send a notification email', 'Send-Mail -To "secops@example.com" -Subject "Alert Under Review" -Body "An alert has been flagged for review."', true),
-                                                                                       (4, 'Block IP', 'Blocks the source IP address at the firewall', 'Block-IP -Address $SourceIP', true),
-                                                                                       (5, 'Restart Service', 'Restarts a critical service on affected asset', 'Restart-Service -Name "nginx" -ComputerName $TargetHost', true),
-                                                                                       (6, 'Log to SIEM', 'Sends a log entry to SIEM system', 'Write-SIEMLog -Message "Incident created for $AlertId"', true);
-
             create table utm_alert_response_rule_template (
                                                               rule_id bigint not null,
                                                               template_id bigint not null,

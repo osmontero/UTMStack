@@ -3,6 +3,7 @@ package com.park.utmstack.service.dto;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import tech.jhipster.service.filter.BooleanFilter;
 import tech.jhipster.service.filter.InstantFilter;
 import tech.jhipster.service.filter.LongFilter;
 import tech.jhipster.service.filter.StringFilter;
@@ -20,5 +21,6 @@ public class UtmAlertResponseActionTemplateCriteria implements Serializable {
     private StringFilter label;
     private StringFilter description;
     private StringFilter command;
+    private BooleanFilter systemOwner;
 
 }
