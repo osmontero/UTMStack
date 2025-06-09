@@ -1,4 +1,4 @@
-# MongoDb filter, version 3.0.0
+# MongoDb filter, version 3.0.1
 # Fields based on https://www.elastic.co/guide/en/beats/filebeat/7.13/filebeat-module-mongodb.html
 # https://docs.mongodb.com/manual/reference/log-messages/
 # and filebeat fields.yml version 7.13.4 oss
@@ -105,34 +105,19 @@ pipeline:
           params:
             key: severity
             value: 'high'
-          where:
-            variables:
-              - get: log.s
-                as: sev
-                ofType: string
-            expression: sev=="F" || sev=="E"
+          where: log.s=="F" || log.s=="E"
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where:
-            variables:
-              - get: log.s
-                as: sev
-                ofType: string
-            expression: sev=="W"
+          where: log.s=="W"
       - add:
           function: 'string'
           params:
             key: severity
             value: 'low'
-          where:
-            variables:
-              - get: log.s
-                as: sev
-                ofType: string
-            expression: sev!="F" && sev!="E" && sev!="W"
+          where: log.s!="F" && log.s!="E" && log.s!="W"
       # Removing unused fields
       - delete:
           fields:
