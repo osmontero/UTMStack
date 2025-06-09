@@ -1,4 +1,4 @@
-# Netflow firewall module filter, version 3.0.0
+# Netflow firewall module filter, version 3.0.1
 # Based in docs and Netflow Generator (Solarwinds) for send log
 # 
 # Documentations
@@ -95,12 +95,7 @@ pipeline:
           params:
             source: origin.ip
             destination: origin.geolocation
-          where:
-            variables:
-              - get: origin.ip
-                as: ip
-                ofType: string
-            expression: "ip_ok == true"
+          where: has(origin.ip)
       
       # Adding geolocation to target.ip
       - dynamic:
@@ -108,9 +103,4 @@ pipeline:
           params:
             source: target.ip
             destination: target.geolocation
-          where:
-            variables:
-              - get: target.ip
-                as: ip
-                ofType: string
-            expression: "ip_ok == true"
+          where: has(target.ip)
