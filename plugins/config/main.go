@@ -13,7 +13,6 @@ import (
 	"github.com/threatwinds/go-sdk/utils"
 
 	_ "github.com/lib/pq"
-	"github.com/tidwall/gjson"
 	"gopkg.in/yaml.v3"
 )
 
@@ -37,7 +36,7 @@ type Rule struct {
 	Adversary     string          `yaml:"adversary"`
 	References    []string        `yaml:"references,omitempty"`
 	Description   string          `yaml:"description"`
-	Where         *plugins.Where  `yaml:"where,omitempty"`
+	Where         string          `yaml:"where,omitempty"`
 	AfterEvents   []SearchRequest `yaml:"afterEvents,omitempty"`
 	DeduplicateBy []string        `yaml:"deduplicateBy,omitempty"`
 }
@@ -191,22 +190,7 @@ func (r *Rule) FromVar(id int64, dataTypes []string, ruleName any, confidentiali
 		}
 	}
 
-	whereStr := utils.CastString(where)
-
-	whereObj := plugins.Where{
-		Expression: gjson.Get(whereStr, "ruleExpression").String(),
-	}
-
-	for _, variable := range gjson.Get(whereStr, "ruleVariables").Array() {
-		whereObj.Variables = append(whereObj.Variables, &plugins.Variable{
-			Get:    gjson.Get(variable.String(), "get").String(),
-			As:     gjson.Get(variable.String(), "as").String(),
-			OfType: gjson.Get(variable.String(), "ofType").String(),
-		})
-	}
-
 	r.Impact = new(plugins.Impact)
-
 	r.Id = id
 	r.DataTypes = dataTypes
 	r.Name = utils.CastString(ruleName)
@@ -221,7 +205,7 @@ func (r *Rule) FromVar(id int64, dataTypes []string, ruleName any, confidentiali
 	r.DeduplicateBy = deduplicateList
 	r.AfterEvents = afterObj
 	r.References = referencesList
-	r.Where = &whereObj
+	r.Where = utils.CastString(where)
 }
 
 func (f *Filter) FromVar(id int, name any, filter any) {
