@@ -1,4 +1,4 @@
-# Internet Information Services Filter
+# Internet Information Services Filter, version 3.0.1
 # Supports IIS 7 and later versions. See: https://learn.microsoft.com/es-es/iis/configuration/system.applicationhost/log/
 # and https://learn.microsoft.com/es-es/iis/configuration/system.applicationhost/sites/site/logfile/
 # 1. Parsing the json from beats
@@ -104,12 +104,7 @@ pipeline:
           params:
             source: target.ip
             destination: target.geolocation
-          where:
-            variables:
-              - get: target.ip
-                as: tIp
-                oftype: string
-            expression: tIp_ok==true
+          where: has(target.ip)
 
       - cast:
           fields:
@@ -133,71 +128,41 @@ pipeline:
           params:
             key: action
             value: 'get'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "GET"
+          where: has(log.method) && log.method == "GET"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'post'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "POST"
+          where: has(log.method) && log.method == "POST"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'put'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "PUT"
+          where: has(log.method) && log.method == "PUT"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'delete'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "DELETE"
+          where: has(log.method) && log.method == "DELETE"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'request'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "REQUEST"
+          where: has(log.method) && log.method == "REQUEST"
 
       # Removing log.method if action was set
       - delete:
           fields:
             - log.method
-          where:
-            variables:
-              - get: action
-                as: act
-                ofType: string
-            expression: act_ok == true
+          where: has(action)
 
       # Removing unused fields
       - delete:
