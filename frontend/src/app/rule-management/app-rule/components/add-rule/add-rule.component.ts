@@ -53,13 +53,13 @@ export class AddRuleComponent implements OnInit, OnDestroy {
       label: 'General Information',
       icon: 'icon-file-text'
     },
-    {
+    /*{
       id: AddRuleStepEnum.STEP2,
       label: 'Conditions',
       icon: 'icon-cog'
-    },
+    },*/
     {
-      id: AddRuleStepEnum.STEP3,
+      id: AddRuleStepEnum.STEP2,
       label: 'Post-Event Actions',
       icon: 'icon-loop'
     }
@@ -105,7 +105,7 @@ export class AddRuleComponent implements OnInit, OnDestroy {
         ...this.ruleForm.value,
         dataTypes: this.getDataTypes(this.ruleForm.value.dataTypes)
       };
-      rule.definition.ruleVariables = variables;
+      // rule.definition.ruleVariables = variables;
       this.ruleService.saveRule(this.mode, rule)
         .subscribe({
           next: response => {
@@ -139,6 +139,7 @@ export class AddRuleComponent implements OnInit, OnDestroy {
       category: [rule ? rule.category : '', [Validators.required, minWordsValidator(2, 3)]],
       technique: [rule ? rule.technique : '', [Validators.required, minWordsValidator(2, 3)]],
       description: [rule ? rule.description : '', [Validators.required, minWordsValidator(2, 3)]],
+      definition: [rule ? rule.definition : '', [Validators.required, minWordsValidator(2, 3)]],
       systemOwner: [rule ? rule.systemOwner : false],
       deduplicateBy: [rule ? rule.deduplicateBy || [] : []],
       afterEvents: this.fb.array(
@@ -147,7 +148,7 @@ export class AddRuleComponent implements OnInit, OnDestroy {
           : [this.afterEventService.buildEmptySearchRequest()]
       )
     });
-    this.savedVariables = rule ? rule.definition.ruleVariables : [];
+    // this.savedVariables = rule ? rule.definition.ruleVariables : [];
   }
 
 
@@ -188,16 +189,12 @@ export class AddRuleComponent implements OnInit, OnDestroy {
               break;
       case 1: this.currentStep = AddRuleStepEnum.STEP2;
               break;
-      case 2: this.currentStep = AddRuleStepEnum.STEP3;
-              break;
     }
   }
 
   back() {
     this.stepCompleted.pop();
     switch (this.currentStep) {
-      case 3: this.currentStep = AddRuleStepEnum.STEP2;
-              break;
       case 2: this.currentStep = AddRuleStepEnum.STEP1;
               break;
       case 1: this.currentStep = AddRuleStepEnum.STEP0;
@@ -223,9 +220,6 @@ export class AddRuleComponent implements OnInit, OnDestroy {
          this.ruleForm.get('description').valid;
 
       case AddRuleStepEnum.STEP2:
-        return this.ruleForm.get('definition').valid;
-
-      case AddRuleStepEnum.STEP3:
         return this.ruleForm.get('afterEvents').valid;
     }
   }
@@ -257,11 +251,6 @@ export class AddRuleComponent implements OnInit, OnDestroy {
       this.mode = 'ERROR';
     }
   }
-
-  onLoadError(){
-    this.mode = 'ERROR';
-  }
-
   getDataTypes(dataTypes: DataType[]) {
     return dataTypes.map( d => {
        if (!d.id) {

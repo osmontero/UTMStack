@@ -65,7 +65,7 @@ export interface Rule {
     technique: string;
     description: string;
     references: string[];
-    definition: Definition;
+    definition: string;
     systemOwner: boolean;
     ruleActive: boolean;
     valid?: boolean;
@@ -98,5 +98,4 @@ export enum AddRuleStepEnum {
   STEP1,
   STEP2,
   STEP3,
-  STEP4,
 }

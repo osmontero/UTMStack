@@ -93,7 +93,7 @@
     </div>
   </div>
   <div *ngIf="files.length > 0" class="button-container d-flex justify-content-end pr-3 w-100">
-    <button *ngIf="currentStep != RULE_FORM.STEP2 && currentStep != RULE_FORM.STEP3" (click)="activeModal.close()"
+    <button *ngIf="currentStep != RULE_FORM.STEP2 && currentStep != RULE_FORM.STEP2" (click)="activeModal.close()"
             class="btn utm-button utm-button-grey mr-2">
       <i class="icon-cancel-circle2 top-0"></i>&nbsp; Cancel
     </button>
@@ -103,7 +103,7 @@
       Back
     </button>
 
-    <button *ngIf="currentStep != RULE_FORM.STEP2 && currentStep != RULE_FORM.STEP3" (click)="next()"
+    <button *ngIf="currentStep != RULE_FORM.STEP2 && currentStep != RULE_FORM.STEP2" (click)="next()"
             class="btn utm-button utm-button-primary">
       Next
       <i class="icon-arrow-right32"></i>&nbsp;
@@ -114,7 +114,7 @@
       <i [ngClass]="loading ? 'icon-spinner spinner' : 'icon-grid-alt top-0'"></i>&nbsp; Import rules
     </button>
 
-    <button *ngIf="currentStep == RULE_FORM.STEP3" (click)="close()"
+    <button *ngIf="currentStep == RULE_FORM.STEP2" (click)="close()"
             class="btn utm-button utm-button-primary">
       Close
     </button>

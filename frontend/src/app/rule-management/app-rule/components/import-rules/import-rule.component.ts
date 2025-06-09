@@ -100,7 +100,7 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
               break;
       case 1: this.currentStep = AddRuleStepEnum.STEP2;
               break;
-      case 2: this.currentStep = AddRuleStepEnum.STEP3;
+      case 2: this.currentStep = AddRuleStepEnum.STEP2;
               break;
     }
   }

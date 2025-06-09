@@ -13,6 +13,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 })
 export class ExpressionConsoleComponent implements ControlValueAccessor {
   @Input() variables: { as: string; ofType: string; get: string }[] = [];
+  @Input() hideVariable = true;
   @Output() variablesChange = new EventEmitter<{ as: string; ofType: string; get: string }[]>();
   @ViewChild('console', {}) consoleRef!: ElementRef<HTMLTextAreaElement>;
 

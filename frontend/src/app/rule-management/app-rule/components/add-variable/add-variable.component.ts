@@ -16,7 +16,7 @@ import {containsVariable} from '../../validators/customs.validators';
 })
 export class AddVariableComponent implements OnInit {
   @Input() formGroup: FormGroup;
-  @Input() rule: Rule;
+  @Input() rule: any;
   @Output() variablesEmitter = new EventEmitter<any[]>();
   savedVariables = [];
   variablesDataType = VariableDataType;
