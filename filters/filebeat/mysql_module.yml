@@ -1,4 +1,4 @@
-# MySQL filter, version 3.0.0
+# MySQL filter, version 3.0.1
 # Fields based on https://www.elastic.co/guide/en/beats/filebeat/7.13/filebeat-module-mysql.html
 # https://dev.mysql.com/doc/refman/8.0/en/error-log-format.html
 # https://docs.oracle.com/en-us/iaas/Content/Logging/Reference/top_level_logging_format.htm
@@ -105,34 +105,19 @@ pipeline:
           params:
             key: severity
             value: 'high'
-          where:
-            variables:
-              - get: log.level
-                as: lvl
-                ofType: string
-            expression: lvl_ok == true && (lvl == "Internal" || lvl == "internal" || lvl == "INTERNAL" || lvl == "Error" || lvl == "error" || lvl == "ERROR")
+          where: has(log.level) && (log.level == "Internal" || log.level == "internal" || log.level == "INTERNAL" || log.level == "Error" || log.level == "error" || log.level == "ERROR")
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where:
-            variables:
-              - get: log.level
-                as: lvl
-                ofType: string
-            expression: lvl_ok == true && (lvl == "Warning" || lvl == "warning" || lvl == "WARNING")
+          where: has(log.level) && (log.level == "Warning" || log.level == "warning" || log.level == "WARNING")
       - add:
           function: 'string'
           params:
             key: severity
             value: 'low'
-          where:
-            variables:
-              - get: log.level
-                as: lvl
-                ofType: string
-            expression: lvl_ok == true && lvl != "Internal" && lvl != "internal" && lvl != "INTERNAL" && lvl != "Error" && lvl != "error" && lvl != "ERROR" && lvl != "Warning" && lvl != "warning" && lvl != "WARNING"
+          where: has(log.level) && log.level != "Internal" && log.level != "internal" && log.level != "INTERNAL" && log.level != "Error" && log.level != "error" && log.level != "ERROR" && log.level != "Warning" && log.level != "warning" && log.level != "WARNING"
       # Removing unused fields
       - delete:
           fields:
