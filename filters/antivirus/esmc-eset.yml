@@ -1,4 +1,4 @@
-# ESET filter version 3.0.0
+# ESET filter version 3.0.1
 # Based in docs
 # 
 # Documentations
@@ -90,36 +90,21 @@ pipeline:
           params:
             key: severity
             value: 'low'
-          where:
-            variables:
-              - get: log.severity
-                as: severity
-                ofType: string
-            expression: severity_ok==true && ( severity=="INFO" || severity=="Info" )
+          where: has(log.severity) && ( log.severity=="INFO" || log.severity=="Info" )
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where:
-            variables:
-              - get: log.severity
-                as: severity
-                ofType: string
-            expression: severity_ok==true && (severity=="WARNING" || severity=="Warning")
+          where: has(log.severity) && (log.severity=="WARNING" || log.severity=="Warning")
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'high'
-          where:
-            variables:
-              - get: log.severity
-                as: severity
-                ofType: string
-            expression: severity_ok==true && (severity=="ERROR" || severity=="Error")
+          where: has(log.severity) && (log.severity=="ERROR" || log.severity=="Error")
 
       # Adding geolocation to origin.ip
       - dynamic:
@@ -127,12 +112,7 @@ pipeline:
           params:
             source: origin.ip
             destination: origin.geolocation
-          where:
-            variables:
-              - get: origin.ip
-                as: ip
-                ofType: string
-            expression: "ip_ok == true"
+          where: has(origin.ip)
       
       # Adding geolocation to target.ip
       - dynamic:
@@ -140,12 +120,7 @@ pipeline:
           params:
             source: target.ip
             destination: target.geolocation
-          where:
-            variables:
-              - get: target.ip
-                as: ip
-                ofType: string
-            expression: "ip_ok == true"
+          where: has(target.ip)
 
       # Removing unused fields
       - delete:
