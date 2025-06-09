@@ -1,4 +1,4 @@
-# Apache filter, version 3.0.0
+# Apache filter, version 3.0.1
 # Compatible with Common Apache Log and Combined Apache Log. See: https://httpd.apache.org/docs/2.2/logs.html
 #Filter Input requirements -> fileset: datatype
 #                             access: plain text
@@ -135,112 +135,62 @@ pipeline:
             - fieldName: log.protoVersion
               pattern: '{{.greedy}}'
           source: protocol
-          where:
-            variables:
-              - get: protocol
-                as: proto
-                ofType: string
-            expression: proto_ok == true
+          where: has(protocol)
       - trim:
           function: suffix
           substring: '/'
           fields:
             - protocol
-          where:
-            variables:
-              - get: protocol
-                as: proto
-                ofType: string
-            expression: proto_ok == true
+          where: has(protocol)
       # Adding geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: origin.ip
             destination: origin.geolocation
-          where:
-            variables:
-              - get: origin.ip
-                as: ip
-                ofType: string
-            expression: ip_ok == true 
+          where: has(origin.ip)
       # Normalizing request method and renaming to action
       - add:
           function: 'string'
           params:
             key: action
             value: 'get'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "GET"
+          where: has(log.method) && log.method == "GET"
       - add:
           function: 'string'
           params:
             key: action
             value: 'post'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "POST"
+          where: has(log.method) && log.method == "POST"
       - add:
           function: 'string'
           params:
             key: action
             value: 'put'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "PUT"
+          where: has(log.method) && log.method == "PUT"
       - add:
           function: 'string'
           params:
             key: action
             value: 'delete'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "DELETE"
+          where: has(log.method) && log.method == "DELETE"
       - add:
           function: 'string'
           params:
             key: action
             value: 'patch'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "PATCH"
+          where: has(log.method) && log.method == "PATCH"
       - add:
           function: 'string'
           params:
             key: action
             value: 'request'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "REQUEST"
+          where: has(log.method) && log.method == "REQUEST"
       # Removing log.method if action was set
       - delete:
           fields:
             - log.method
-          where:
-            variables:
-              - get: action
-                as: act
-                ofType: string
-            expression: act_ok == true
+          where: has(action)
       # Reformat and field conversions
       - cast:
           fields:
@@ -265,15 +215,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where:
-            variables:
-              - get: log.statusCode
-                as: cod
-                ofType: int
-              - get: origin.bytesReceived
-                as: rec
-                ofType: int
-            expression: cod_ok == true && (cod >= 200 && cod <= 299 || (rec_ok == true && cod >= 300 && cod <= 399 && rec > 0))
+          where: has(log.statusCode) && (log.statusCode >= 200 && log.statusCode <= 299 || (has(origin.bytesReceived) && log.statusCode >= 300 && log.statusCode <= 399 && origin.bytesReceived > 0))
       # Removing unused fields
       - delete:
           fields:
