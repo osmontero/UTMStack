@@ -140,13 +140,7 @@ A rule is defined as a YAML object with the following fields:
 - **adversary**: Which side is considered the adversary (origin or target).
 - **references**: An array of external references for more information about the threat.
 - **description**: A description of the rule.
-- **where**: Conditions for when the rule applies.
-    - **variables**: Variables to extract from the event.
-        - **get**: The path to the value in the event.
-        - **as**: The name of the variable.
-        - **ofType**: The type of the variable (required). Possible values include "string", "int", "double", "bool", "
-          bytes", "uint", "timestamp", "duration", "type", "null", "any", and various list and map types.
-    - **expression**: An expression to evaluate using the variables.
+- **where**: An expression to evaluate.
 - **afterEvents**: Additional events to search for.
     - **indexPattern**: The index pattern to search in.
     - **with**: Conditions for the search.
