@@ -274,12 +274,7 @@ Removes specified fields from the log structure.
       - log.method
       - log.service
       - log.metadata
-    where:
-      variables:
-        - get: action
-          as: act
-          ofType: string
-      expression: act_ok == true
+    where: has(action)
 ```
 
 #### 5. **grok** - Pattern-based Parsing
@@ -444,12 +439,7 @@ Adds new fields with specified values, often used for field enrichment and norma
     params:
       key: actionResult
       value: 'accepted'
-    where:
-      variables:
-        - get: statusCode
-          as: cod
-          ofType: int
-      expression: cod_ok == true && (cod >= 200 && cod <= 299)
+    where: has(statusCode) && (statusCode >= 200 && statusCode <= 299)
 
 - add:
     function: 'string'
@@ -457,11 +447,7 @@ Adds new fields with specified values, often used for field enrichment and norma
       key: action
       value: 'get'
     where:
-      variables:
-        - get: log.method
-          as: met
-          ofType: string
-      expression: met_ok == true && met == "GET"
+      variables: has(log.method) && log.method == "GET"
 ```
 
 #### 9. **reformat** - Field Reformatting
@@ -505,12 +491,7 @@ Expands complex nested fields or structured data into individual fields.
 - expand:
     source: log.jsonPayload.structuredRdata
     to: log.jsonPayloadStructuredRdata
-    where:
-      variables:
-        - get: log.jsonPayload.structuredRdata
-          as: rdata
-          ofType: string
-      expression: rdata_ok == true
+    where: has(log.jsonPayload.structuredRdata)
 ```
 
 #### 11. **csv** - CSV Data Parsing
@@ -567,27 +548,17 @@ Calls external plugins for specialized processing like geolocation enrichment.
     params:
       source: origin.ip
       destination: origin.geolocation
-    where:
-      variables:
-        - get: origin.ip
-          as: ip
-          ofType: string
-      expression: "ip_ok == true"
+    where: has(origin.ip)
 ```
 
 ### Conditional Logic in Steps
 
-Many steps support conditional logic using the `where` clause:
+All steps support conditional logic using the `where` clause:
 
 **Structure:**
 
 ```yaml
-where:
-  variables:
-    - get: field.path
-      as: variable_name
-      ofType: data_type
-  expression: "conditional_expression"
+where: "conditional_expression"
 ```
 
 **Supported Data Types:**
@@ -598,9 +569,9 @@ where:
 
 **Expression Examples:**
 
-- `ip_ok == true` - Check if variable exists and is valid
-- `cod >= 200 && cod <= 299` - Range checking
-- `met == "GET"` - String comparison
+- `has(origin.ip)` - Check if variable exists and is valid
+- `statusCode >= 200 && statusCode <= 299` - Range checking
+- `log.method == "GET"` - String comparison
 - `severity.contains("error")` - String operations
 
 ### Complete Filter Example
@@ -678,12 +649,7 @@ pipeline:
           params:
             source: origin.ip
             destination: origin.geolocation
-          where:
-            variables:
-              - get: origin.ip
-                as: ip
-                ofType: string
-            expression: ip_ok == true
+          where: has(origin.ip)
 
       # 8. Normalize HTTP methods to standardized actions
       - add:
@@ -691,12 +657,7 @@ pipeline:
           params:
             key: action
             value: 'get'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "GET"
+          where: has(log.method) && log.method == "GET"
 
       # 9. Add result classification based on status codes
       - add:
@@ -704,12 +665,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where:
-            variables:
-              - get: log.statusCode
-                as: cod
-                ofType: int
-            expression: cod_ok == true && (cod >= 200 && cod <= 299)
+          where: has(log.statusCode) && (log.statusCode >= 200 && log.statusCode <= 299)
 
       # 10. Convert numeric fields
       - cast:
@@ -732,12 +688,7 @@ pipeline:
             - log.method
             - log.service
             - log.agent
-          where:
-            variables:
-              - get: action
-                as: act
-                ofType: string
-            expression: act_ok == true
+          where: has(action)
 ```
 
 This example demonstrates:
@@ -824,7 +775,7 @@ powerful expression language that allows for complex logic, including:
 Example of a complex expression:
 
 ```yaml
-expression: country_ok && !(country in ["United States", "Canada", "United Kingdom"]) && (user != "" && user.startsWith("admin"))
+expression: has(origin.country) && !(origin.country in ["United States", "Canada", "United Kingdom"]) && (origin.user != "" && origin.user.startsWith("admin"))
 ```
 
 #### Nested AfterEvents
@@ -944,7 +895,7 @@ This section provides guidance on optimizing the performance of the EventProcess
 
 1. **Limit Data Types**: Specify only the data types that the rule applies to. This reduces the number of events that
    need to be evaluated.
-2. **Use Efficient Expressions**: Use efficient expressions in the `where.expression` field. Avoid complex expressions
+2. **Use Efficient Expressions**: Use efficient expressions in the `where` field. Avoid complex expressions
    that require a lot of processing.
 3. **Limit AfterEvents Searches**: Limit the number of `afterEvents` searches and the time window for each search. This
    reduces the load on the search engine.
@@ -1037,15 +988,7 @@ pipeline:
   references:
     - https://attack.mitre.org/techniques/T1110/
   description: Detects multiple failed authentication attempts from the same IP address.
-  where:
-    variables:
-      - get: origin.ip
-        as: ip
-        ofType: "string"
-      - get: actionResult
-        as: result
-        ofType: "string"
-    expression: ip_ok && result == "failure"
+  where: has(origin.ip) && actionResult == "failure"
   afterEvents:
     - indexPattern: v11-log-auth_logs
       with:
@@ -1110,18 +1053,7 @@ pipeline:
   references:
     - https://attack.mitre.org/techniques/T1048/
   description: Detects large data transfers to unusual destinations.
-  where:
-    variables:
-      - get: origin.ip
-        as: src_ip
-        ofType: "string"
-      - get: target.ip
-        as: dst_ip
-        ofType: "string"
-      - get: origin.bytesSent
-        as: bytes
-        ofType: "int"
-    expression: src_ip_ok && dst_ip_ok && bytes > 10000000 && !(dst_ip in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"])
+  where: has(origin.ip) && has(target.ip) && has(origin.bytesSent) origin.bytesSent && > 10000000 && !(target.ip in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"])
   afterEvents:
     - indexPattern: v11-log-network_logs
       with:
@@ -1187,18 +1119,7 @@ pipeline:
   references:
     - https://attack.mitre.org/techniques/T1078/
   description: Detects unusual user activity outside normal working hours.
-  where:
-    variables:
-      - get: origin.user
-        as: user
-        ofType: "string"
-      - get: deviceTime
-        as: time
-        ofType: "timestamp"
-      - get: action
-        as: action
-        ofType: "string"
-    expression: user_ok && time_ok && action_ok && (time.hour < 8 || time.hour > 18) && action in ["file_access", "database_query", "admin_action"]
+  where: has(origin.user) && has(deviceTime) && has(action) && (time.hour < 8 || time.hour > 18) && action in ["file_access", "database_query", "admin_action"]
   afterEvents:
     - indexPattern: v11-log-user_activity
       with:
