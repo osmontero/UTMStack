@@ -1,4 +1,4 @@
-# PfSense Firewall filter, version 3.0.0
+# PfSense Firewall filter, version 3.0.1
 # Based on docs and samples log provided
 # Support CSV format  format
 #
@@ -116,12 +116,7 @@ pipeline:
             - log.tcpWindow
             - log.urg
             - log.tcpOptions
-          where:
-            variables:
-              - get: log.csvMsg
-                as: msg
-                ofType: string
-            expression: msg.matches("(.+),(\\s)?(match|\\w+),(block|pass),(in|out),(4|6),(.+)(tcp|TCP|Tcp)")
+          where: log.csvMsg.matches("(.+),(\\s)?(match|\\w+),(block|pass),(in|out),(4|6),(.+)(tcp|TCP|Tcp)")
 
       # .......................................................................#
       - csv:
@@ -151,12 +146,7 @@ pipeline:
             - log.srcPort
             - log.dstPort
             - log.dataLength
-          where:
-            variables:
-              - get: log.csvMsg
-                as: msg
-                ofType: string
-            expression: msg.matches("(.+),(\\s)?(match|\\w+),(block|pass),(in|out),(4|6),(.+)(udp|UDP|Udp)")
+          where: log.csvMsg.matches("(.+),(\\s)?(match|\\w+),(block|pass),(in|out),(4|6),(.+)(udp|UDP|Udp)")
 
       #......................................................................#
       - csv:
@@ -189,12 +179,7 @@ pipeline:
             - log.icmpData3
             - log.icmpData4
             - log.icmpData5
-          where:
-            variables:
-              - get: log.csvMsg
-                as: msg
-                ofType: string
-            expression: msg.matches("(.+),(\\s)?(match|\\w+),(block|pass),(in|out),(4|6),(.+)(icmp|ICMP|Icmp)")
+          where: log.csvMsg.matches("(.+),(\\s)?(match|\\w+),(block|pass),(in|out),(4|6),(.+)(icmp|ICMP|Icmp)")
 
       #......................................................................#
       - csv:
@@ -227,12 +212,7 @@ pipeline:
             - log.tcpWindow
             - log.urg
             - log.tcpOptions
-          where:
-            variables:
-              - get: log.csvMsg
-                as: msg
-                ofType: string
-            expression: msg.matches("(.+),(\\s)?(match|\\w+),(block|pass),(in|out),(6|17),(.+)(tcp|TCP|Tcp)")
+          where: log.csvMsg.matches("(.+),(\\s)?(match|\\w+),(block|pass),(in|out),(6|17),(.+)(tcp|TCP|Tcp)")
       
       #......................................................................#
       - csv:
@@ -259,12 +239,7 @@ pipeline:
             - log.srcPort
             - log.dstPort
             - log.dataLength
-          where:
-            variables:
-              - get: log.csvMsg
-                as: msg
-                ofType: string
-            expression: msg.matches("(.+),(match|\\w+),(block|pass),(in|out),6,(.+)(udp|UDP|Udp)") 
+          where: log.csvMsg.matches("(.+),(match|\\w+),(block|pass),(in|out),6,(.+)(udp|UDP|Udp)") 
 
       #......................................................................#
       - csv:
@@ -294,12 +269,7 @@ pipeline:
             - log.icmpData3
             - log.icmpData4
             - log.icmpData5
-          where:
-            variables:
-              - get: log.csvMsg
-                as: msg
-                ofType: string
-            expression: msg.matches("(.+),(match|\\w+),(block|pass),(in|out),(6|17),(.+)(icmp|ICMP|Icmp)")
+          where: log.csvMsg.matches("(.+),(match|\\w+),(block|pass),(in|out),(6|17),(.+)(icmp|ICMP|Icmp)")
 
       # ................................................#
       # Rename fields
@@ -354,12 +324,7 @@ pipeline:
           params:
             source: origin.ip
             destination: origin.geolocation
-          where:
-            variables:
-              - get: origin.ip
-                as: ip
-                ofType: string
-            expression: "ip_ok == true"
+          where: has(origin.ip)
       
       # Adding geolocation to target.ip
       - dynamic:
@@ -367,12 +332,7 @@ pipeline:
           params:
             source: target.ip
             destination: target.geolocation
-          where:
-            variables:
-              - get: target.ip
-                as: ip
-                ofType: string
-            expression: "ip_ok == true"
+          where: has(target.ip)
 
       # ..........................................................................#
       # Remove issues fileds
