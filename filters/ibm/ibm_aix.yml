@@ -1,4 +1,4 @@
-# IBM AIX filter, version 3.0.0
+# IBM AIX filter, version 3.0.1
 # Based on docs and samples log provided
 # Support 
 #
@@ -53,12 +53,7 @@ pipeline:
             - fieldName: log.msgAll
               pattern: '{{.greedy}}'
           source: log.msgInit
-          where:
-            variables:
-              - get: log.msgInit
-                as: message
-                ofType: string
-            expression: message.contains("Message forwarded from")
+          where: log.msgInit.contains("Message forwarded from")
       
       # Removing unnecessary characters
       - trim:
@@ -79,13 +74,7 @@ pipeline:
             - fieldName: log.msgWithTTY
               pattern: '{{.greedy}}'
           source: log.msgAll
-          where:
-            variables:
-              - get: log.msgAll
-                as: message
-                ofType: string
-            expression: message.contains("TTY=") || message.contains("PWD=") || 
-                        message.contains("USER=") || message.contains("COMMAND=")
+          where: log.msgAll.contains("TTY=") || log.msgAll.contains("PWD=") || log.msgAll.contains("USER=") || log.msgAll.contains("COMMAND=")
 
       # Removing unnecessary characters
       - trim:
@@ -107,13 +96,7 @@ pipeline:
             - fieldName: log.msgWithTTY
               pattern: '{{.greedy}}'
           source: log.msgWithTTY
-          where:
-            variables:
-              - get: log.msgWithTTY
-                as: message
-                ofType: string
-            expression: message.contains("TTY=") || message.contains("PWD=") || 
-                        message.contains("USER=") || message.contains("COMMAND=")
+          where: log.msgWithTTY.contains("TTY=") || log.msgWithTTY.contains("PWD=") || log.msgWithTTY.contains("USER=") || log.msgWithTTY.contains("COMMAND=")
 
       # ......................................................................#
       # If "PWD=" in [msgWithTTY]
@@ -127,13 +110,7 @@ pipeline:
             - fieldName: log.msgWithTTY
               pattern: '{{.greedy}}'
           source: log.msgWithTTY
-          where:
-            variables:
-              - get: log.msgWithTTY
-                as: message
-                ofType: string
-            expression: message.contains("TTY=") || message.contains("PWD=") || 
-                        message.contains("USER=") || message.contains("COMMAND=")
+          where: log.msgWithTTY.contains("TTY=") || log.msgWithTTY.contains("PWD=") || log.msgWithTTY.contains("USER=") || log.msgWithTTY.contains("COMMAND=")
 
       # ......................................................................#
       # If "USER=" in [msgWithTTY]
@@ -147,13 +124,7 @@ pipeline:
             - fieldName: log.msgWithTTY
               pattern: '{{.greedy}}'
           source: log.msgWithTTY
-          where:
-            variables:
-              - get: log.msgWithTTY
-                as: message
-                ofType: string
-            expression: message.contains("TTY=") || message.contains("PWD=") || 
-                        message.contains("USER=") || message.contains("COMMAND=")
+          where: log.msgWithTTYcontains("TTY=") || log.msgWithTTY.contains("PWD=") || log.msgWithTTY.contains("USER=") || log.msgWithTTY.contains("COMMAND=")
 
       # ......................................................................#
       # If "COMMAND=" in [msgWithTTY]
@@ -165,13 +136,7 @@ pipeline:
             - fieldName: origin.command
               pattern: '{{.greedy}}'
           source: log.msgWithTTY
-          where:
-            variables:
-              - get: log.msgWithTTY
-                as: message
-                ofType: string
-            expression: message.contains("TTY=") || message.contains("PWD=") || 
-                        message.contains("USER=") || message.contains("COMMAND=")
+          where: log.msgWithTTYcontains("TTY=") || log.msgWithTTY.contains("PWD=") || log.msgWithTTY.contains("USER=") || log.msgWithTTY.contains("COMMAND=")
 
       # ......................................................................#
       # Using grok to parse msgAll
@@ -187,12 +152,7 @@ pipeline:
             - fieldName: origin.command
               pattern: '{{.greedy}}'
           source: log.msgAll
-          where:
-            variables:
-              - get: log.msgAll
-                as: message
-                ofType: string
-            expression: message.contains("(command continued)")
+          where: log.msgAll.contains("(command continued)")
 
       # ......................................................................#
       # Removing unnecessary characters
@@ -223,12 +183,7 @@ pipeline:
             - fieldName: log.msg
               pattern: '{{.greedy}}'
           source: log.msgAll
-          where:
-            variables:
-              - get: log.msgAll
-                as: message
-                ofType: string
-            expression: message.matches("\\w+\\[[0-9]+\\]\\:")
+          where: log.msgAll.matches("\\w+\\[[0-9]+\\]\\:")
 
       # ......................................................................#
       #  Removing unnecessary characters
@@ -263,17 +218,7 @@ pipeline:
             - fieldName: log.msg
               pattern: '{{.greedy}}'
           source: log.msg
-          where:
-            variables:
-              - get: log.msg
-                as: message
-                ofType: string
-            expression: message.contains("LENGTH:") || message.contains("SESSIONID:") || 
-                        message.contains("ENTRYID:") || message.contains("STATEMENT:") || 
-                        message.contains("USERID:") || message.contains("USERHOST:") || 
-                        message.contains("ACTION:") || message.contains("RETURNCODE:") || 
-                        message.contains("OBJ$CREATOR:") || message.contains("OBJ$NAME:") || 
-                        message.contains("OS$USERID:")
+          where: log.msg.contains("LENGTH:") || log.msg.contains("SESSIONID:") || log.msg.contains("ENTRYID:") || log.msg.contains("STATEMENT:") || log.msg.contains("USERID:") || log.msg.contains("USERHOST:") || log.msg.contains("ACTION:") || log.msg.contains("RETURNCODE:") || log.msg.contains("OBJ$CREATOR:") || log.msg.contains("OBJ$NAME:") || log.msg.contains("OS$USERID:")
 
       # ......................................................................#
       # If "SESSIONID:" in [msg]
@@ -289,17 +234,7 @@ pipeline:
             - fieldName: log.msg
               pattern: '{{.greedy}}'
           source: log.msg
-          where:
-            variables:
-              - get: log.msg
-                as: message
-                ofType: string
-            expression: message.contains("LENGTH:") || message.contains("SESSIONID:") || 
-                        message.contains("ENTRYID:") || message.contains("STATEMENT:") || 
-                        message.contains("USERID:") || message.contains("USERHOST:") || 
-                        message.contains("ACTION:") || message.contains("RETURNCODE:") || 
-                        message.contains("OBJ$CREATOR:") || message.contains("OBJ$NAME:") || 
-                        message.contains("OS$USERID:")
+          where: log.msg.contains("LENGTH:") || log.msg.contains("SESSIONID:") || log.msg.contains("ENTRYID:") || log.msg.contains("STATEMENT:") || log.msg.contains("USERID:") || log.msg.contains("USERHOST:") || log.msg.contains("ACTION:") || log.msg.contains("RETURNCODE:") || log.msg.contains("OBJ$CREATOR:") || log.msg.contains("OBJ$NAME:") || log.msg.contains("OS$USERID:")
 
       # ......................................................................#
       # If "ENTRYID:" in [msg]
@@ -315,17 +250,7 @@ pipeline:
             - fieldName: log.msg
               pattern: '{{.greedy}}'
           source: log.msg
-          where:
-            variables:
-              - get: log.msg
-                as: message
-                ofType: string
-            expression: message.contains("LENGTH:") || message.contains("SESSIONID:") || 
-                        message.contains("ENTRYID:") || message.contains("STATEMENT:") || 
-                        message.contains("USERID:") || message.contains("USERHOST:") || 
-                        message.contains("ACTION:") || message.contains("RETURNCODE:") || 
-                        message.contains("OBJ$CREATOR:") || message.contains("OBJ$NAME:") || 
-                        message.contains("OS$USERID:")
+          where: log.msg.contains("LENGTH:") || log.msg.contains("SESSIONID:") || log.msg.contains("ENTRYID:") || log.msg.contains("STATEMENT:") || log.msg.contains("USERID:") || log.msg.contains("USERHOST:") || log.msg.contains("ACTION:") || log.msg.contains("RETURNCODE:") || log.msg.contains("OBJ$CREATOR:") || log.msg.contains("OBJ$NAME:") || log.msg.contains("OS$USERID:")
 
       # ......................................................................#
       # If "STATEMENT:" in [msg]
@@ -341,17 +266,7 @@ pipeline:
             - fieldName: log.msg
               pattern: '{{.greedy}}'
           source: log.msg
-          where:
-            variables:
-              - get: log.msg
-                as: message
-                ofType: string
-            expression: message.contains("LENGTH:") || message.contains("SESSIONID:") || 
-                        message.contains("ENTRYID:") || message.contains("STATEMENT:") || 
-                        message.contains("USERID:") || message.contains("USERHOST:") || 
-                        message.contains("ACTION:") || message.contains("RETURNCODE:") || 
-                        message.contains("OBJ$CREATOR:") || message.contains("OBJ$NAME:") || 
-                        message.contains("OS$USERID:")
+          where: log.msg.contains("LENGTH:") || log.msg.contains("SESSIONID:") || log.msg.contains("ENTRYID:") || log.msg.contains("STATEMENT:") || log.msg.contains("USERID:") || log.msg.contains("USERHOST:") || log.msg.contains("ACTION:") || log.msg.contains("RETURNCODE:") || log.msg.contains("OBJ$CREATOR:") || log.msg.contains("OBJ$NAME:") || log.msg.contains("OS$USERID:")
 
       # ......................................................................#
       # If "USERID:" in [msg]
@@ -367,17 +282,7 @@ pipeline:
             - fieldName: log.msg
               pattern: '{{.greedy}}'
           source: log.msg
-          where:
-            variables:
-              - get: log.msg
-                as: message
-                ofType: string
-            expression: message.contains("LENGTH:") || message.contains("SESSIONID:") || 
-                        message.contains("ENTRYID:") || message.contains("STATEMENT:") || 
-                        message.contains("USERID:") || message.contains("USERHOST:") || 
-                        message.contains("ACTION:") || message.contains("RETURNCODE:") || 
-                        message.contains("OBJ$CREATOR:") || message.contains("OBJ$NAME:") || 
-                        message.contains("OS$USERID:")
+          where: log.msg.contains("LENGTH:") || log.msg.contains("SESSIONID:") || log.msg.contains("ENTRYID:") || log.msg.contains("STATEMENT:") || log.msg.contains("USERID:") || log.msg.contains("USERHOST:") || log.msg.contains("ACTION:") || log.msg.contains("RETURNCODE:") || log.msg.contains("OBJ$CREATOR:") || log.msg.contains("OBJ$NAME:") || log.msg.contains("OS$USERID:")
 
       # ......................................................................#
       # If "USERHOST:" in [msg]
@@ -393,17 +298,7 @@ pipeline:
             - fieldName: log.msg
               pattern: '{{.greedy}}'
           source: log.msg
-          where:
-            variables:
-              - get: log.msg
-                as: message
-                ofType: string
-            expression: message.contains("LENGTH:") || message.contains("SESSIONID:") || 
-                        message.contains("ENTRYID:") || message.contains("STATEMENT:") || 
-                        message.contains("USERID:") || message.contains("USERHOST:") || 
-                        message.contains("ACTION:") || message.contains("RETURNCODE:") || 
-                        message.contains("OBJ$CREATOR:") || message.contains("OBJ$NAME:") || 
-                        message.contains("OS$USERID:")
+          where: log.msg.contains("LENGTH:") || log.msg.contains("SESSIONID:") || log.msg.contains("ENTRYID:") || log.msg.contains("STATEMENT:") || log.msg.contains("USERID:") || log.msg.contains("USERHOST:") || log.msg.contains("ACTION:") || log.msg.contains("RETURNCODE:") || log.msg.contains("OBJ$CREATOR:") || log.msg.contains("OBJ$NAME:") || log.msg.contains("OS$USERID:")
 
       # ......................................................................#
       # If "ACTION:" in [msg]
@@ -419,17 +314,7 @@ pipeline:
             - fieldName: log.msg
               pattern: '{{.greedy}}'
           source: log.msg
-          where:
-            variables:
-              - get: log.msg
-                as: message
-                ofType: string
-            expression: message.contains("LENGTH:") || message.contains("SESSIONID:") || 
-                        message.contains("ENTRYID:") || message.contains("STATEMENT:") || 
-                        message.contains("USERID:") || message.contains("USERHOST:") || 
-                        message.contains("ACTION:") || message.contains("RETURNCODE:") || 
-                        message.contains("OBJ$CREATOR:") || message.contains("OBJ$NAME:") || 
-                        message.contains("OS$USERID:")
+          where: log.msg.contains("LENGTH:") || log.msg.contains("SESSIONID:") || log.msg.contains("ENTRYID:") || log.msg.contains("STATEMENT:") || log.msg.contains("USERID:") || log.msg.contains("USERHOST:") || log.msg.contains("ACTION:") || log.msg.contains("RETURNCODE:") || log.msg.contains("OBJ$CREATOR:") || log.msg.contains("OBJ$NAME:") || log.msg.contains("OS$USERID:")
 
       # ......................................................................#
       # If "RETURNCODE:" in [msg]
@@ -445,17 +330,7 @@ pipeline:
             - fieldName: log.msg
               pattern: '{{.greedy}}'
           source: log.msg
-          where:
-            variables:
-              - get: log.msg
-                as: message
-                ofType: string
-            expression: message.contains("LENGTH:") || message.contains("SESSIONID:") || 
-                        message.contains("ENTRYID:") || message.contains("STATEMENT:") || 
-                        message.contains("USERID:") || message.contains("USERHOST:") || 
-                        message.contains("ACTION:") || message.contains("RETURNCODE:") || 
-                        message.contains("OBJ$CREATOR:") || message.contains("OBJ$NAME:") || 
-                        message.contains("OS$USERID:")
+          where: log.msg.contains("LENGTH:") || log.msg.contains("SESSIONID:") || log.msg.contains("ENTRYID:") || log.msg.contains("STATEMENT:") || log.msg.contains("USERID:") || log.msg.contains("USERHOST:") || log.msg.contains("ACTION:") || log.msg.contains("RETURNCODE:") || log.msg.contains("OBJ$CREATOR:") || log.msg.contains("OBJ$NAME:") || log.msg.contains("OS$USERID:")
 
       # ......................................................................#
       # If "OBJ$CREATOR:" in [msg]
@@ -471,17 +346,7 @@ pipeline:
             - fieldName: log.msg
               pattern: '{{.greedy}}'
           source: log.msg
-          where:
-            variables:
-              - get: log.msg
-                as: message
-                ofType: string
-            expression: message.contains("LENGTH:") || message.contains("SESSIONID:") || 
-                        message.contains("ENTRYID:") || message.contains("STATEMENT:") || 
-                        message.contains("USERID:") || message.contains("USERHOST:") || 
-                        message.contains("ACTION:") || message.contains("RETURNCODE:") || 
-                        message.contains("OBJ$CREATOR:") || message.contains("OBJ$NAME:") || 
-                        message.contains("OS$USERID:")
+          where: log.msg.contains("LENGTH:") || log.msg.contains("SESSIONID:") || log.msg.contains("ENTRYID:") || log.msg.contains("STATEMENT:") || log.msg.contains("USERID:") || log.msg.contains("USERHOST:") || log.msg.contains("ACTION:") || log.msg.contains("RETURNCODE:") || log.msg.contains("OBJ$CREATOR:") || log.msg.contains("OBJ$NAME:") || log.msg.contains("OS$USERID:")
 
       # ......................................................................#
       # If "OBJ$NAME:" in [msg]
@@ -497,17 +362,7 @@ pipeline:
             - fieldName: log.msg
               pattern: '{{.greedy}}'
           source: log.msg
-          where:
-            variables:
-              - get: log.msg
-                as: message
-                ofType: string
-            expression: message.contains("LENGTH:") || message.contains("SESSIONID:") || 
-                        message.contains("ENTRYID:") || message.contains("STATEMENT:") || 
-                        message.contains("USERID:") || message.contains("USERHOST:") || 
-                        message.contains("ACTION:") || message.contains("RETURNCODE:") || 
-                        message.contains("OBJ$CREATOR:") || message.contains("OBJ$NAME:") || 
-                        message.contains("OS$USERID:")
+          where: log.msg.contains("LENGTH:") || log.msg.contains("SESSIONID:") || log.msg.contains("ENTRYID:") || log.msg.contains("STATEMENT:") || log.msg.contains("USERID:") || log.msg.contains("USERHOST:") || log.msg.contains("ACTION:") || log.msg.contains("RETURNCODE:") || log.msg.contains("OBJ$CREATOR:") || log.msg.contains("OBJ$NAME:") || log.msg.contains("OS$USERID:")
 
       # ......................................................................#
       # If "OS$USERID:" in [msg]
@@ -523,17 +378,7 @@ pipeline:
             - fieldName: log.msg
               pattern: '{{.greedy}}'
           source: log.msg
-          where:
-            variables:
-              - get: log.msg
-                as: message
-                ofType: string
-            expression: message.contains("LENGTH:") || message.contains("SESSIONID:") || 
-                        message.contains("ENTRYID:") || message.contains("STATEMENT:") || 
-                        message.contains("USERID:") || message.contains("USERHOST:") || 
-                        message.contains("ACTION:") || message.contains("RETURNCODE:") || 
-                        message.contains("OBJ$CREATOR:") || message.contains("OBJ$NAME:") || 
-                        message.contains("OS$USERID:")
+          where: log.msg.contains("LENGTH:") || log.msg.contains("SESSIONID:") || log.msg.contains("ENTRYID:") || log.msg.contains("STATEMENT:") || log.msg.contains("USERID:") || log.msg.contains("USERHOST:") || log.msg.contains("ACTION:") || log.msg.contains("RETURNCODE:") || log.msg.contains("OBJ$CREATOR:") || log.msg.contains("OBJ$NAME:") || log.msg.contains("OS$USERID:")
 
       # ......................................................................
       # Removing msg field
@@ -541,17 +386,7 @@ pipeline:
       - delete:
           fields:
             - log.msg
-          where:
-            variables:
-              - get: log.msg
-                as: message
-                ofType: string
-            expression: message.contains("LENGTH:") || message.contains("SESSIONID:") || 
-                        message.contains("ENTRYID:") || message.contains("STATEMENT:") || 
-                        message.contains("USERID:") || message.contains("USERHOST:") || 
-                        message.contains("ACTION:") || message.contains("RETURNCODE:") || 
-                        message.contains("OBJ$CREATOR:") || message.contains("OBJ$NAME:") || 
-                        message.contains("OS$USERID:")
+          where: log.msg.contains("LENGTH:") || log.msg.contains("SESSIONID:") || log.msg.contains("ENTRYID:") || log.msg.contains("STATEMENT:") || log.msg.contains("USERID:") || log.msg.contains("USERHOST:") || log.msg.contains("ACTION:") || log.msg.contains("RETURNCODE:") || log.msg.contains("OBJ$CREATOR:") || log.msg.contains("OBJ$NAME:") || log.msg.contains("OS$USERID:")
 
       # ......................................................................#
       # if ([msg]=~/from(.+)port/)
@@ -569,12 +404,7 @@ pipeline:
             - fieldName: log.restMsg
               pattern: '{{.greedy}}'
           source: log.msg
-          where: 
-            variables:
-              - get: log.msg
-                as: message
-                ofType: string
-            expression: message.matches("from(.+)port")
+          where:  log.msg.matches("from(.+)port")
 
       - grok:
           patterns:
@@ -589,12 +419,7 @@ pipeline:
             - fieldName: origin.port
               pattern: '{{.greedy}}'
           source: log.msg
-          where: 
-            variables:
-              - get: log.msg
-                as: message
-                ofType: string
-            expression: message.matches("from(.+)port")
+          where:  log.msg.matches("from(.+)port")
 
       # ......................................................................#
       # if restmsg contains protocol SSH  and SHA256
@@ -610,12 +435,7 @@ pipeline:
             - fieldName: origin.sha256
               pattern: '{{.greedy}}'
           source: log.restMsg
-          where: 
-            variables:
-              - get: log.restMsg
-                as: message
-                ofType: string
-            expression: message.contains("ssh") && message.contains("SHA256")
+          where: log.restMsg.contains("ssh") && log.restMsg.contains("SHA256")
          
       # ......................................................................#
       # Fileds conversions
@@ -724,12 +544,7 @@ pipeline:
           params:
             source: origin.ip
             destination: origin.geolocation
-          where:
-            variables:
-              - get: origin.ip
-                as: ip
-                ofType: string
-            expression: "ip_ok == true"
+          where: has(origin.ip)
       
       # Adding geolocation to target.ip
       - dynamic:
@@ -737,12 +552,7 @@ pipeline:
           params:
             source: target.ip
             destination: target.geolocation
-          where:
-            variables:
-              - get: target.ip
-                as: ip
-                ofType: string
-            expression: "ip_ok == true"
+          where: has(target.ip)
 
       # ..........................................................................#
       # Remove issues fileds
