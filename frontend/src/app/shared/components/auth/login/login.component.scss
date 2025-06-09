@@ -219,8 +219,6 @@
 }
 
 .utm-login-cover {
-  //background: url(../../../../../assets/img/login/1472.jpg) no-repeat;
-  //background-size: cover;
   position: fixed;
   top: 0;
   left: 0;
@@ -235,3 +233,64 @@
 .card {
   box-shadow: unset;
 }
+
+.utm-login-cover {
+  position: fixed;
+  top: 0; bottom: 0; left: 0; right: 0;
+  z-index: 1;
+  padding: 20px;
+}
+
+.login-pic img {
+  max-height: 100px;
+  max-width: 100%;
+}
+
+.form-control {
+  border-radius: 6px;
+  border-color: #ccc;
+  box-shadow: none;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+}
+
+.utm-button {
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.utm-button-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.utm-button-primary:hover:not(:disabled) {
+  background-color: #0056b3;
+  border-color: #004085;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.txt1, .txt2 {
+  font-size: 13px;
+  color: #007bff;
+}
+
+.txt2:hover {
+  text-decoration: underline;
+}
+
+.border-grey {
+  border: 1px solid #ccc!important;
+}
+
+

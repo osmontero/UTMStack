@@ -1,7 +1,7 @@
 <div class="bg-image-utmstack"></div>
 <div *ngIf="!logged" class="d-flex justify-content-center align-items-center h-100 w-100 mt-auto utm-login-cover">
   <!-- Login form -->
-  <div  *ngIf="!loadingAuth; else loading" class="bg-white d-flex flex-column align-items-stretch flex-center rounded-4 w-350px p-4">
+  <div  *ngIf="!loadingAuth; else loading" class="bg-white d-flex flex-column align-items-stretch flex-center rounded-4 w-350px p-4 border-grey">
     <div class="text-center my-2 d-flex justify-content-center">
       <div class="login-pic">
         <img *ngIf="(loginImage$ | async) as logo; else loadImage"
@@ -35,7 +35,14 @@
                      formControlName="password"
                      type="password">
             </div>
-            <div (click)="resetPassword()" class="text-right cursor-pointer mb-5">
+          </form>
+          <div class="d-flex flex-column justify-content-center mt-5">
+            <button (click)="login()" [disabled]="startLogin || !formLogin.valid"
+                    class="btn btn-block utm-button utm-button-primary ful mb-3" type="submit">
+              <i *ngIf="startLogin" class="icon-spinner2 spinner"></i>&nbsp;
+              Sign in
+            </button>
+            <div (click)="resetPassword()" class="text-center cursor-pointer">
         						<span class="txt1">
         							{{'login.forgot' | translate}}
         						</span>
@@ -43,13 +50,6 @@
                 {{'login.recover' | translate}}
               </a>
             </div>
-          </form>
-          <div class="d-flex">
-            <button (click)="login()" [disabled]="startLogin || !formLogin.valid"
-                    class="btn btn-block utm-button utm-button-primary ful" type="submit">
-              <i *ngIf="startLogin" class="icon-spinner2 spinner"></i>&nbsp;
-              Sign in
-            </button>
           </div>
         </div>
 
