@@ -1,4 +1,4 @@
-# Elasticsearch filter, version 3.0.0
+# Elasticsearch filter, version 3.0.1
 # Fields based on https://www.elastic.co/guide/en/elasticsearch/reference/8.17/audit-event-types.html, 
 # https://www.elastic.co/guide/en/beats/filebeat/7.13/filebeat-module-elasticsearch.html
 # and filebeat fields.yml version 7.13.4 oss
@@ -83,12 +83,7 @@ pipeline:
             - log.level
             - log.component
             - log.nodeName
-          where:
-            variables:
-              - get: log.msg
-                as: msgflag
-                ofType: string
-            expression: msgflag_ok == true
+          where: has(log.msg)
       - trim:
           function: suffix
           substring: ']'
@@ -97,366 +92,182 @@ pipeline:
             - log.level
             - log.component
             - log.nodeName
-          where:
-            variables:
-              - get: log.msg
-                as: msgflag
-                ofType: string
-            expression: msgflag_ok == true
+          where: has(log.msg)
       - reformat:
           fields:
             - deviceTime
           function: time
           fromFormat: '2022-01-20T22:52:07,431'
           toFormat: '2024-09-23T15:57:40.338364445Z'
-          where:
-            variables:
-              - get: deviceTime
-                as: dt
-                ofType: string
-            expression: dt_ok == true
+          where: has(deviceTime)
       # Begin parsing when message comes in json format
       - json:
           source: log.message
-          where:
-            variables:
-              - get: log.msg
-                as: msgflag
-                ofType: string
-            expression: msgflag_ok == false
+          where: has(log.msg)
       # Performing json step over the remaining message field (Cases when log.message has a message field inside)
       - json:
           source: log.message
-          where:
-            variables:
-              - get: log.message
-                as: msgflag
-                ofType: string
-            expression: msgflag_ok == true
+          where: has(log.message)
       # Rename audit fields from json
       - rename:
           from:
             - log.audit_format_version
           to: log.auditFormatVersion
-          where:
-            variables:
-              - get: log.audit_format_version
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_format_version)
       - rename:
           from:
             - log.audit_category
           to: action
-          where:
-            variables:
-              - get: log.audit_category
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_category)
       - rename:
           from:
             - log.audit_node_host_address
           to: log.auditNodeHostAddress
-          where:
-            variables:
-              - get: log.audit_node_host_address
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_node_host_address)
       - rename:
           from:
             - log.audit_node_host_name
           to: log.auditNodeHostName
-          where:
-            variables:
-              - get: log.audit_node_host_name
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_node_host_name)
       - rename:
           from:
             - log.audit_request_layer
           to: log.auditRequestLayer
-          where:
-            variables:
-              - get: log.audit_request_layer
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_request_layer)
       - rename:
           from:
             - log.audit_request_origin
           to: log.auditRequestOrigin
-          where:
-            variables:
-              - get: log.audit_request_origin
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_request_origin)
       - rename:
           from:
             - log.audit_request_effective_user_is_admin
           to: log.auditRequestEffectiveUserIsAdmin
-          where:
-            variables:
-              - get: log.audit_request_effective_user_is_admin
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_request_effective_user_is_admin)
       - rename:
           from:
             - log.audit_request_effective_user
           to: log.auditRequestEffectiveUser
-          where:
-            variables:
-              - get: log.audit_request_effective_user
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_request_effective_user)
       - rename:
           from:
             - log.audit_rest_request_path
           to: log.auditRestRequestPath
-          where:
-            variables:
-              - get: log.audit_rest_request_path
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_rest_request_path)
       - rename:
           from:
             - log.audit_rest_request_params
           to: log.auditRestRequestParams
-          where:
-            variables:
-              - get: log.audit_rest_request_params
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_rest_request_params)
       - rename:
           from:
             - log.audit_rest_request_headers
           to: log.auditRestRequestHeaders
-          where:
-            variables:
-              - get: log.audit_rest_request_headers
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_rest_request_headers)
       - rename:
           from:
             - log.audit_request_initiating_user
           to: log.auditRequestInitiatingUser
-          where:
-            variables:
-              - get: log.audit_request_initiating_user
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_request_initiating_user)
       - rename:
           from:
             - log.audit_request_body
           to: log.auditRequestBody
-          where:
-            variables:
-              - get: log.audit_request_body
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_request_body)
       - rename:
           from:
             - log.audit_rest_request_method
           to: log.auditRestRequestMethod
-          where:
-            variables:
-              - get: log.audit_rest_request_method
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_rest_request_method)
       - rename:
           from:
             - log.audit_request_exception_stacktrace
           to: log.auditRequestExceptionStacktrace
-          where:
-            variables:
-              - get: log.audit_request_exception_stacktrace
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_request_exception_stacktrace)
       - rename:
           from:
             - log.audit_trace_task_id
           to: log.auditTraceTaskId
-          where:
-            variables:
-              - get: log.audit_trace_task_id
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_trace_task_id)
       - rename:
           from:
             - log.audit_transport_headers
           to: log.auditTransportHeaders
-          where:
-            variables:
-              - get: log.audit_transport_headers
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_transport_headers)
       - rename:
           from:
             - log.audit_transport_request_type
           to: log.auditTransportRequestType
-          where:
-            variables:
-              - get: log.audit_transport_request_type
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_transport_request_type)
       - rename:
           from:
             - log.audit_trace_indices
           to: log.auditTraceIndices
-          where:
-            variables:
-              - get: log.audit_trace_indices
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_trace_indices)
       - rename:
           from:
             - log.audit_trace_resolved_indices
           to: log.auditTraceResolvedIndices
-          where:
-            variables:
-              - get: log.audit_trace_resolved_indices
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_trace_resolved_indices)
       - rename:
           from:
             - log.audit_trace_doc_types
           to: log.auditTraceDocTypes
-          where:
-            variables:
-              - get: log.audit_trace_doc_types
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_trace_doc_types)
       - rename:
           from:
             - log.audit_trace_task_parent_id
           to: log.auditTraceTaskParentId
-          where:
-            variables:
-              - get: log.audit_trace_task_parent_id
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_trace_task_parent_id)
       - rename:
           from:
             - log.audit_request_privilege
           to: log.auditRequestPrivilege
-          where:
-            variables:
-              - get: log.audit_request_privilege
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_request_privilege)
       - rename:
           from:
             - log.audit_compliance_operation
           to: log.auditComplianceOperation
-          where:
-            variables:
-              - get: log.audit_compliance_operation
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.audit_compliance_operation)
       - rename:
           from:
             - log.node.id
             - log.audit_node_id
           to: log.nodeId
-          where:
-            variables:
-              - get: log.node.id
-                as: fflag
-                ofType: string
-              - get: log.audit_node_id
-                as: f2flag
-                ofType: string
-            expression: fflag_ok == true || f2flag_ok == true
+          where: has(log.node.id) || has(log.audit_node_id)
       - rename:
           from:
             - log.node.name
             - log.audit_node_name
           to: log.nodeName
-          where:
-            variables:
-              - get: log.node.name
-                as: fflag
-                ofType: string
-              - get: log.node.name
-                as: f2flag
-                ofType: string
-            expression: fflag_ok == true || f2flag_ok == true
+          where: has(log.node.name) || has(log.node.name)
       - rename:
           from:
             - log.cluster.name
             - log.audit_cluster_name
           to: log.clusterName
-          where:
-            variables:
-              - get: log.cluster.name
-                as: fflag
-                ofType: string
-              - get: log.audit_cluster_name
-                as: f2flag
-                ofType: string
-            expression: fflag_ok == true || f2flag_ok == true
+          where: has(log.cluster.name) || has(log.audit_cluster_name)
       - rename:
           from:
             - log.cluster.uuid
           to: log.clusterUuid
-          where:
-            variables:
-              - get: log.cluster.uuid
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.cluster.uuid)
       # Adding fields from elastic audit json file
       - rename:
           from:
             - log.event.type
           to: log.eventType
-          where:
-            variables:
-              - get: log.event.type
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.event.type)
       - rename:
           from:
             - log.event.action
           to: action
-          where:
-            variables:
-              - get: log.event.action
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.event.action)
       - rename:
           from:
             - log.request.id
           to: log.requestId
-          where:
-            variables:
-              - get: log.request.id
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.request.id)
       # Extracting ip and port from address
       - grok:
           patterns:
@@ -465,187 +276,97 @@ pipeline:
             - fieldName: origin.port
               pattern: '{{.greedy}}'
           source: log.origin.address
-          where:
-            variables:
-              - get: log.origin.address
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.origin.address)
       # Cleaning ip address if has port
       - trim:
           function: suffix
           substring: ':'
           fields:
             - log.origin.address
-          where:
-            variables:
-              - get: log.origin.address
-                as: oaddr
-                ofType: string
-            expression: oaddr_ok == true
+          where: has(log.origin.address)
       - rename:
           from:
             - log.origin.address
           to: origin.ip
-          where:
-            variables:
-              - get: log.origin.address
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.origin.address)
       # Adding geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: origin.ip
             destination: origin.geolocation
-          where:
-            variables:
-              - get: origin.ip
-                as: ip
-                ofType: string
-            expression: ip_ok == true
+          where: has(origin.ip)
       # Port field conversion
       - cast:
           fields:
             - origin.port
           to: int
-          where:
-            variables:
-              - get: origin.port
-                as: prt
-                ofType: string
-            expression: prt_ok == true
+          where: has(origin.port)
       - rename:
           from:
             - log.origin.type
           to: log.originType
-          where:
-            variables:
-              - get: log.origin.type
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.origin.type)
       - rename:
           from:
             - log.url.path
           to: origin.url
-          where:
-            variables:
-              - get: log.url.path
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.url.path)
       - rename:
           from:
             - log.url.query
           to: log.urlQuery
-          where:
-            variables:
-              - get: log.url.query
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.url.query)
       - rename:
           from:
             - log.request.method
           to: log.method
-          where:
-            variables:
-              - get: log.request.method
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.request.method)
       - rename:
           from:
             - log.transport_profile
           to: log.transportProfile
-          where:
-            variables:
-              - get: log.transport_profile
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.transport_profile)
       - rename:
           from:
             - log.user.name
           to: origin.user
-          where:
-            variables:
-              - get: log.user.name
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.user.name)
       - rename:
           from:
             - log.user.realm
           to: log.userRealm
-          where:
-            variables:
-              - get: log.user.realm
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.user.realm)
       - rename:
           from:
             - log.user.run_by.name
           to: log.userRunByName
-          where:
-            variables:
-              - get: log.user.run_by.name
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.user.run_by.name)
       - rename:
           from:
             - log.authentication.type
           to: log.authenticationType
-          where:
-            variables:
-              - get: log.authentication.type
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.authentication.type)
       - rename:
           from:
             - log.apikey.name
           to: log.apikeyName
-          where:
-            variables:
-              - get: log.apikey.name
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.apikey.name)
       - rename:
           from:
             - log.user.roles
           to: log.userRoles
-          where:
-            variables:
-              - get: log.user.roles
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.user.roles)
       - rename:
           from:
             - log.user.run_as.name
           to: log.userRunAsName
-          where:
-            variables:
-              - get: log.user.run_as.name
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.user.run_as.name)
       - rename:
           from:
             - log.user.run_as.name
           to: log.userRunAsName
-          where:
-            variables:
-              - get: log.user.run_as.name
-                as: fflag
-                ofType: string
-            expression: fflag_ok == true
+          where: has(log.user.run_as.name)
       # Casting new fields after json parsing
       - cast:
           to: '[]string'
@@ -660,34 +381,19 @@ pipeline:
           params:
             key: severity
             value: 'high'
-          where:
-            variables:
-              - get: log.level
-                as: lvl
-                ofType: string
-            expression: lvl_ok == true && (lvl == "CRITICAL" || lvl == "FATAL" || lvl == "ERROR")
+          where: log.level == true && (log.level == "CRITICAL" || log.level == "FATAL" || log.level == "ERROR")
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where:
-            variables:
-              - get: log.level
-                as: lvl
-                ofType: string
-            expression: lvl_ok == true && lvl == "WARN"
+          where: log.level == true && log.level == "WARN"
       - add:
           function: 'string'
           params:
             key: severity
             value: 'low'
-          where:
-            variables:
-              - get: log.level
-                as: lvl
-                ofType: string
-            expression: lvl_ok == true && (lvl == "INFO" || lvl == "DEBUG" || lvl == "TRACE")
+          where: log.level == true && (log.level == "INFO" || log.level == "DEBUG" || log.level == "TRACE")
 
       # Removing unused fields
       - delete:
@@ -714,12 +420,4 @@ pipeline:
 
       # Droping unwanted logs
       - drop:
-          where:
-            variables:
-              - get: log.eventDataset
-                as: act
-                ofType: string
-              - get: log.component
-                as: cmp
-                ofType: string
-            expression: act_ok == true && cmp_ok == true && ( (act != "elasticsearch.server" && act != "elasticsearch.audit") || (act == "elasticsearch.server" && (cmp.matches("(A|a)udit")==false && cmp.matches("(S|s)(S|s)(L|l)")==false && cmp.matches("(S|s)ecurity")==false ) ) )
+          where: has(log.eventDataset) && has(log.component) && ( (log.eventDataset != "elasticsearch.server" && log.eventDataset != "elasticsearch.audit") || (log.eventDataset == "elasticsearch.server" && (log.component.matches("(A|a)udit")==false && log.component.matches("(S|s)(S|s)(L|l)")==false && log.component.matches("(S|s)ecurity")==false ) ) )
