@@ -1,4 +1,4 @@
-# Kibana filter
+# Kibana filter, version 3.0.1
 # Supports Kibana Log and Kibana Audit version 7.17 or later.
 # See: https://www.elastic.co/guide/en/kibana/7.17/xpack-security-audit-logging.html
 # and https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-module-kibana.html#_fields_27 
@@ -150,36 +150,21 @@ pipeline:
           params:
             key: log.severity
             value: 'high'
-          where:
-            variables:
-              - get: log.severityLabel
-                as: severity
-                ofType: string
-            expression: severity_ok == true && (severity == "critical" || severity == "alert" || severity == "error")
+          where: has(log.severityLabel) && (log.severityLabel == "critical" || log.severityLabel == "alert" || log.severityLabel == "error")
 
       - add:
           function: 'string'
           params:
             key: log.severity
             value: 'medium'
-          where:
-            variables:
-              - get: log.severityLabel
-                as: severity
-                ofType: string
-            expression: severity_ok == true && severity == "warning"
+          where: has(log.severityLabel) && log.severityLabel == "warning"
 
       - add:
           function: 'string'
           params:
             key: log.severity
             value: 'low'
-          where:
-            variables:
-              - get: log.severityLabel
-                as: severity
-                ofType: string
-            expression: severity_ok == true && (severity == "debug" || severity == "verbose" || severity == "notice" || severity == "information" || severity == "trace")
+          where: has(log.severityLabel) && (log.severityLabel == "debug" || log.severityLabel == "verbose" || log.severityLabel == "notice" || log.severityLabel == "information" || log.severityLabel == "trace")
 
       # Removing unused fields
       - delete:
