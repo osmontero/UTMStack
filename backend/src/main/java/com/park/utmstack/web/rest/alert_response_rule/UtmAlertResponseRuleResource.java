@@ -1,10 +1,14 @@
 package com.park.utmstack.web.rest.alert_response_rule;
 
+import com.park.utmstack.domain.alert_response_rule.UtmAlertResponseActionTemplate;
 import com.park.utmstack.domain.alert_response_rule.UtmAlertResponseRule;
 import com.park.utmstack.domain.application_events.enums.ApplicationEventType;
+import com.park.utmstack.service.alert_response_rule.UtmAlertResponseActionTemplateQueryService;
 import com.park.utmstack.service.alert_response_rule.UtmAlertResponseRuleQueryService;
 import com.park.utmstack.service.alert_response_rule.UtmAlertResponseRuleService;
 import com.park.utmstack.service.application_events.ApplicationEventService;
+import com.park.utmstack.service.dto.UtmAlertResponseActionTemplateCriteria;
+import com.park.utmstack.service.dto.UtmAlertResponseActionTemplateDTO;
 import com.park.utmstack.service.dto.UtmAlertResponseRuleCriteria;
 import com.park.utmstack.service.dto.UtmAlertResponseRuleDTO;
 import com.park.utmstack.util.UtilResponse;
@@ -35,12 +39,15 @@ public class UtmAlertResponseRuleResource {
     private final UtmAlertResponseRuleQueryService alertResponseRuleQueryService;
     private final ApplicationEventService eventService;
 
+    private final UtmAlertResponseActionTemplateQueryService utmAlertResponseActionTemplateQueryService;
+
     public UtmAlertResponseRuleResource(UtmAlertResponseRuleService alertResponseRuleService,
                                         UtmAlertResponseRuleQueryService alertResponseRuleQueryService,
-                                        ApplicationEventService eventService) {
+                                        ApplicationEventService eventService, UtmAlertResponseActionTemplateQueryService utmAlertResponseActionTemplateQueryService) {
         this.alertResponseRuleService = alertResponseRuleService;
         this.alertResponseRuleQueryService = alertResponseRuleQueryService;
         this.eventService = eventService;
+        this.utmAlertResponseActionTemplateQueryService = utmAlertResponseActionTemplateQueryService;
     }
 
     @PostMapping("/utm-alert-response-rules")
@@ -86,10 +93,26 @@ public class UtmAlertResponseRuleResource {
                                                                                   @ParameterObject Pageable pageable) {
         final String ctx = CLASSNAME + ".getAllAlertResponseRules";
         try {
-            Page<UtmAlertResponseRule> page = alertResponseRuleQueryService.findByCriteria(criteria, pageable);
+            Page<UtmAlertResponseRuleDTO> page = alertResponseRuleQueryService.findByCriteria(criteria, pageable);
             HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/utm-alert-Response-rules");
-            return ResponseEntity.ok().headers(headers).body(page.getContent().stream().map(UtmAlertResponseRuleDTO::new)
-                .collect(Collectors.toList()));
+            return ResponseEntity.ok().headers(headers).body(page.getContent());
+        } catch (Exception e) {
+            String msg = ctx + ": " + e.getLocalizedMessage();
+            log.error(msg);
+            eventService.createEvent(msg, ApplicationEventType.ERROR);
+            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+        }
+    }
+
+    @GetMapping("/utm-alert-response-action-templates")
+    public ResponseEntity<List<UtmAlertResponseActionTemplateDTO>> getAllAlertResponseActionTemplate(@ParameterObject UtmAlertResponseActionTemplateCriteria criteria,
+                                                                                  @ParameterObject Pageable pageable) {
+        final String ctx = CLASSNAME + ".getAllAlertResponseActionTemplate";
+        try {
+            Page<UtmAlertResponseActionTemplate> page = utmAlertResponseActionTemplateQueryService.findByCriteria(criteria, pageable);
+            HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(page, "/api/utm-alert-response-action-templates");
+            return ResponseEntity.ok().headers(headers).body(page.getContent().stream().map(UtmAlertResponseActionTemplateDTO::fromEntity)
+                    .collect(Collectors.toList()));
         } catch (Exception e) {
             String msg = ctx + ": " + e.getLocalizedMessage();
             log.error(msg);
@@ -102,8 +125,7 @@ public class UtmAlertResponseRuleResource {
     public ResponseEntity<UtmAlertResponseRuleDTO> getAlertResponseRule(@PathVariable Long id) {
         final String ctx = CLASSNAME + ".getAlertResponseRule";
         try {
-            return alertResponseRuleService.findOne(id).map(r -> ResponseEntity.ok(new UtmAlertResponseRuleDTO(r)))
-                .orElse(ResponseEntity.notFound().build());
+            return ResponseEntity.ok().body(alertResponseRuleQueryService.findById(id));
         } catch (Exception e) {
             String msg = ctx + ": " + e.getLocalizedMessage();
             log.error(msg);

@@ -1,0 +1,103 @@
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(.4,0,.2,1);
+  transition-duration: .15s;
+}
+
+.shadow-sm {
+  --tw-shadow: 0 1px 2px 0 rgb(0 0 0 / .05);
+  --tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.text-card-foreground {
+  color: #000000!important;
+}
+
+.border {
+  border-width: 1px;
+}
+
+.rounded-lg {
+  border-radius: .5rem;
+}
+
+.icon-code {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  color: #ffffff;
+}
+
+.card-description {
+  font-size: 1rem;
+  color: #333;
+}
+
+.gap-3 {
+  gap: 1rem;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+.text-muted-foreground {
+  color: hsl(240 4% 46%)!important;
+}
+
+.text-xs {
+  font-size: .70rem;
+  line-height: 1rem;
+}
+
+.text-sm {
+  font-size: .810rem;
+  line-height: 1.25rem;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.bg-background {
+  background-color: #ffffff;
+}
+
+.gy-4 {
+  row-gap: 1rem;
+}
+
+.text-md {
+  font-size: 1rem;
+}
+
+.icon-menu {
+  color: #c6c2c2;
+}
+
+.icon-pencil:before,
+.icon-trash:before {
+  color: #0B1413;
+}
+
+.dropdown-toggle::after{
+ display: none;
+}
+
+.top-35 {
+  top: 35vh;
+}
+
+.right-50 {
+  right: 50%;
+}

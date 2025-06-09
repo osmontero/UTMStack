@@ -1,0 +1,66 @@
+
+.tracking-tight {
+  letter-spacing: -.025em;
+}
+.font-semibold {
+  font-weight: 600;
+}
+
+.text-base {
+  font-size: 1rem;
+  line-height: 1.5rem
+}
+
+.text-muted-foreground {
+  color: hsl(240, 4%, 46%)
+}
+
+.text-sm {
+  font-size: .875rem;
+  line-height: 1.25rem
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.gap-8 {
+  gap: 2rem;
+}
+
+.max-h-620 {
+  max-height: 620px;
+}
+
+.h-50 {
+  height: 50vh!important;
+}
+
+.gap-6{
+  gap: 1.5rem;
+}
+
+.flex-1 {
+  flex: 1 1 0;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none
+}
+
+.right-2 {
+  right: .5rem;
+}
+
+.top-2 {
+  top: .5rem;
+}
+
+.w-8 {
+  width: 2rem;
+}
+
+.h-8 {
+  height: 2rem;
+}
