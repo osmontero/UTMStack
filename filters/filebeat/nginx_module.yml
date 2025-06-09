@@ -1,4 +1,4 @@
-# Nginx filter
+# Nginx filter, version 3.0.1
 # Supports Nginx access, error, emergency and notice  log
 # See: https://github.com/nginx/nginx
 # and https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-module-nginx.html for more documentation
@@ -266,12 +266,7 @@ pipeline:
           params:
             source: target.ip
             destination: target.geolocation
-          where:
-            variables:
-              - get: target.ip
-                as: tIp
-                oftype: string
-            expression: tIp_ok==true
+          where: has(target.ip)
 
       # Adding geolocation to origin ip
       - dynamic:
@@ -279,12 +274,7 @@ pipeline:
           params:
             source: origin.ip
             destination: origin.geolocation
-          where:
-            variables:
-              - get: origin.ip
-                as: oIp
-                oftype: string
-            expression: oIp_ok==true
+          where: has(origin.ip)
 
       # Reformat and field conversions
       - cast:
@@ -316,60 +306,35 @@ pipeline:
           params:
             key: action
             value: 'get'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "GET"
+          where: has(log.method) && log.method == "GET"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'post'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "POST"
+          where: has(log.method) && log.method == "POST"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'put'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "PUT"
+          where: has(log.method) && log.method == "PUT"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'delete'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "DELETE"
+          where: has(log.method) && log.method == "DELETE"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'request'
-          where:
-            variables:
-              - get: log.method
-                as: met
-                ofType: string
-            expression: met_ok == true && met == "REQUEST"
+          where: has(log.method) && log.method == "REQUEST"
 
       # Adding actionResult
       # denied by default
@@ -384,15 +349,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where:
-            variables:
-              - get: statusCode
-                as: code
-                ofType: int
-              - get: origin.bytesReceived
-                as: bytesrec
-                ofType: int
-            expression: code_ok == true && (code >= 200 && code <= 299 || (bytesrec_ok == true && code >= 300 && code <= 399 && bytesrec > 0))
+          where: has(statusCode) && (statusCode >= 200 && statusCode <= 299 || (has(origin.bytesReceived) == true && statusCode >= 300 && statusCode <= 399 && origin.bytesReceived > 0))
 
       # Adding severity based on log.severityLabel
       - add:
@@ -400,47 +357,27 @@ pipeline:
           params:
             key: log.severity
             value: 'high'
-          where:
-            variables:
-              - get: log.severityLabel
-                as: severity
-                ofType: string
-            expression: severity_ok == true && (severity == "critical" || severity == "alert" || severity == "error")
+          where: has(log.severityLabel) && (log.severityLabel == "critical" || log.severityLabel == "alert" || log.severityLabel == "error")
 
       - add:
           function: 'string'
           params:
             key: log.severity
             value: 'medium'
-          where:
-            variables:
-              - get: log.severityLabel
-                as: severity
-                ofType: string
-            expression: severity_ok == true && severity == "warning"
+          where: has(log.severityLabel) && log.severityLabel == "warning"
 
       - add:
           function: 'string'
           params:
             key: log.severity
             value: 'low'
-          where:
-            variables:
-              - get: log.severityLabel
-                as: severity
-                ofType: string
-            expression: severity_ok == true && (severity == "debug" || severity == "verbose" || severity == "notice" || severity == "information" || severity == "trace")
+          where: has(log.severityLabel) && (log.severityLabel == "debug" || log.severityLabel == "verbose" || log.severityLabel == "notice" || log.severityLabel == "information" || log.severityLabel == "trace")
 
       # Removing log.method if action was set
       - delete:
           fields:
             - log.method
-          where:
-            variables:
-              - get: action
-                as: act
-                ofType: string
-            expression: act_ok == true
+          where: has(action)
 
       # Removing unused fields
       - delete:
