@@ -52,7 +52,7 @@ public class UtmCorrelationRulesDTO implements Serializable {
     @NotEmpty
     private Set<UtmDataTypes> dataTypes;
 
-    private RuleDefinition definition;
+    private String definition;
 
     private Boolean systemOwner;
 

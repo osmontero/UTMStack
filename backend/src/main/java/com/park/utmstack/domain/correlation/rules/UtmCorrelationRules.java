@@ -87,16 +87,8 @@ public class UtmCorrelationRules implements Serializable {
     @Setter(AccessLevel.NONE)
     private List<String> ruleReferences;
 
-    @JsonIgnore
     @Column(name = "rule_definition_def", nullable = false)
-    private String ruleDefinitionDef;
-
-    @Transient
-    @JsonSerialize
-    @JsonDeserialize
-    @Getter(AccessLevel.NONE)
-    @Setter(AccessLevel.NONE)
-    private RuleDefinition ruleDefinition;
+    private String ruleDefinition;
 
     @Column(name = "rule_last_update")
     private Instant ruleLastUpdate;
@@ -163,22 +155,6 @@ public class UtmCorrelationRules implements Serializable {
             this.ruleReferencesDef = UtilSerializer.jsonSerialize(ruleReferences);
 
         this.ruleReferences = ruleReferences;
-    }
-
-
-    public RuleDefinition getRuleDefinition() throws UtmSerializationException {
-        if (StringUtils.hasText(ruleDefinitionDef))
-            ruleDefinition = UtilSerializer.jsonDeserialize(RuleDefinition.class, ruleDefinitionDef);
-        return ruleDefinition;
-    }
-
-    public void setRuleDefinition(RuleDefinition ruleDefinition) throws UtmSerializationException {
-        if (ruleDefinition == null)
-            this.ruleDefinitionDef = null;
-        else
-            this.ruleDefinitionDef = UtilSerializer.jsonSerialize(ruleDefinition);
-
-        this.ruleDefinition = ruleDefinition;
     }
 
     public List<SearchRequest> getAfterEvents() throws UtmSerializationException {

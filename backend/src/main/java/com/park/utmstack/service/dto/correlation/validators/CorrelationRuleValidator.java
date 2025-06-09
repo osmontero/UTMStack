@@ -21,14 +21,6 @@ public class CorrelationRuleValidator implements Validator {
         if (dto.getDataTypes() == null || dto.getDataTypes().isEmpty()) {
             errors.rejectValue("dataTypes", "DataTypesEmpty", "The rule must have at least one data type.");
         }
-
-        if (dto.getDefinition() == null || dto.getDefinition().getRuleVariables().isEmpty()) {
-            errors.rejectValue("definition.ruleVariables", "RuleVariablesEmpty", "The rule must have at least one rule variable.");
-        }
-
-        if (dto.getDefinition() != null && !StringUtils.hasText(dto.getDefinition().getRuleExpression())) {
-            errors.rejectValue("definition.ruleExpression", "RuleExpressionEmpty", "The rule's expression must not be empty.");
-        }
     }
 }
 

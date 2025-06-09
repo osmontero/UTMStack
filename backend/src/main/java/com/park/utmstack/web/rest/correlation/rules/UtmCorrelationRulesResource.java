@@ -140,11 +140,6 @@ public class UtmCorrelationRulesResource {
         try {
             if (correlationRulesDTO.getDefinition() == null) {
                 throw new BadRequestException(ctx + ": The rule's definition field can't be null.");
-            } else {
-                if (correlationRulesDTO.getDefinition().getRuleVariables().isEmpty()
-                        || !StringUtils.hasText(correlationRulesDTO.getDefinition().getRuleExpression())) {
-                    throw new BadRequestException(ctx + ": The rule's definition variables or expression field is null or empty, please check.");
-                }
             }
             rulesService.updateRule(this.utmCorrelationRulesMapper.toEntity(correlationRulesDTO));
             return ResponseEntity.noContent().build();
