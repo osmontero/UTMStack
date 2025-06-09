@@ -1,4 +1,4 @@
-# Redis module filter, version 3.0.0
+# Redis module filter, version 3.0.1
 # Filter Input requirements -> fileset: datatype
 #                              log: plain text
 # 
@@ -81,48 +81,28 @@ pipeline:
           params:
             key: log.role
             value: 'sentinel'
-          where:
-            variables:
-              - get: log.roleEnc
-                as: roleEnc
-                ofType: string
-            expression: roleEnc=="X" || roleEnc=="x"
+          where: log.roleEnc=="X" || log.roleEnc=="x"
 
       - add:
           function: 'string'
           params:
             key: log.role
             value: 'master'
-          where:
-            variables:
-              - get: log.roleEnc
-                as: roleEnc
-                ofType: string
-            expression: roleEnc=="M" || roleEnc=="m"
+          where: log.roleEnc=="M" || log.roleEnc=="m"
 
       - add:
           function: 'string'
           params:
             key: log.role
             value: 'slave'
-          where:
-            variables:
-              - get: log.roleEnc
-                as: roleEnc
-                ofType: string
-            expression: roleEnc=="S" || roleEnc=="s"
+          where: log.roleEnc=="S" || log.roleEnc=="s"
 
       - add:
           function: 'string'
           params:
             key: log.role
             value: 'rdb/aof'
-          where:
-            variables:
-              - get: log.roleEnc
-                as: roleEnc
-                ofType: string
-            expression: roleEnc=="C" || roleEnc=="c"
+          where: log.roleEnc=="C" || log.roleEnc=="c"
 
       # ................................................................................#
       # Implementing the Record-severity Field Based on Redis Documentation
@@ -139,48 +119,28 @@ pipeline:
           params:
             key: log.severity
             value: 'debug'
-          where:
-            variables:
-              - get: log.levelEnc
-                as: severity
-                ofType: string
-            expression: severity=="."
+          where: log.levelEnc=="."
 
       - add:
           function: 'string'
           params:
             key: log.severity
             value: 'verbose'
-          where:
-            variables:
-              - get: log.levelEnc
-                as: severity
-                ofType: string
-            expression: severity=="-"
+          where: log.levelEnc=="-"
 
       - add:
           function: 'string'
           params:
             key: log.severity
             value: 'notice'
-          where:
-            variables:
-              - get: log.levelEnc
-                as: severity
-                ofType: string
-            expression: severity=="*"
+          where: log.levelEnc=="*"
 
       - add:
           function: 'string'
           params:
             key: log.severity
             value: 'warning'
-          where:
-            variables:
-              - get: log.levelEnc
-                as: severity
-                ofType: string
-            expression: severity=="#"
+          where: log.levelEnc=="#"
 
       # Adding severity field based on log.severity
       - add:
@@ -188,36 +148,21 @@ pipeline:
           params:
             key: severity
             value: 'low'
-          where:
-            variables:
-              - get: log.severity
-                as: severity
-                ofType: string
-            expression: severity_ok==true && (severity=="debug" || severity=="verbose")
+          where: has(log.severity) && (log.severity=="debug" || log.severity=="verbose")
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where:
-            variables:
-              - get: log.severity
-                as: severity
-                ofType: string
-            expression: severity_ok==true && (severity=="notice" || severity=="warning")
+          where: has(log.severity) && (log.severity=="notice" || log.severity=="warning")
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'high'
-          where:
-            variables:
-              - get: log.severity
-                as: severity
-                ofType: string
-            expression: severity_ok==true && severity=="error"
+          where: has(log.severity) && log.severity=="error"
 
       # Parse beats field
       - rename:
