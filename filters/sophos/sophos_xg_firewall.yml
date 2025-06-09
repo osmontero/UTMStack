@@ -1,4 +1,4 @@
-# Sophos_XG filter
+# Sophos_XG filter, version 3.0.1
 # Supports SF 20.0 version log types
 # See manual: https://docs.sophos.com/nsg/sophos-firewall/20.0/pdf/sf-syslog-guide-20.0.pdf
 # and documentation https://docs.sophos.com/nsg/sophos-firewall/20.0/Help/en-us/webhelp/onlinehelp/AdministratorHelp/Logs/TroubleshootingLogs/LogFileDetails/index.html#https-ftp-waf
@@ -659,12 +659,7 @@ pipeline:
           params:
             source: target.ip
             destination: target.geolocation
-          where:
-            variables:
-              - get: target.ip
-                as: tIp
-                oftype: string
-            expression: tIp_ok==true
+          where: has(target.ip)
 
       # Adding geolocation to origin ip
       - dynamic:
@@ -672,12 +667,7 @@ pipeline:
           params:
             source: origin.ip
             destination: origin.geolocation
-          where:
-            variables:
-              - get: origin.ip
-                as: oIp
-                oftype: string
-            expression: oIp_ok==true
+          where: has(origin.ip)
 
       # Field conversions
       - cast:
@@ -711,15 +701,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where:
-            variables:
-              - get: statusCode
-                as: code
-                ofType: int
-              - get: origin.bytesReceived
-                as: bytesrec
-                ofType: int
-            expression: code_ok == true && (code >= 200 && code <= 299 || (bytesrec_ok == true && code >= 300 && code <= 399 && bytesrec > 0))
+          where: has(statusCode) && (statusCode >= 200 && statusCode <= 299 || (has(origin.bytesReceived) == true && statusCode >= 300 && statusCode <= 399 && origin.bytesReceived > 0))
 
       # Removing unused fields
       - delete:
