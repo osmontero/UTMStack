@@ -108,12 +108,7 @@ A rule is defined as a YAML object with the following fields:
   references: # External references
     - https://quantfall.com
   description: This is a testing rule.  # Description of the rule
-  where: # Conditions for when the rule applies
-    variables: # Variables to extract from the event
-      - get: origin.geolocation.country  # Path to the value in the event
-        as: country                      # Name of the variable
-        ofType: "string"                 # Type of the variable (required)
-    expression: country_ok && country == "United States"  # Expression to evaluate
+  where: has(origin.geolocation.country) && origin.geolocation.country == "United States"  # Expression to evaluate
   afterEvents: # Additional events to search for
     - indexPattern: v11-log-*     # Index pattern to search in
       with: # Conditions for the search
