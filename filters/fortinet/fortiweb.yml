@@ -1,4 +1,4 @@
-# FortiWeb firewall module filter, version 2.0.0
+# FortiWeb firewall module filter, version 2.0.1
 # Based on real logs provided
 # 
 # Documentations
@@ -113,12 +113,7 @@ pipeline:
           params:
             source: origin.ip
             destination: origin.geolocation
-          where:
-            variables:
-              - get: origin.ip
-                as: ip
-                ofType: string
-            expression: "ip_ok == true"
+          where: has(origin.ip)
       
       # Adding geolocation to target.ip
       - dynamic:
@@ -126,12 +121,7 @@ pipeline:
           params:
             source: target.ip
             destination: target.geolocation
-          where:
-            variables:
-              - get: target.ip
-                as: ip
-                ofType: string
-            expression: "ip_ok == true"
+          where: has(target.ip)
 
       # Removing unused fields
       - delete:
