@@ -116,7 +116,31 @@ func StackUP(tag string) error {
 			fmt.Println(" [OK]")
 		}
 	} else {
-		// TODO: Implement unzip images from local folder
+		fmt.Println("  Loading images from local folder (airgap mode):")
+		loadedImages := make(map[string]bool)
+
+		for _, service := range compose.Services {
+			imageName := *service.Image
+			imageName = strings.ReplaceAll(imageName, "${UTMSTACK_TAG}", tag)
+			parts := strings.Split(imageName, "/")
+			shortName := parts[len(parts)-1]
+			shortName = strings.ReplaceAll(shortName, ":"+tag, "")
+			tarPattern := fmt.Sprintf("utmstack-%s-%s-enterprise.tar", shortName, strings.ReplaceAll(tag, ".", "_"))
+			tarPath := filepath.Join(config.ImagesPath, tarPattern)
+			if loadedImages[shortName] {
+				continue // Skip if already loaded
+			}
+			if _, err := os.Stat(tarPath); err == nil {
+				fmt.Printf("    Importing %s...", tarPath)
+				if err := utils.RunCmd("docker", "load", "-i", tarPath); err != nil {
+					return fmt.Errorf("failed to load image from %s: %w", tarPath, err)
+				}
+				fmt.Println(" [OK]")
+				loadedImages[shortName] = true
+			} else {
+				return fmt.Errorf("required image archive not found: %s", tarPath)
+			}
+		}
 	}
 
 	env := []string{"UTMSTACK_TAG=" + tag}
