@@ -285,7 +285,10 @@ func (o *OfficeProcessor) StartSubscriptions() error {
 }
 
 func (o *OfficeProcessor) GetContentList(subscription string, startTime time.Time, endTime time.Time) ([]ContentList, error) {
-	link := GetContentLink(o.TenantId) + fmt.Sprintf("?startTime=%s&endTime=%s&contentType=%s", startTime, endTime, subscription)
+	link := GetContentLink(o.TenantId) + fmt.Sprintf("?startTime=%s&endTime=%s&contentType=%s",
+		startTime.UTC().Format("2006-01-02T15:04:05"),
+		endTime.UTC().Format("2006-01-02T15:04:05"),
+		subscription)
 
 	headers := map[string]string{
 		"Content-Type":  "application/json",
