@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/threatwinds/go-sdk/catcher"
@@ -104,7 +105,7 @@ func (b *SearchRequestBackend) ToSearchRequest() SearchRequest {
 	}
 }
 
-func (t *Tenant) FromVar(disabledRules []int64, assets []Asset) {
+func (t *Tenant) FromVar(disabledRules []uint64, assets []Asset) {
 	t.Id = "ce66672c-e36d-4761-a8c8-90058fee1a24"
 	t.Name = "Default"
 	t.DisabledRules = disabledRules
@@ -140,11 +141,33 @@ func (a *Asset) FromVar(name any, hostnames any, ipAddresses any, confidentialit
 	}
 
 	a.Name = utils.CastString(name)
-	a.Confidentiality = int32(utils.CastInt64(confidentiality))
-	a.Integrity = int32(utils.CastInt64(integrity))
-	a.Availability = int32(utils.CastInt64(availability))
+	a.Confidentiality = castUint32(confidentiality)
+	a.Integrity = castUint32(integrity)
+	a.Availability = castUint32(availability)
 	a.Hostnames = hostnamesList
 	a.Ips = ipAddressesList
+}
+
+func castUint32(value interface{}) uint32 {
+	if value == nil {
+		return 0
+	}
+
+	switch v := value.(type) {
+	case int64:
+		return uint32(v)
+	case float64:
+		return uint32(v)
+	case string:
+		val, err := strconv.ParseUint(v, 10, 32)
+		if err != nil {
+			_ = catcher.Error("failed to cast string to int64", err, map[string]any{"value": v})
+			return 0
+		}
+		return uint32(val)
+	default:
+		return 0
+	}
 }
 
 func (r *Rule) FromVar(id int64, dataTypes []string, ruleName any, confidentiality any, integrity any,
@@ -194,9 +217,9 @@ func (r *Rule) FromVar(id int64, dataTypes []string, ruleName any, confidentiali
 	r.Id = id
 	r.DataTypes = dataTypes
 	r.Name = utils.CastString(ruleName)
-	r.Impact.Confidentiality = int32(utils.CastInt64(confidentiality))
-	r.Impact.Integrity = int32(utils.CastInt64(integrity))
-	r.Impact.Availability = int32(utils.CastInt64(availability))
+	r.Impact.Confidentiality = castUint32(confidentiality)
+	r.Impact.Integrity = castUint32(integrity)
+	r.Impact.Availability = castUint32(availability)
 	r.Category = utils.CastString(category)
 	r.Technique = utils.CastString(technique)
 	r.References = make([]string, len(referencesList))
@@ -259,7 +282,7 @@ func main() {
 			}
 
 			tenant := Tenant{}
-			tenant.FromVar([]int64{}, assets)
+			tenant.FromVar([]uint64{}, assets)
 
 			// Try to acquire the lock before modifying configuration files
 			maxRetries := 5
