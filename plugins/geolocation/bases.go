@@ -37,7 +37,7 @@ func loadGeolocationData() {
 		// Create new maps to avoid partial updates if there's an error
 		newAsnBlocks := make(map[string][]*asnBlock)
 		newCityBlocks := make(map[string][]*cityBlock)
-		newCityLocations := make(map[int64]*cityLocation)
+		newCityLocations := make(map[uint64]*cityLocation)
 
 		// Process each file with retry logic
 		maxRetries := 3
@@ -110,12 +110,12 @@ func populateASNBlocksMap(csv [][]string, blocks map[string][]*asnBlock) {
 			continue
 		}
 
-		asn, err := strconv.Atoi(func() string {
+		asn, err := strconv.ParseUint(func() string {
 			if line := line[1]; line != "" {
 				return line
 			}
 			return "0"
-		}())
+		}(), 10, 64)
 		if err != nil {
 			_ = catcher.Error("could not parse ASN", err, map[string]any{
 				"asn": line[1],
@@ -125,7 +125,7 @@ func populateASNBlocksMap(csv [][]string, blocks map[string][]*asnBlock) {
 
 		t := &asnBlock{
 			network: n,
-			asn:     int64(asn),
+			asn:     asn,
 			aso: func() string {
 				if line := line[2]; line != "" {
 					return line
@@ -155,7 +155,7 @@ func populateCityBlocksMap(csv [][]string, blocks map[string][]*cityBlock) {
 			continue
 		}
 
-		geonameID, err := strconv.ParseInt(func() string {
+		geonameID, err := strconv.ParseUint(func() string {
 			if line := line[1]; line != "" {
 				return line
 			}
@@ -222,13 +222,13 @@ func populateCityBlocksMap(csv [][]string, blocks map[string][]*cityBlock) {
 }
 
 // populateCityLocationsMap populates the provided city locations map with data from the CSV
-func populateCityLocationsMap(csv [][]string, locations map[int64]*cityLocation) {
+func populateCityLocationsMap(csv [][]string, locations map[uint64]*cityLocation) {
 	for key, line := range csv {
 		if key == 0 {
 			continue
 		}
 
-		geonameID, err := strconv.ParseInt(line[0], 10, 64)
+		geonameID, err := strconv.ParseUint(line[0], 10, 64)
 		if err != nil {
 			_ = catcher.Error("could not parse geonameID", err, map[string]any{
 				"geonameID": line[0],

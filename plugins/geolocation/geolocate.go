@@ -11,7 +11,7 @@ var mu = &sync.RWMutex{}
 
 type asnBlock struct {
 	network *net.IPNet
-	asn     int64
+	asn     uint64
 	aso     string
 }
 
@@ -19,7 +19,7 @@ var asnBlocks = make(map[string][]*asnBlock)
 
 type cityBlock struct {
 	network        *net.IPNet
-	geonameID      int64
+	geonameID      uint64
 	latitude       float64
 	longitude      float64
 	accuracyRadius int32
@@ -28,13 +28,13 @@ type cityBlock struct {
 var cityBlocks = make(map[string][]*cityBlock)
 
 type cityLocation struct {
-	geonameID      int64
+	geonameID      uint64
 	countryISOCode string
 	countryName    string
 	cityName       string
 }
 
-var cityLocations = make(map[int64]*cityLocation)
+var cityLocations = make(map[uint64]*cityLocation)
 
 func IsLocal(a net.IP) bool {
 	_, r127, _ := net.ParseCIDR("127.0.0.0/8")
@@ -83,7 +83,7 @@ func getASN(a string) *asnBlock {
 	return asn
 }
 
-func getLocation(geonameID int64) *cityLocation {
+func getLocation(geonameID uint64) *cityLocation {
 	location, ok := cityLocations[geonameID]
 	if !ok {
 		return nil
