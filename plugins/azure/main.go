@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"runtime"
@@ -10,9 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Azure/azure-sdk-for-go/sdk/azcore/to"
-	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/Azure/azure-sdk-for-go/sdk/monitor/azquery"
+	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azeventhubs/v2"
+	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azeventhubs/v2/checkpoints"
+	"github.com/Azure/azure-sdk-for-go/sdk/storage/azblob"
 	"github.com/google/uuid"
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
@@ -44,11 +45,7 @@ func main() {
 	ticker := time.NewTicker(delay)
 	defer ticker.Stop()
 
-	startTime := time.Now().UTC().Add(-delay)
-
 	for range ticker.C {
-		endTime := time.Now().UTC()
-
 		if err := connectionChecker(urlCheckConnection); err != nil {
 			_ = catcher.Error("External connection failure detected: %v", err, nil)
 		}
@@ -77,7 +74,7 @@ func main() {
 						}
 					}
 					if !invalid {
-						pull(startTime, endTime, group)
+						pull(group)
 					}
 				}(grp)
 			}
@@ -85,26 +82,60 @@ func main() {
 			wg.Wait()
 		}
 
-		startTime = endTime.Add(1 * time.Nanosecond)
 	}
 }
 
-func pull(startTime time.Time, endTime time.Time, group types.ModuleGroup) {
+func pull(group types.ModuleGroup) {
 	agent := getAzureProcessor(group)
 
-	// Retry logic for Azure credential creation
+	if agent.EventHubConnection == "" || agent.ConsumerGroup == "" ||
+		agent.StorageContainer == "" || agent.StorageConnection == "" {
+		_ = catcher.Error("missing required configuration for Event Hub", nil, map[string]any{
+			"group": agent.GroupName,
+		})
+		return
+	}
+
+	eventHubParts := strings.Split(agent.EventHubConnection, ";EntityPath=")
+	if len(eventHubParts) != 2 {
+		_ = catcher.Error("invalid Event Hub connection string format", nil, map[string]any{
+			"group": agent.GroupName,
+		})
+		return
+	}
+
+	eventHubConnection := eventHubParts[0]
+	eventHubName := eventHubParts[1]
+
+	blobClient, err := azblob.NewClientFromConnectionString(agent.StorageConnection, nil)
+	if err != nil {
+		_ = catcher.Error("cannot create blob client", err, map[string]any{
+			"group": agent.GroupName,
+		})
+		return
+	}
+
+	checkpointStore, err := checkpoints.NewBlobStore(
+		blobClient.ServiceClient().NewContainerClient(agent.StorageContainer), nil)
+	if err != nil {
+		_ = catcher.Error("cannot create checkpoint store", err, map[string]any{
+			"group": agent.GroupName,
+		})
+		return
+	}
+
 	maxRetries := 3
 	retryDelay := 2 * time.Second
-	var cred *azidentity.ClientSecretCredential
-	var err error
+	var client *azeventhubs.ConsumerClient
 
 	for retry := 0; retry < maxRetries; retry++ {
-		cred, err = azidentity.NewClientSecretCredential(agent.TenantID, agent.ClientID, agent.ClientSecretValue, nil)
+		client, err = azeventhubs.NewConsumerClientFromConnectionString(
+			eventHubConnection, eventHubName, agent.ConsumerGroup, nil)
 		if err == nil {
 			break
 		}
 
-		_ = catcher.Error("cannot obtain Azure credentials, retrying", err, map[string]any{
+		_ = catcher.Error("cannot create Event Hub consumer client, retrying", err, map[string]any{
 			"group":      agent.GroupName,
 			"retry":      retry + 1,
 			"maxRetries": maxRetries,
@@ -118,143 +149,103 @@ func pull(startTime time.Time, endTime time.Time, group types.ModuleGroup) {
 	}
 
 	if err != nil {
-		_ = catcher.Error("all retries failed when obtaining Azure credentials", err, map[string]any{
+		_ = catcher.Error("all retries failed when creating Event Hub consumer client", err, map[string]any{
 			"group": agent.GroupName,
 		})
 		return
 	}
+	defer client.Close(context.Background())
 
-	// Retry logic for Azure client creation
-	retryDelay = 2 * time.Second
-	var client *azquery.LogsClient
-
-	for retry := 0; retry < maxRetries; retry++ {
-		client, err = azquery.NewLogsClient(cred, nil)
-		if err == nil {
-			break
-		}
-
-		_ = catcher.Error("cannot create Logs client, retrying", err, map[string]any{
-			"group":      agent.GroupName,
-			"retry":      retry + 1,
-			"maxRetries": maxRetries,
-		})
-
-		if retry < maxRetries-1 {
-			time.Sleep(retryDelay)
-			// Increase delay for next retry
-			retryDelay *= 2
-		}
-	}
-
+	processor, err := azeventhubs.NewProcessor(client, checkpointStore, nil)
 	if err != nil {
-		_ = catcher.Error("all retries failed when creating Logs client", err, map[string]any{
+		_ = catcher.Error("cannot create Event Hub processor", err, map[string]any{
 			"group": agent.GroupName,
 		})
 		return
 	}
 
-	// Create a context with timeout for the query
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
 
-	// Retry logic for Azure query
-	retryDelay = 2 * time.Second
-	var tables []*azquery.Table
-	var queryErr error
-	query := fmt.Sprintf(`
-		union *
-		| where TimeGenerated >= datetime(%s) and TimeGenerated < datetime(%s)
-		| order by TimeGenerated desc`,
-		startTime.Format(time.RFC3339Nano),
-		endTime.Format(time.RFC3339Nano),
-	)
-
-	for retry := 0; retry < maxRetries; retry++ {
-		resp, err := client.QueryWorkspace(
-			ctx,
-			agent.WorkspaceID,
-			azquery.Body{
-				Query: to.Ptr(query),
-			},
-			nil,
-		)
-
-		// Determine the actual error
-		if resp.Error != nil {
-			queryErr = resp.Error
-		} else {
-			queryErr = err
+	go func() {
+		for {
+			pc := processor.NextPartitionClient(ctx)
+			if pc == nil {
+				return
+			}
+			go processPartition(pc, agent.GroupName)
 		}
+	}()
 
-		if queryErr == nil {
-			tables = resp.Tables
-			break
-		}
-
-		_ = catcher.Error("cannot query Logs, retrying", queryErr, map[string]any{
-			"group":      agent.GroupName,
-			"retry":      retry + 1,
-			"maxRetries": maxRetries,
-		})
-
-		if retry < maxRetries-1 {
-			time.Sleep(retryDelay)
-			// Increase delay for next retry
-			retryDelay *= 2
-		}
-	}
-
-	if queryErr != nil {
-		_ = catcher.Error("all retries failed when querying Logs", queryErr, map[string]any{
+	if err := processor.Run(ctx); err != nil && !errors.Is(err, context.Canceled) {
+		_ = catcher.Error("error running Event Hub processor", err, map[string]any{
 			"group": agent.GroupName,
+		})
+	}
+}
+
+func processPartition(pc *azeventhubs.ProcessorPartitionClient, groupName string) {
+	defer pc.Close(context.Background())
+
+	recvCtx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
+
+	events, err := pc.ReceiveEvents(recvCtx, 500, nil)
+	if err != nil && !errors.Is(err, context.DeadlineExceeded) {
+		_ = catcher.Error("error receiving events", err, map[string]any{
+			"group":       groupName,
+			"partitionID": pc.PartitionID(),
 		})
 		return
 	}
 
-	var logs []map[string]any
-	for _, table := range tables {
-		for _, row := range table.Rows {
-			rowMap := make(map[string]any)
-			for i, column := range table.Columns {
-				if row[i] != nil {
-					if str, ok := row[i].(string); ok && str == "" {
-						continue
-					}
-					rowMap[*column.Name] = row[i]
-				}
-			}
-			logs = append(logs, rowMap)
-		}
+	if len(events) == 0 {
+		return
 	}
 
-	if len(logs) > 0 {
-		for _, log := range logs {
-			jsonLog, err := json.Marshal(log)
-			if err != nil {
-				_ = catcher.Error("cannot encode log to JSON", err, map[string]any{
-					"group": agent.GroupName,
-				})
-				continue
-			}
-			plugins.EnqueueLog(&plugins.Log{
-				Id:         uuid.New().String(),
-				TenantId:   defaultTenant,
-				DataType:   "azure",
-				DataSource: agent.GroupName,
-				Timestamp:  time.Now().UTC().Format(time.RFC3339Nano),
-				Raw:        string(jsonLog),
+	for _, event := range events {
+		var logData map[string]any
+		if err := json.Unmarshal(event.Body, &logData); err != nil {
+			_ = catcher.Error("cannot parse event body", err, map[string]any{
+				"group":       groupName,
+				"partitionID": pc.PartitionID(),
 			})
+			continue
 		}
+
+		jsonLog, err := json.Marshal(logData)
+		if err != nil {
+			_ = catcher.Error("cannot encode log to JSON", err, map[string]any{
+				"group":       groupName,
+				"partitionID": pc.PartitionID(),
+			})
+			continue
+		}
+
+		plugins.EnqueueLog(&plugins.Log{
+			Id:         uuid.New().String(),
+			TenantId:   defaultTenant,
+			DataType:   "azure",
+			DataSource: groupName,
+			Timestamp:  time.Now().UTC().Format(time.RFC3339Nano),
+			Raw:        string(jsonLog),
+		})
+	}
+
+	if err := pc.UpdateCheckpoint(context.Background(), events[len(events)-1], nil); err != nil {
+		_ = catcher.Error("checkpoint error", err, map[string]any{
+			"group":       groupName,
+			"partitionID": pc.PartitionID(),
+		})
 	}
 }
 
 type AzureConfig struct {
-	GroupName         string
-	TenantID          string
-	ClientID          string
-	ClientSecretValue string
-	WorkspaceID       string
+	GroupName          string
+	EventHubConnection string
+	ConsumerGroup      string
+	StorageContainer   string
+	StorageConnection  string
 }
 
 func getAzureProcessor(group types.ModuleGroup) AzureConfig {
@@ -262,14 +253,14 @@ func getAzureProcessor(group types.ModuleGroup) AzureConfig {
 	azurePro.GroupName = group.GroupName
 	for _, cnf := range group.Configurations {
 		switch cnf.ConfKey {
-		case "tenantId":
-			azurePro.TenantID = cnf.ConfValue
-		case "clientId":
-			azurePro.ClientID = cnf.ConfValue
-		case "clientSecret":
-			azurePro.ClientSecretValue = cnf.ConfValue
-		case "workspaceId":
-			azurePro.WorkspaceID = cnf.ConfValue
+		case "eventHubConnection":
+			azurePro.EventHubConnection = cnf.ConfValue
+		case "consumerGroup":
+			azurePro.ConsumerGroup = cnf.ConfValue
+		case "storageContainer":
+			azurePro.StorageContainer = cnf.ConfValue
+		case "storageConnection":
+			azurePro.StorageConnection = cnf.ConfValue
 		}
 	}
 	return azurePro
