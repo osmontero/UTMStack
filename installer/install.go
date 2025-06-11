@@ -84,45 +84,57 @@ func Install() error {
 		if err != nil {
 			return err
 		}
-		// TODO: Check AirGap
-		if err := network.InstallVlan(distro); err != nil {
-			return err
+		// Check AirGap
+		if !config.ConnectedToInternet {
+			fmt.Println(" [SKIPPED] (AirGap mode detected, skipping VLAN configuration)")
+		} else {
+			if err := network.InstallVlan(distro); err != nil {
+				return err
+			}
+			if err := network.ConfigureVLAN(iface, distro); err != nil {
+				return err
+			}
+			if err := utils.SetLock(202402081553, stack.LocksDir); err != nil {
+				return err
+			}
+			fmt.Println(" [OK]")
 		}
-		if err := network.ConfigureVLAN(iface, distro); err != nil {
-			return err
-		}
-		if err := utils.SetLock(202402081553, stack.LocksDir); err != nil {
-			return err
-		}
-		fmt.Println(" [OK]")
 	}
 
 	if utils.GetLock(3, stack.LocksDir) {
 		fmt.Print("Installing Docker")
-		// TODO: Check AirGap
-		if err := docker.InstallDocker(distro); err != nil {
-			return err
+		// Check AirGap
+		if !config.ConnectedToInternet {
+			fmt.Println(" [SKIPPED] (AirGap mode detected, skipping Docker installation)")
+		} else {
+			if err := docker.InstallDocker(distro); err != nil {
+				return err
+			}
+			if err := utils.SetLock(3, stack.LocksDir); err != nil {
+				return err
+			}
+			fmt.Println(" [OK]")
 		}
-		if err := utils.SetLock(3, stack.LocksDir); err != nil {
-			return err
-		}
-		fmt.Println(" [OK]")
 	}
 
 	if utils.GetLock(4, stack.LocksDir) {
 		fmt.Print("Initializing Swarm")
-		// TODO: Check AirGap
-		mainIP, err := utils.GetMainIP()
-		if err != nil {
-			return err
+		// Check AirGap
+		if !config.ConnectedToInternet {
+			fmt.Println(" [SKIPPED] (AirGap mode detected, skipping Swarm initialization)")
+		} else {
+			mainIP, err := utils.GetMainIP()
+			if err != nil {
+				return err
+			}
+			if err := docker.InitSwarm(mainIP); err != nil {
+				return err
+			}
+			if err := utils.SetLock(4, stack.LocksDir); err != nil {
+				return err
+			}
+			fmt.Println(" [OK]")
 		}
-		if err := docker.InitSwarm(mainIP); err != nil {
-			return err
-		}
-		if err := utils.SetLock(4, stack.LocksDir); err != nil {
-			return err
-		}
-		fmt.Println(" [OK]")
 	}
 
 	if !utils.GetLock(5, stack.LocksDir) && utils.GetLock(202407051241, stack.LocksDir) {
@@ -176,15 +188,19 @@ func Install() error {
 
 	if utils.GetLock(5, stack.LocksDir) {
 		fmt.Print("Installing Administration Tools")
-		// TODO: Check AirGap
-		if err := system.InstallTools(distro); err != nil {
-			return err
-		}
+		// Check AirGap
+		if !config.ConnectedToInternet {
+			fmt.Println(" [SKIPPED] (AirGap mode detected, skipping Administration Tools installation)")
+		} else {
+			if err := system.InstallTools(distro); err != nil {
+				return err
+			}
 
-		if err := utils.SetLock(5, stack.LocksDir); err != nil {
-			return err
+			if err := utils.SetLock(5, stack.LocksDir); err != nil {
+				return err
+			}
+			fmt.Println(" [OK]")
 		}
-		fmt.Println(" [OK]")
 	}
 
 	if utils.GetLock(6, stack.LocksDir) {
