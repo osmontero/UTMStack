@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/opensearch"
 	"github.com/threatwinds/go-sdk/plugins"
@@ -182,7 +183,7 @@ func getPreviousAlertId(alert *plugins.Alert) *string {
 		},
 	})
 
-	mustNot = append(filters, opensearch.Query{
+	mustNot = append(mustNot, opensearch.Query{
 		Exists: map[string]string{
 			"field": "parentId",
 		},
@@ -197,7 +198,7 @@ func getPreviousAlertId(alert *plugins.Alert) *string {
 		if value.Type == gjson.String {
 			filters = append(filters, opensearch.Query{
 				Term: map[string]map[string]interface{}{
-					d: {
+					fmt.Sprintf("%s.keyword", d): {
 						"value": value.String(),
 					},
 				},
