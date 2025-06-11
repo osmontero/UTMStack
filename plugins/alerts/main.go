@@ -45,7 +45,7 @@ type AlertFields struct {
 	Reference         []string         `json:"reference"`
 	DataType          string           `json:"dataType"`
 	Impact            *plugins.Impact  `json:"impact"`
-	ImpactScore       int32            `json:"impactScore"`
+	ImpactScore       uint32           `json:"impactScore"`
 	DataSource        string           `json:"dataSource"`
 	Adversary         *plugins.Side    `json:"adversary"`
 	Target            *plugins.Side    `json:"target"`
@@ -150,7 +150,7 @@ func (p *correlationServer) Correlate(_ context.Context,
 	return nil, newAlert(alert, parentId)
 }
 
-func getPreviousAlertId(alert *plugins.Alert) string {
+func getPreviousAlertId(alert *plugins.Alert) *string {
 	// Recover from panics to ensure the function doesn't terminate
 	defer func() {
 		if r := recover(); r != nil {
@@ -162,22 +162,29 @@ func getPreviousAlertId(alert *plugins.Alert) string {
 	}()
 
 	if len(alert.DeduplicateBy) == 0 {
-		return ""
+		return nil
 	}
 
 	alertString, err := utils.ToString(alert)
 	if err != nil {
 		_ = catcher.Error("cannot convert alert to string", err, map[string]any{"alert": alert.Name})
-		return ""
+		return nil
 	}
 
 	var filters []opensearch.Query
+	var mustNot []opensearch.Query
 
 	filters = append(filters, opensearch.Query{
 		Term: map[string]map[string]interface{}{
 			"name.keyword": {
 				"value": alert.Name,
 			},
+		},
+	})
+
+	mustNot = append(filters, opensearch.Query{
+		Exists: map[string]string{
+			"field": "parentId",
 		},
 	})
 
@@ -224,7 +231,8 @@ func getPreviousAlertId(alert *plugins.Alert) string {
 		Version: true,
 		Query: &opensearch.Query{
 			Bool: &opensearch.Bool{
-				Filter: filters,
+				Filter:  filters,
+				MustNot: mustNot,
 			},
 		},
 		StoredFields: []string{"*"},
@@ -242,9 +250,9 @@ func getPreviousAlertId(alert *plugins.Alert) string {
 		hits, err := searchQuery.SearchIn(ctx, []string{opensearch.BuildIndexPattern("v11", "alert")})
 		if err == nil {
 			if hits.Hits.Total.Value != 0 {
-				return hits.Hits.Hits[0].ID
+				return utils.PointerOf(hits.Hits.Hits[0].ID)
 			}
-			return ""
+			return nil
 		}
 
 		_ = catcher.Error("cannot search for previous alerts, retrying", err, map[string]any{
@@ -264,10 +272,10 @@ func getPreviousAlertId(alert *plugins.Alert) string {
 	_ = catcher.Error("all retries failed when searching for previous alerts", nil, map[string]any{
 		"alert": alert.Name,
 	})
-	return ""
+	return nil
 }
 
-func newAlert(alert *plugins.Alert, parentId string) error {
+func newAlert(alert *plugins.Alert, parentId *string) error {
 	// Recover from panics to ensure the function doesn't terminate
 	defer func() {
 		if r := recover(); r != nil {
@@ -298,7 +306,7 @@ func newAlert(alert *plugins.Alert, parentId string) error {
 	a := AlertFields{
 		Timestamp:     alert.Timestamp,
 		ID:            alert.Id,
-		ParentID:      utils.PointerOf(parentId),
+		ParentID:      parentId,
 		Status:        1,
 		StatusLabel:   "Automatic review",
 		Name:          alert.Name,
@@ -331,12 +339,13 @@ func newAlert(alert *plugins.Alert, parentId string) error {
 
 	for retry := 0; retry < maxRetries; retry++ {
 		cancelableContext, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
 
 		err := opensearch.IndexDoc(cancelableContext, a, opensearch.BuildCurrentIndex("v11", "alert"), alert.Id)
 		if err == nil {
+			cancel()
 			return nil
 		}
+		cancel()
 
 		_ = catcher.Error("cannot index document, retrying", err, map[string]any{
 			"alert":      alert.Name,
