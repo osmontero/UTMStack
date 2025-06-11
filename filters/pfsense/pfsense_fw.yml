@@ -324,7 +324,7 @@ pipeline:
           params:
             source: origin.ip
             destination: origin.geolocation
-          where: has(origin.ip)
+          where: exists(origin.ip)
       
       # Adding geolocation to target.ip
       - dynamic:
@@ -332,7 +332,7 @@ pipeline:
           params:
             source: target.ip
             destination: target.geolocation
-          where: has(target.ip)
+          where: exists(target.ip)
 
       # ..........................................................................#
       # Remove issues fileds

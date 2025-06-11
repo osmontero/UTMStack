@@ -148,21 +148,21 @@ pipeline:
           params:
             key: severity
             value: 'low'
-          where: has(log.severity) && (log.severity=="debug" || log.severity=="verbose")
+          where: exists(log.severity) && (log.severity=="debug" || log.severity=="verbose")
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where: has(log.severity) && (log.severity=="notice" || log.severity=="warning")
+          where: exists(log.severity) && (log.severity=="notice" || log.severity=="warning")
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'high'
-          where: has(log.severity) && log.severity=="error"
+          where: exists(log.severity) && log.severity=="error"
 
       # Parse beats field
       - rename:

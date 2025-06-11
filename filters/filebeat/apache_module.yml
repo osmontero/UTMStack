@@ -135,62 +135,62 @@ pipeline:
             - fieldName: log.protoVersion
               pattern: '{{.greedy}}'
           source: protocol
-          where: has(protocol)
+          where: exists(protocol)
       - trim:
           function: suffix
           substring: '/'
           fields:
             - protocol
-          where: has(protocol)
+          where: exists(protocol)
       # Adding geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: origin.ip
             destination: origin.geolocation
-          where: has(origin.ip)
+          where: exists(origin.ip)
       # Normalizing request method and renaming to action
       - add:
           function: 'string'
           params:
             key: action
             value: 'get'
-          where: has(log.method) && log.method == "GET"
+          where: exists(log.method) && log.method == "GET"
       - add:
           function: 'string'
           params:
             key: action
             value: 'post'
-          where: has(log.method) && log.method == "POST"
+          where: exists(log.method) && log.method == "POST"
       - add:
           function: 'string'
           params:
             key: action
             value: 'put'
-          where: has(log.method) && log.method == "PUT"
+          where: exists(log.method) && log.method == "PUT"
       - add:
           function: 'string'
           params:
             key: action
             value: 'delete'
-          where: has(log.method) && log.method == "DELETE"
+          where: exists(log.method) && log.method == "DELETE"
       - add:
           function: 'string'
           params:
             key: action
             value: 'patch'
-          where: has(log.method) && log.method == "PATCH"
+          where: exists(log.method) && log.method == "PATCH"
       - add:
           function: 'string'
           params:
             key: action
             value: 'request'
-          where: has(log.method) && log.method == "REQUEST"
+          where: exists(log.method) && log.method == "REQUEST"
       # Removing log.method if action was set
       - delete:
           fields:
             - log.method
-          where: has(action)
+          where: exists(action)
       # Reformat and field conversions
       - cast:
           fields:
@@ -215,7 +215,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: has(log.statusCode) && (log.statusCode >= 200 && log.statusCode <= 299 || (has(origin.bytesReceived) && log.statusCode >= 300 && log.statusCode <= 399 && origin.bytesReceived > 0))
+          where: exists(log.statusCode) && (log.statusCode >= 200 && log.statusCode <= 299 || (exists(origin.bytesReceived) && log.statusCode >= 300 && log.statusCode <= 399 && origin.bytesReceived > 0))
       # Removing unused fields
       - delete:
           fields:

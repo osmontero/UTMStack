@@ -51,7 +51,7 @@ pipeline:
           params:
             source: log.localIp
             destination: log.localIp.geolocation
-          where: has(log.localIp)
+          where: exists(log.localIp)
       # Removing unwanted prefixes
       - trim:
           function: prefix
@@ -312,14 +312,14 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: has(actionResult) && (log.messageId==106102 || log.messageId==106103) && (actionResult == "Permitted" || actionResult == "permitted")
+          where: exists(actionResult) && (log.messageId==106102 || log.messageId==106103) && (actionResult == "Permitted" || actionResult == "permitted")
       # Adding action result
       - add:
           function: 'string'
           params:
             key: actionResult
             value: 'denied'
-          where: has(actionResult) && (log.messageId==106102 || log.messageId==106103) && (actionResult != "Permitted" && actionResult != "permitted")
+          where: exists(actionResult) && (log.messageId==106102 || log.messageId==106103) && (actionResult != "Permitted" && actionResult != "permitted")
       #......................................................................#
       # FTD-6-109101
       - grok:
@@ -5027,118 +5027,118 @@ pipeline:
           params:
             source: origin.ip
             destination: origin.geolocation
-          where: has(origin.ip)
+          where: exists(origin.ip)
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: target.ip
             destination: target.geolocation
-          where: has(target.ip)
+          where: exists(target.ip)
       # Adding log.mappedIpFrom geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.mappedIpFrom
             destination: log.mappedIpFrom.geolocation
-          where: has(log.mappedIpFrom)
+          where: exists(log.mappedIpFrom)
       # Adding log.mappedIpTo geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.mappedIpTo
             destination: log.mappedIpTo.geolocation
-          where: has(log.mappedIpTo)
+          where: exists(log.mappedIpTo)
       # Adding log.translatedIpFrom geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.translatedIpFrom
             destination: log.translatedIpFrom.geolocation
-          where: has(log.translatedIpFrom)
+          where: exists(log.translatedIpFrom)
       # Adding log.translatedIpTo geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.translatedIpTo
             destination: log.translatedIpTo.geolocation
-          where: has(log.translatedIpTo)
+          where: exists(log.translatedIpTo)
       # Adding log.globalIp geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.globalIp
             destination: log.globalIp.geolocation
-          where: has(log.globalIp)
+          where: exists(log.globalIp)
       # Adding log.remoteIp geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.remoteIp
             destination: log.remoteIp.geolocation
-          where: has(log.remoteIp)
+          where: exists(log.remoteIp)
       # Adding log.mappedIp geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.mappedIp
             destination: log.mappedIp.geolocation
-          where: has(log.mappedIp)
+          where: exists(log.mappedIp)
       # Adding log.decapsulatedPktDestAddr geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.decapsulatedPktDestAddr
             destination: log.decapsulatedPktDestAddr.geolocation
-          where: has(log.decapsulatedPktDestAddr)
+          where: exists(log.decapsulatedPktDestAddr)
       # Adding log.decapsulatedPktSrcAddr geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.decapsulatedPktSrcAddr
             destination: log.decapsulatedPktSrcAddr.geolocation
-          where: has(log.decapsulatedPktSrcAddr)
+          where: exists(log.decapsulatedPktSrcAddr)
       # Adding log.localProxyIpAddr geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.localProxyIpAddr
             destination: log.localProxyIpAddr.geolocation
-          where: has(log.localProxyIpAddr)
+          where: exists(log.localProxyIpAddr)
       # Adding log.remoteProxyIpAddr geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.remoteProxyIpAddr
             destination: log.remoteProxyIpAddr.geolocation
-          where: has(log.remoteProxyIpAddr)
+          where: exists(log.remoteProxyIpAddr)
       # Adding log.primaryDns geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.primaryDns
             destination: log.primaryDns.geolocation
-          where: has(log.primaryDns)
+          where: exists(log.primaryDns)
       # Adding log.secondaryDns geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.secondaryDns
             destination: log.secondaryDns.geolocation
-          where: has(log.secondaryDns)
+          where: exists(log.secondaryDns)
       # Adding log.primaryWins geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.primaryWins
             destination: log.primaryWins.geolocation
-          where: has(log.primaryWins)
+          where: exists(log.primaryWins)
       # Adding log.secondaryWins geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.secondaryWins
             destination: log.secondaryWins.geolocation
-          where: has(log.secondaryWins)
+          where: exists(log.secondaryWins)
       #......................................................................#
       # Common field conversions
       - cast:

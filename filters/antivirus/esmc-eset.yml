@@ -90,21 +90,21 @@ pipeline:
           params:
             key: severity
             value: 'low'
-          where: has(log.severity) && ( log.severity=="INFO" || log.severity=="Info" )
+          where: exists(log.severity) && ( log.severity=="INFO" || log.severity=="Info" )
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where: has(log.severity) && (log.severity=="WARNING" || log.severity=="Warning")
+          where: exists(log.severity) && (log.severity=="WARNING" || log.severity=="Warning")
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'high'
-          where: has(log.severity) && (log.severity=="ERROR" || log.severity=="Error")
+          where: exists(log.severity) && (log.severity=="ERROR" || log.severity=="Error")
 
       # Adding geolocation to origin.ip
       - dynamic:
@@ -112,7 +112,7 @@ pipeline:
           params:
             source: origin.ip
             destination: origin.geolocation
-          where: has(origin.ip)
+          where: exists(origin.ip)
       
       # Adding geolocation to target.ip
       - dynamic:
@@ -120,7 +120,7 @@ pipeline:
           params:
             source: target.ip
             destination: target.geolocation
-          where: has(target.ip)
+          where: exists(target.ip)
 
       # Removing unused fields
       - delete:

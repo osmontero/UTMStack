@@ -114,19 +114,19 @@ pipeline:
           params:
             key: severity
             value: 'high'
-          where: has(log.level) && (log.level == "CRITICAL" || log.level == "FATAL" || log.level == "ERROR")
+          where: exists(log.level) && (log.level == "CRITICAL" || log.level == "FATAL" || log.level == "ERROR")
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where: has(log.level) && log.level == "WARN"
+          where: exists(log.level) && log.level == "WARN"
       - add:
           function: 'string'
           params:
             key: severity
             value: 'low'
-          where: has(log.level) && (log.level == "INFO" || log.level == "DEBUG" || log.level == "TRACE")
+          where: exists(log.level) && (log.level == "INFO" || log.level == "DEBUG" || log.level == "TRACE")
       # Removing unused fields
       - delete:
           fields:

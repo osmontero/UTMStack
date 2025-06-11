@@ -150,21 +150,21 @@ pipeline:
           params:
             key: log.severity
             value: 'high'
-          where: has(log.severityLabel) && (log.severityLabel == "critical" || log.severityLabel == "alert" || log.severityLabel == "error")
+          where: exists(log.severityLabel) && (log.severityLabel == "critical" || log.severityLabel == "alert" || log.severityLabel == "error")
 
       - add:
           function: 'string'
           params:
             key: log.severity
             value: 'medium'
-          where: has(log.severityLabel) && log.severityLabel == "warning"
+          where: exists(log.severityLabel) && log.severityLabel == "warning"
 
       - add:
           function: 'string'
           params:
             key: log.severity
             value: 'low'
-          where: has(log.severityLabel) && (log.severityLabel == "debug" || log.severityLabel == "verbose" || log.severityLabel == "notice" || log.severityLabel == "information" || log.severityLabel == "trace")
+          where: exists(log.severityLabel) && (log.severityLabel == "debug" || log.severityLabel == "verbose" || log.severityLabel == "notice" || log.severityLabel == "information" || log.severityLabel == "trace")
 
       # Removing unused fields
       - delete:

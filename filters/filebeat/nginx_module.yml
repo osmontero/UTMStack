@@ -266,7 +266,7 @@ pipeline:
           params:
             source: target.ip
             destination: target.geolocation
-          where: has(target.ip)
+          where: exists(target.ip)
 
       # Adding geolocation to origin ip
       - dynamic:
@@ -274,7 +274,7 @@ pipeline:
           params:
             source: origin.ip
             destination: origin.geolocation
-          where: has(origin.ip)
+          where: exists(origin.ip)
 
       # Reformat and field conversions
       - cast:
@@ -306,35 +306,35 @@ pipeline:
           params:
             key: action
             value: 'get'
-          where: has(log.method) && log.method == "GET"
+          where: exists(log.method) && log.method == "GET"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'post'
-          where: has(log.method) && log.method == "POST"
+          where: exists(log.method) && log.method == "POST"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'put'
-          where: has(log.method) && log.method == "PUT"
+          where: exists(log.method) && log.method == "PUT"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'delete'
-          where: has(log.method) && log.method == "DELETE"
+          where: exists(log.method) && log.method == "DELETE"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'request'
-          where: has(log.method) && log.method == "REQUEST"
+          where: exists(log.method) && log.method == "REQUEST"
 
       # Adding actionResult
       # denied by default
@@ -349,7 +349,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: has(statusCode) && (statusCode >= 200 && statusCode <= 299 || (has(origin.bytesReceived) == true && statusCode >= 300 && statusCode <= 399 && origin.bytesReceived > 0))
+          where: exists(statusCode) && (statusCode >= 200 && statusCode <= 299 || (exists(origin.bytesReceived) == true && statusCode >= 300 && statusCode <= 399 && origin.bytesReceived > 0))
 
       # Adding severity based on log.severityLabel
       - add:
@@ -357,27 +357,27 @@ pipeline:
           params:
             key: log.severity
             value: 'high'
-          where: has(log.severityLabel) && (log.severityLabel == "critical" || log.severityLabel == "alert" || log.severityLabel == "error")
+          where: exists(log.severityLabel) && (log.severityLabel == "critical" || log.severityLabel == "alert" || log.severityLabel == "error")
 
       - add:
           function: 'string'
           params:
             key: log.severity
             value: 'medium'
-          where: has(log.severityLabel) && log.severityLabel == "warning"
+          where: exists(log.severityLabel) && log.severityLabel == "warning"
 
       - add:
           function: 'string'
           params:
             key: log.severity
             value: 'low'
-          where: has(log.severityLabel) && (log.severityLabel == "debug" || log.severityLabel == "verbose" || log.severityLabel == "notice" || log.severityLabel == "information" || log.severityLabel == "trace")
+          where: exists(log.severityLabel) && (log.severityLabel == "debug" || log.severityLabel == "verbose" || log.severityLabel == "notice" || log.severityLabel == "information" || log.severityLabel == "trace")
 
       # Removing log.method if action was set
       - delete:
           fields:
             - log.method
-          where: has(action)
+          where: exists(action)
 
       # Removing unused fields
       - delete:
