@@ -149,11 +149,9 @@
 
     </div>
 
-    <div
-      *ngFor="let expr of with.controls; let j = index"
+    <div *ngFor="let expr of with.controls; let j = index"
       [formGroupName]="j"
-      class="card border-light shadow-sm mb-3"
-    >
+      class="card border-light shadow-sm mb-3">
       <div class="card-body py-3 px-3">
         <div class="row g-3 align-items-end">
           <div class="col-md-4">

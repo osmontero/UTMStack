@@ -24,10 +24,13 @@ export class AddAfterEventComponent implements OnInit {
   @Output() remove = new EventEmitter<void>();
   patterns$: Observable<UtmIndexPattern[]>;
   fields$: Observable<ElasticSearchFieldInfoType[]>;
-  operators =  [
-    {label: 'equals', value: 'eq'},
-    {label: 'not equals', value: 'neq'}
+  operators = [
+    { label: 'filter match', value: 'filter_match' },
+    { label: 'filter term', value: 'filter_term' },
+    { label: 'must not match', value: 'must_not_match' },
+    { label: 'must not term', value: 'must_not_term' }
   ];
+
 
   constructor(private fb: FormBuilder,
               private ruleService: RuleService,
