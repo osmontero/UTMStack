@@ -21,7 +21,7 @@ type AlertFields struct {
 	Reference         []string         `json:"reference"`
 	DataType          string           `json:"dataType"`
 	Impact            *plugins.Impact  `json:"impact"`
-	ImpactScore       int32            `json:"impactScore"`
+	ImpactScore       uint32           `json:"impactScore"`
 	DataSource        string           `json:"dataSource"`
 	Adversary         *plugins.Side    `json:"adversary"`
 	Target            *plugins.Side    `json:"target"`
