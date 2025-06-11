@@ -52,10 +52,9 @@
         </td>
         <ng-container *ngFor="let td of fields">
           <td *ngIf="td.field === 'Summary' && td.visible">
-            <div class="w-100 d-flex flex-wrap">
+            <div class="w-100 d-flex flex-wrap gap-2">
               <ng-container *ngFor="let summary of summaryColumns">
-                <div *ngIf="resolveTdValue(row, summary.key) !== '-'"
-                     class="cursor-pointer d-flex justify-content-center align-items-center border-1 mr-2 p-1 border-grey-100 border-radius-1">
+                <div *ngIf="resolveTdValue(row, summary.key) !== '-'" class="cursor-pointer d-flex justify-content-center align-items-center border-1 p-1 border-grey-100 border-radius-1">
                   <div class="filter-label">
                 <span class="text-center pt-1 pb-1 m-1 border-blue-800" >
                     <strong>{{ summary.title }}</strong>: <em> {{ resolveTdValue(row, summary.key) }} </em>
