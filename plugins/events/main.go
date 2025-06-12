@@ -118,6 +118,9 @@ func main() {
 }
 
 func (p *analysisServer) Analyze(event *plugins.Event, _ grpc.ServerStreamingServer[plugins.Alert]) error {
+	m := utils.NewMeter("Enqueue log for OpenSearch")
+	defer m.Elapsed("finished")
+
 	jLog, err := utils.ToString(event)
 	if err != nil {
 		return catcher.Error("cannot convert event to json", err, nil)

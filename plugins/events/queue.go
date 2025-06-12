@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
+	"github.com/threatwinds/go-sdk/utils"
 	"runtime"
 	"sync"
 	"time"
@@ -59,6 +60,9 @@ func startQueue() {
 	numCPU := runtime.NumCPU() * 2
 	for i := 0; i < numCPU; i++ {
 		go func() {
+			ndM := utils.NewMeter("Generate NDJson")
+			bulkM := utils.NewMeter("Send Bulk")
+
 			var ndMutex = &sync.Mutex{}
 			var nd = make([]opensearch.BulkItem, 0, 10)
 
@@ -69,6 +73,8 @@ func startQueue() {
 						continue
 					}
 
+					bulkM.Reset()
+
 					ndMutex.Lock()
 					err := opensearch.Bulk(context.Background(), nd)
 					if err != nil {
@@ -77,11 +83,15 @@ func startQueue() {
 
 					nd = make([]opensearch.BulkItem, 0, 10)
 					ndMutex.Unlock()
+
+					bulkM.Elapsed("bulk sent")
 				}
 			}()
 
 			for {
 				l := <-logs
+
+				ndM.Reset()
 
 				dataType := gjson.Get(l, "dataType").String()
 
@@ -97,6 +107,8 @@ func startQueue() {
 					Action: "index",
 				})
 				ndMutex.Unlock()
+
+				ndM.Elapsed("nd json generated")
 			}
 		}()
 	}
