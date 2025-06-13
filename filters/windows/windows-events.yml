@@ -1,4 +1,4 @@
-# Windows_Agent filter, version 3.0.2
+# Windows_Agent filter, version 3.0.3
 # Based on winlogbeat fields, reference [8.15]
 # See https://www.elastic.co/guide/en/beats/winlogbeat/current/exported-fields-winlog.html
 
@@ -2269,49 +2269,49 @@ pipeline:
           params:
             key: log.failureReasonDescription
             value: 'The specified user account has expired.'
-          where: exists(log.winlogEventDataFailureReason) && log.winlogEventDataFailureReason=="%%2305" && log.eventCode=="4625"
+          where: safe("log.winlogEventDataFailureReason", "") && log.winlogEventDataFailureReason=="%%2305" && log.eventCode=="4625"
 
       - add:
           function: 'string'
           params:
             key: log.failureReasonDescription
             value: 'The password for the specified account has expired'
-          where: exists(log.winlogEventDataFailureReason) && log.winlogEventDataFailureReason=="%%2309" && log.eventCode=="4625"
+          where: safe("log.winlogEventDataFailureReason", "") && log.winlogEventDataFailureReason=="%%2309" && log.eventCode=="4625"
 
       - add:
           function: 'string'
           params:
             key: log.failureReasonDescription
             value: 'Account currently disabled'
-          where: exists(log.winlogEventDataFailureReason) && log.winlogEventDataFailureReason=="%%2310" && log.eventCode=="4625"
+          where: safe("log.winlogEventDataFailureReason", "") && log.winlogEventDataFailureReason=="%%2310" && log.eventCode=="4625"
 
       - add:
           function: 'string'
           params:
             key: log.failureReasonDescription
             value: 'Account logon time restriction violation'
-          where: exists(log.winlogEventDataFailureReason) && log.winlogEventDataFailureReason=="%%2311" && log.eventCode=="4625"
+          where: safe("log.winlogEventDataFailureReason", "") && log.winlogEventDataFailureReason=="%%2311" && log.eventCode=="4625"
 
       - add:
           function: 'string'
           params:
             key: log.failureReasonDescription
             value: 'User not allowed to logon at this computer'
-          where: exists(log.winlogEventDataFailureReason) && log.winlogEventDataFailureReason=="%%2312" && log.eventCode=="4625"
+          where: safe("log.winlogEventDataFailureReason", "") && log.winlogEventDataFailureReason=="%%2312" && log.eventCode=="4625"
 
       - add:
           function: 'string'
           params:
             key: log.failureReasonDescription
             value: 'Unknown user name or bad password'
-          where: exists(log.winlogEventDataFailureReason) && log.winlogEventDataFailureReason=="%%2313" && log.eventCode=="4625"
+          where: safe("log.winlogEventDataFailureReason", "") && log.winlogEventDataFailureReason=="%%2313" && log.eventCode=="4625"
 
       - add:
           function: 'string'
           params:
             key: log.failureReasonDescription
             value: 'An Error occurred during Logon'
-          where: exists(log.winlogEventDataFailureReason) && log.winlogEventDataFailureReason=="%%2304" && log.eventCode=="4625"
+          where: safe("log.winlogEventDataFailureReason", "") && log.winlogEventDataFailureReason=="%%2304" && log.eventCode=="4625"
 
       # Decoding the "AccessMask" field when the event code is 4663 and adding the "accessType" and "accessDescription" field
       - add:
@@ -2319,210 +2319,210 @@ pipeline:
           params:
             key: log.accessType
             value: 'read'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x1" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x1" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessDescription
             value: 'For a file object, the right to read the corresponding file data. For a directory object, the right to read the corresponding directory data.\n For a directory, the right to list the contents of the directory.\n For registry objects, this is, Query key value.'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x1" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x1" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessType
             value: 'write'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x2" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x2" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessDescription
             value: 'For a file object, the right to write data to the file.\n For a directory object, the right to create a file in the directory.\n For registry objects, this is, Set key value.'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x2" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x2" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessType
             value: 'append'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x4" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x4" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessDescription
             value: 'For a file object, the right to append data to the file. (For local files, write operations will not overwrite existing data if this flag is specified without FILE_WRITE_DATA.)\n For a directory object, the right to create a subdirectory.\n For a named pipe, the right to create a pipe.'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x4" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x4" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessType
             value: 'read_extended_attributes'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x8" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x8" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessDescription
             value: 'The right to read extended file attributes.\n For registry objects, this is, Enumerate sub-keys.'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x8" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x8" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessType
             value: 'write_extended_attributes'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x10" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x10" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessDescription
             value: 'The right to write extended file attributes.'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x10" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x10" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessType
             value: 'execute'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x20" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x20" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessDescription
             value: 'For a native code file, the right to execute the file. This access right given to scripts may cause the script to be executable, depending on the script interpreter.\n For a directory, the right to traverse the directory. By default, users are assigned the BYPASS_TRAVERSE_CHECKING privilege, which ignores the FILE_TRAVERSE access right.'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x20" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x20" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessType
             value: 'delete_child'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x40" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x40" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessDescription
             value: 'For a directory, the right to delete a directory and all the files it contains, including read-only files.'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x40" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x40" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessType
             value: 'read_attributes'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x80" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x80" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessDescription
             value: 'The right to read file attributes.'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x80" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x80" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessType
             value: 'write_attributes'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x100" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x100" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessDescription
             value: 'The right to write file attributes.'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x100" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x100" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessType
             value: 'delete'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x10000" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x10000" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessDescription
             value: 'The right to delete the object.'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x10000" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x10000" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessType
             value: 'read_control'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x20000" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x20000" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessDescription
             value: 'The right to read information in the security descriptor object, without including the information in the system access control list (SACL).'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x20000" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x20000" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessType
             value: 'write_dac'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x40000" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x40000" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessDescription
             value: 'The right to modify the discretionary access control list (DACL) in the security descriptor object.'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x40000" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x40000" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessType
             value: 'write_owner'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x80000" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x80000" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessDescription
             value: 'The right to change the owner in the security descriptor object'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x80000" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x80000" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessType
             value: 'synchronize'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x100000" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x100000" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessDescription
             value: 'The right to use the object for synchronization. This enables a thread to wait until the object is in the signaled state. Some object types do not support this access right.'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x100000" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x100000" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessType
             value: 'access_sys_sec'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x1000000" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x1000000" && log.eventCode=="4663"
 
       - add:
           function: 'string'
           params:
             key: log.accessDescription
             value: 'The ACCESS_SYS_SEC access right controls the ability to get or set the SACL in an security descriptor object.'
-          where: exists(log.winlogEeventDataAccessMask) && log.winlogEeventDataAccessMask=="0x1000000" && log.eventCode=="4663"
+          where: safe("log.winlogEeventDataAccessMask", "") && log.winlogEeventDataAccessMask=="0x1000000" && log.eventCode=="4663"
 
       # Decoding the "eventStatus" field
       - add:
@@ -2530,91 +2530,91 @@ pipeline:
           params:
             key: log.statusDescription
             value: 'Account locked out'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xC0000234"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xC0000234"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Account expired'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xC0000193"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xC0000193"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Clocks out of sync'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xC0000133"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xC0000133"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Password change required'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xC0000224"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xC0000224"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'User does not have logon right'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xc000015b"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xc000015b"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Logon failure'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xc000006d"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xc000006d"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Account restriction'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xc000006e"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xc000006e"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'An error occurred during logon'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xc00002ee"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xc00002ee"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Password expired'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xC0000071"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xC0000071"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Account disabled'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xC0000072"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xC0000072"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Authentication firewall prohibits logon'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xC0000413"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xC0000413"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Incorrect password'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xc000006a"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xc000006a"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Account does not exist'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xc0000064"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xc0000064"
 
       # Decoding the "eventStatus" field when the event code is 4771 and adding the "statusDescription"
       - add:
@@ -2622,322 +2622,322 @@ pipeline:
           params:
             key: log.statusDescription
             value: 'Customer database entry has expired'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x1" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x1" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'The server database entry has expired'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x2" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x2" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Requested protocol version not supported'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x3" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x3" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Customer key encrypted in old master key'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x4" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x4" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Server key encrypted with old master key'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x5" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x5" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Client not found in Kerberos database'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x6" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x6" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Server not found in Kerberos database'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x7" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x7" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Multiple principal entries in database'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x8" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x8" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'The client or server has a null key'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x9" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x9" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Ticket not eligible for postdating'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xA" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xA" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Requested start time is later than end time'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xB" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xB" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'KDC policy rejects request'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xC" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xC" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'KDC cannot accommodate requested option'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xD" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xD" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'KDC has no support for encryption type'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xE" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xE" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'KDC has no support for checksum type'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0xF" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0xF" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'KDC has no support for padata type'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x10" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x10" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'KDC has no support for transited type'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x11" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x11" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Clients credentials have been revoked'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x12" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x12" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Credentials for server have been revoked'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x13" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x13" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'TGT has been revoked'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x14" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x14" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Client not yet valid - try again later'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x15" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x15" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Server not yet valid - try again later'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x16" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x16" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Password has expired'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x17" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x17" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Pre-authentication information was invalid'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x18" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x18" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Additional pre-authentication required'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x19" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x19" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Integrity check on decrypted field failed'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x1F" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x1F" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Ticket expired'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x20" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x20" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Ticket not yet valid'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x21" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x21" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Request is a replay'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x22" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x22" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'The ticket is not for us'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x23" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x23" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Ticket and authenticator is not match'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x24" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x24" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Clock skew too great'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x25" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x25" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Incorrect net address'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x26" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x26" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Protocol version mismatch'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x27" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x27" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Invalid msg type'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x28" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x28" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Message stream modified'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x29" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x29" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Message out of order'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x2A" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x2A" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Specified version of key is not available'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x2C" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x2C" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Service key not available'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x2D" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x2D" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Mutual authentication failed'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDataStatus=="0x2E" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDataStatus=="0x2E" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Incorrect message direction'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDatalog.winlogEventDataStatus=="0x2F" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDatalog.winlogEventDataStatus=="0x2F" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Alternative authentication method required'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDatalog.winlogEventDataStatus=="0x30" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDatalog.winlogEventDataStatus=="0x30" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Incorrect sequence number in message'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDatalog.winlogEventDataStatus=="0x31" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDatalog.winlogEventDataStatus=="0x31" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Inappropriate type of checksum in message'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDatalog.winlogEventDataStatus=="0x32" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDatalog.winlogEventDataStatus=="0x32" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Generic error (description in e-text)'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDatalog.winlogEventDataStatus=="0x3C" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDatalog.winlogEventDataStatus=="0x3C" && log.eventCode=="4771"
 
       - add:
           function: 'string'
           params:
             key: log.statusDescription
             value: 'Field is too long for this implementation'
-          where: exists(log.winlogEventDataStatus) && log.winlogEventDatalog.winlogEventDataStatus=="0x3D" && log.eventCode=="4771"
+          where: safe("log.winlogEventDataStatus", "") && log.winlogEventDatalog.winlogEventDataStatus=="0x3D" && log.eventCode=="4771"
 
       - delete:
           fields:

@@ -1,4 +1,4 @@
-# Apache filter, version 3.0.1
+# Apache filter, version 3.0.2
 # Compatible with Common Apache Log and Combined Apache Log. See: https://httpd.apache.org/docs/2.2/logs.html
 #Filter Input requirements -> fileset: datatype
 #                             access: plain text
@@ -155,37 +155,37 @@ pipeline:
           params:
             key: action
             value: 'get'
-          where: exists(log.method) && log.method == "GET"
+          where: safe("log.method", "") && log.method == "GET"
       - add:
           function: 'string'
           params:
             key: action
             value: 'post'
-          where: exists(log.method) && log.method == "POST"
+          where: safe("log.method", "") && log.method == "POST"
       - add:
           function: 'string'
           params:
             key: action
             value: 'put'
-          where: exists(log.method) && log.method == "PUT"
+          where: safe("log.method", "") && log.method == "PUT"
       - add:
           function: 'string'
           params:
             key: action
             value: 'delete'
-          where: exists(log.method) && log.method == "DELETE"
+          where: safe("log.method", "") && log.method == "DELETE"
       - add:
           function: 'string'
           params:
             key: action
             value: 'patch'
-          where: exists(log.method) && log.method == "PATCH"
+          where: safe("log.method", "") && log.method == "PATCH"
       - add:
           function: 'string'
           params:
             key: action
             value: 'request'
-          where: exists(log.method) && log.method == "REQUEST"
+          where: safe("log.method", "") && log.method == "REQUEST"
       # Removing log.method if action was set
       - delete:
           fields:
@@ -215,7 +215,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: exists(log.statusCode) && (log.statusCode >= 200 && log.statusCode <= 299 || (exists(origin.bytesReceived) && log.statusCode >= 300 && log.statusCode <= 399 && origin.bytesReceived > 0))
+          where: safe("log.statusCode", 0) && (log.statusCode >= 200 && log.statusCode <= 299 || (safe("origin.bytesReceived", 0) && log.statusCode >= 300 && log.statusCode <= 399 && origin.bytesReceived > 0))
       # Removing unused fields
       - delete:
           fields:

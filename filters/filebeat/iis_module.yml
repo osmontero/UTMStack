@@ -1,4 +1,4 @@
-# Internet Information Services Filter, version 3.0.1
+# Internet Information Services Filter, version 3.0.2
 # Supports IIS 7 and later versions. See: https://learn.microsoft.com/es-es/iis/configuration/system.applicationhost/log/
 # and https://learn.microsoft.com/es-es/iis/configuration/system.applicationhost/sites/site/logfile/
 # 1. Parsing the json from beats
@@ -128,35 +128,35 @@ pipeline:
           params:
             key: action
             value: 'get'
-          where: exists(log.method) && log.method == "GET"
+          where: safe("log.method", "") && log.method == "GET"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'post'
-          where: exists(log.method) && log.method == "POST"
+          where: safe("log.method", "") && log.method == "POST"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'put'
-          where: exists(log.method) && log.method == "PUT"
+          where: safe("log.method", "") && log.method == "PUT"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'delete'
-          where: exists(log.method) && log.method == "DELETE"
+          where: safe("log.method", "") && log.method == "DELETE"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'request'
-          where: exists(log.method) && log.method == "REQUEST"
+          where: safe("log.method", "") && log.method == "REQUEST"
 
       # Removing log.method if action was set
       - delete:

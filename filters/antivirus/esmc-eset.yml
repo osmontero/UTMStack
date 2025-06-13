@@ -1,4 +1,4 @@
-# ESET filter version 3.0.1
+# ESET filter version 3.0.2
 # Based in docs
 # 
 # Documentations
@@ -90,21 +90,21 @@ pipeline:
           params:
             key: severity
             value: 'low'
-          where: exists(log.severity) && ( log.severity=="INFO" || log.severity=="Info" )
+          where: safe("log.severity", "") && ( log.severity=="INFO" || log.severity=="Info" )
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where: exists(log.severity) && (log.severity=="WARNING" || log.severity=="Warning")
+          where: safe("log.severity", "") && (log.severity=="WARNING" || log.severity=="Warning")
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'high'
-          where: exists(log.severity) && (log.severity=="ERROR" || log.severity=="Error")
+          where: safe("log.severity", "") && (log.severity=="ERROR" || log.severity=="Error")
 
       # Adding geolocation to origin.ip
       - dynamic:

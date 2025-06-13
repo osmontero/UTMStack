@@ -1,4 +1,4 @@
-# Deceptive Bytes filter, version 3.0.1
+# Deceptive Bytes filter, version 3.0.2
 # Based on previous version of the same filter
 
 pipeline:
@@ -467,21 +467,21 @@ pipeline:
           params:
             key: severity
             value: 'high'
-          where: exists(log.severityLabelCharacter) && (log.severityLabelCharacter == "C" || log.severityLabelCharacter == "A" || log.severityLabelCharacter == "E")
+          where: safe("log.severityLabelCharacter", "") && (log.severityLabelCharacter == "C" || log.severityLabelCharacter == "A" || log.severityLabelCharacter == "E")
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where: exists(log.severityLabelCharacter) && log.severityLabelCharacter == "W"
+          where: safe("log.severityLabelCharacter", "") && log.severityLabelCharacter == "W"
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'low'
-          where: exists(log.severityLabelCharacter) && (log.severityLabelCharacter == "D" || log.severityLabelCharacter == "V" || log.severityLabelCharacter == "N" || log.severityLabelCharacter == "I" || log.severityLabelCharacter == "T")
+          where: safe("log.severityLabelCharacter", "") && (log.severityLabelCharacter == "D" || log.severityLabelCharacter == "V" || log.severityLabelCharacter == "N" || log.severityLabelCharacter == "I" || log.severityLabelCharacter == "T")
 
       # Removing unused fields
       - delete:

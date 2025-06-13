@@ -1,4 +1,4 @@
-# Redis module filter, version 3.0.1
+# Redis module filter, version 3.0.2
 # Filter Input requirements -> fileset: datatype
 #                              log: plain text
 # 
@@ -148,21 +148,21 @@ pipeline:
           params:
             key: severity
             value: 'low'
-          where: exists(log.severity) && (log.severity=="debug" || log.severity=="verbose")
+          where: safe("log.severity", "") && (log.severity=="debug" || log.severity=="verbose")
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where: exists(log.severity) && (log.severity=="notice" || log.severity=="warning")
+          where: safe("log.severity", "") && (log.severity=="notice" || log.severity=="warning")
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'high'
-          where: exists(log.severity) && log.severity=="error"
+          where: safe("log.severity", "") && log.severity=="error"
 
       # Parse beats field
       - rename:

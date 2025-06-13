@@ -1,4 +1,4 @@
-# CISCO Meraki filter, version 3.0.1
+# CISCO Meraki filter, version 3.0.2
 # Based on https://documentation.meraki.com/General_Administration/Monitoring_and_Reporting/Syslog_Event_Types_and_Log_Samples
 # https://documentation.cysiv.com/articles/#!data-source-onboarding-device-configuration-reference/cisco-meraki-reference-information-and-cim-mapping
 #
@@ -107,7 +107,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: exists(log.connectivity) && log.connectivity == "true"
+          where: safe("log.connectivity", "") && log.connectivity == "true"
       # ........................................
       # event uplink connectivity change
       - rename:
@@ -173,7 +173,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: exists(log.connectionState) && (log.connectionState == "up" || log.connectionState == "Up")
+          where: safe("log.connectionState", "") && (log.connectionState == "up" || log.connectionState == "Up")
       # ........................................
       # Event: event, dhcp no offers
       - grok:
