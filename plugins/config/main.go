@@ -15,6 +15,7 @@ import (
 
 	_ "github.com/lib/pq"
 	"gopkg.in/yaml.v3"
+	k8syaml "sigs.k8s.io/yaml"
 )
 
 type Filter struct {
@@ -29,22 +30,22 @@ type Asset plugins.Asset
 
 type Rule struct {
 	Id            int64           `yaml:"id"`
-	DataTypes     []string        `yaml:"dataTypes,omitempty"`
+	DataTypes     []string        `yaml:"dataTypes"`
 	Name          string          `yaml:"name"`
-	Impact        *plugins.Impact `yaml:"impact,omitempty"`
+	Impact        *plugins.Impact `yaml:"impact"`
 	Category      string          `yaml:"category"`
 	Technique     string          `yaml:"technique"`
 	Adversary     string          `yaml:"adversary"`
-	References    []string        `yaml:"references,omitempty"`
+	References    []string        `yaml:"references"`
 	Description   string          `yaml:"description"`
-	Where         string          `yaml:"where,omitempty"`
+	Where         string          `yaml:"where"`
 	AfterEvents   []SearchRequest `yaml:"afterEvents,omitempty"`
 	DeduplicateBy []string        `yaml:"deduplicateBy,omitempty"`
 }
 
 type SearchRequest struct {
 	IndexPattern string          `yaml:"indexPattern"`
-	With         []Expression    `yaml:"with,omitempty"`
+	With         []Expression    `yaml:"with"`
 	Or           []SearchRequest `yaml:"or,omitempty"`
 	Within       string          `yaml:"within"`
 	Count        int64           `yaml:"count"`
@@ -52,7 +53,7 @@ type SearchRequest struct {
 
 type SearchRequestBackend struct {
 	IndexPattern string                 `yaml:"indexPattern"`
-	With         []ExpressionBackend    `yaml:"with,omitempty"`
+	With         []ExpressionBackend    `yaml:"with"`
 	Or           []SearchRequestBackend `yaml:"or,omitempty"`
 	Within       string                 `yaml:"within"`
 	Count        int64                  `yaml:"count"`
@@ -60,13 +61,13 @@ type SearchRequestBackend struct {
 
 type Expression struct {
 	Field    string      `yaml:"field"`
-	Operator string      `yaml:"operator"` // possible values: "eq", "neq"
+	Operator string      `yaml:"operator"`
 	Value    interface{} `yaml:"value"`
 }
 
 type ExpressionBackend struct {
 	Field    string      `yaml:"field"`
-	Operator Operator    `yaml:"operator"` // possible values: "eq", "neq"
+	Operator Operator    `yaml:"operator"`
 	Value    interface{} `yaml:"value"`
 }
 
@@ -697,7 +698,7 @@ func writeTenant(tenant Tenant) error {
 		Tenants: []*plugins.Tenant{&sdkTenant},
 	}
 
-	bTenants, err := yaml.Marshal(tenants)
+	bTenants, err := k8syaml.Marshal(tenants)
 	if err != nil {
 		return fmt.Errorf("failed to marshal tenant: %v", err)
 	}
@@ -760,7 +761,7 @@ func writePatterns(patterns map[string]string) error {
 		Patterns: patterns,
 	}
 
-	bPatterns, err := yaml.Marshal(config)
+	bPatterns, err := k8syaml.Marshal(config)
 	if err != nil {
 		return fmt.Errorf("failed to marshal patterns: %v", err)
 	}
