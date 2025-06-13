@@ -108,7 +108,7 @@ A rule is defined as a YAML object with the following fields:
   references: # External references
     - https://quantfall.com
   description: This is a testing rule.  # Description of the rule
-  where: has(origin.geolocation.country) && origin.geolocation.country == "United States"  # Expression to evaluate
+  where: safe(origin.geolocation.country, "") == "United States"  # Expression to evaluate
   afterEvents: # Additional events to search for
     - indexPattern: v11-log-*     # Index pattern to search in
       with: # Conditions for the search
@@ -141,11 +141,16 @@ A rule is defined as a YAML object with the following fields:
     - **with**: Conditions for the search.
         - **field**: The field to match.
         - **operator**: The operator to use for matching. Possible values:
-            - **eq**: Equality operator. Matches events where the field equals the value.
-            - **neq**: Not equal operator. Matches events where the field does not equal the value.
+            - **filter_match**: Equality operator. Matches events where the field equals the value (Using full-text
+              search).
+            - **filter_term**: Equality operator. Matches events where the field equals the value (Using term search).
+            - **must_not_match**: Not equal operator. Matches events where the field does not equal the value (Using
+              full-text search).
+            - **must_not_term**: Not equal operator. Matches events where the field does not equal the value (Using term
+              search).
         - **value**: The value to match (can use variables from the event using the `{{field.path}}` syntax).
     - **within**: The time window for the search.
-    - **count**: The number of events to match.
+  - **count**: The number of events to match. (Max 50).
 - **deduplicateBy**: Fields used for deduplication of alerts.
 
 ### Rule Evaluation
@@ -263,7 +268,7 @@ Removes specified fields from the log structure.
       - log.method
       - log.service
       - log.metadata
-    where: has(action)
+    where: exists(action)
 ```
 
 #### 5. **grok** - Pattern-based Parsing
@@ -382,7 +387,7 @@ Removes specified characters from the beginning or end of field values.
 
 **Required Fields:**
 
-- `function`: Trim operation (`prefix`, `suffix`)
+- `function`: Trim operation (`prefix`, `suffix`, `substring`, `regex`, `space`)
 - `substring`: Character(s) to remove
 - `fields`: Array of fields to trim
 
@@ -428,7 +433,7 @@ Adds new fields with specified values, often used for field enrichment and norma
     params:
       key: actionResult
       value: 'accepted'
-    where: has(statusCode) && (statusCode >= 200 && statusCode <= 299)
+    where: safe("statusCode", 0.0) >= double(200) && safe("statusCode", 0.0) <= double(200))
 
 - add:
     function: 'string'
@@ -436,7 +441,7 @@ Adds new fields with specified values, often used for field enrichment and norma
       key: action
       value: 'get'
     where:
-      variables: has(log.method) && log.method == "GET"
+      variables: safe("log.method", "") == "GET"
 ```
 
 #### 9. **reformat** - Field Reformatting
@@ -480,7 +485,7 @@ Expands complex nested fields or structured data into individual fields.
 - expand:
     source: log.jsonPayload.structuredRdata
     to: log.jsonPayloadStructuredRdata
-    where: has(log.jsonPayload.structuredRdata)
+    where: exists(log.jsonPayload.structuredRdata)
 ```
 
 #### 11. **csv** - CSV Data Parsing
@@ -537,7 +542,7 @@ Calls external plugins for specialized processing like geolocation enrichment.
     params:
       source: origin.ip
       destination: origin.geolocation
-    where: has(origin.ip)
+    where: exists(origin.ip)
 ```
 
 ### Conditional Logic in Steps
@@ -638,7 +643,7 @@ pipeline:
           params:
             source: origin.ip
             destination: origin.geolocation
-          where: has(origin.ip)
+          where: exists(origin.ip)
 
       # 8. Normalize HTTP methods to standardized actions
       - add:
@@ -646,7 +651,7 @@ pipeline:
           params:
             key: action
             value: 'get'
-          where: has(log.method) && log.method == "GET"
+          where: safe(log.method, "") == "GET"
 
       # 9. Add result classification based on status codes
       - add:
@@ -654,7 +659,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: has(log.statusCode) && (log.statusCode >= 200 && log.statusCode <= 299)
+          where: safe(log.statusCode, 0.0) >= double(200) && safe(log.statusCode, 0.0) <= double(299))
 
       # 10. Convert numeric fields
       - cast:
@@ -677,7 +682,7 @@ pipeline:
             - log.method
             - log.service
             - log.agent
-          where: has(action)
+          where: exists(action)
 ```
 
 This example demonstrates:
