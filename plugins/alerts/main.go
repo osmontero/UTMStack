@@ -10,6 +10,7 @@ import (
 	"github.com/tidwall/gjson"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc"
@@ -190,6 +191,8 @@ func getPreviousAlertId(alert *plugins.Alert) *string {
 	})
 
 	for _, d := range alert.DeduplicateBy {
+		d = strings.TrimSuffix(d, ".keyword")
+
 		value := gjson.Get(*alertString, d)
 		if value.Type == gjson.Null {
 			continue
