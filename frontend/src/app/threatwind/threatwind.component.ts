@@ -8,7 +8,7 @@ import { Component, OnInit } from '@angular/core';
 export class ThreatwindComponent implements OnInit {
 
   height = window.innerHeight + 250;
-  iframeSrc = 'https://galaxy.threatwinds.com/';
+  iframeSrc = 'https://galaxy.threatwinds.com?theme=light';
 
   constructor() { }
 
