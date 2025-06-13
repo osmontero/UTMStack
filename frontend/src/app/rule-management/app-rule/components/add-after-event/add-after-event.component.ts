@@ -24,13 +24,18 @@ export class AddAfterEventComponent implements OnInit {
   @Output() remove = new EventEmitter<void>();
   patterns$: Observable<UtmIndexPattern[]>;
   fields$: Observable<ElasticSearchFieldInfoType[]>;
-  operators = [
-    { label: 'filter match', value: 'filter_match' },
-    { label: 'filter term', value: 'filter_term' },
-    { label: 'must not match', value: 'must_not_match' },
-    { label: 'must not term', value: 'must_not_term' }
-  ];
+  allOperators = {
+    keyword: [
+      { label: 'filter term', value: 'filter_term' },
+      { label: 'must not term', value: 'must_not_term' }
+    ],
+    text: [
+      { label: 'filter match', value: 'filter_match' },
+      { label: 'must not match', value: 'must_not_match' }
+    ]
+  };
 
+  operators = [];
 
   constructor(private fb: FormBuilder,
               private ruleService: RuleService,
@@ -40,6 +45,10 @@ export class AddAfterEventComponent implements OnInit {
               private fieldDataService: FieldDataService) { }
 
   ngOnInit() {
+
+    if (this.form.get('indexPattern').value) {
+      this.changeIndexPattern(this.form.get('indexPattern').value);
+    }
 
     this.patterns$ = this.indexPatternService.query(
       {
@@ -100,4 +109,15 @@ export class AddAfterEventComponent implements OnInit {
       })
     );
   }
+
+  onFieldChange($event: any, index: number) {
+    const fieldName = $event.name || '';
+    const hasKeyword = fieldName.includes('.keyword');
+
+    this.operators = hasKeyword ? this.allOperators.keyword : this.allOperators.text;
+
+    const control = this.with.at(index);
+    control.get('operator').reset();
+  }
+
 }
