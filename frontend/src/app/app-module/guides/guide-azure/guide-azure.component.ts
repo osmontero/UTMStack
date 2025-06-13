@@ -1,6 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {UtmModulesEnum} from '../../shared/enum/utm-module.enum';
-import {AZURE_STEPS} from './azure.steps';
 
 @Component({
   selector: 'app-guide-azure',
@@ -12,7 +11,6 @@ export class GuideAzureComponent implements OnInit {
   module = UtmModulesEnum;
   @Input() serverId: number;
   configValidity: boolean;
-  steps = AZURE_STEPS;
 
   constructor() {
   }
@@ -23,5 +21,6 @@ export class GuideAzureComponent implements OnInit {
   configValidChange($event: boolean) {
     this.configValidity = !$event;
   }
+
 
 }
