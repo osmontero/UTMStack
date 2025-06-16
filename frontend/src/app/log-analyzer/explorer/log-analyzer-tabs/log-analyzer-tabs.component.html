@@ -35,9 +35,7 @@
     <h6 (click)="addNewTab()"
         class="text-blue-800 mt-3 cursor-pointer">Add new tab to explore your data</h6>
   </div>
-  <div *ngIf="tabs.length > 0">
-    <div *ngFor="let tab of tabs; let tabIndex = index;  trackBy: trackByFn" class="tab-container">
-      <app-tab-content [hidden]="tab !== tabSelected" [tab]="tab"></app-tab-content>
-    </div>
-  </div>
+  <ng-container *ngIf="tabs.length > 0">
+    <app-tab-content *ngFor="let tab of tabs; let tabIndex = index;  trackBy: trackByFn" [hidden]="tab !== tabSelected" [tab]="tab"></app-tab-content>
+  </ng-container>
 </ng-container>

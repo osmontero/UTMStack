@@ -1,6 +1,6 @@
 <div class="app-container">
   <app-header *appHasAnyAuthority="roles" [hidden]="isInExportRoute()"></app-header>
-  <div [class]="isInExportRoute() ? 'h-100 wrapper wrapper-no-top' : 'h-100 wrapper'" [ngClass]="menu ? 'menu-open': 'menu-close'">
+  <div [class]="isInExportRoute() ? ' wrapper wrapper-no-top' : 'wrapper'" [ngClass]="menu ? 'menu-open': 'menu-close'">
     <div class="main-content">
       <router-outlet></router-outlet>
     </div>

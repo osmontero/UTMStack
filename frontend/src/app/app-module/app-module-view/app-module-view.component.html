@@ -1,4 +1,4 @@
-<div class="container-fluid pr-2 pl-2 pt-2">
+<div class="container-fluid pr-2 pl-2 pt-2 d-flex flex-column">
   <div class="d-flex justify-content-between align-items-center mb-2 pl-3 pr-3">
     <h5 class="card-title label-header mb-0 text-uppercase label-header">
       Application modules
@@ -23,7 +23,7 @@
                             (searchFor)="onSearch($event)"></app-utm-search-input>
     </div>
   </div>
-  <div class="d-flex justify-content-center align-items-center flex-wrap mt-2">
+  <div class="d-flex justify-content-center align-items-center flex-wrap mt-2 overflow-auto pb-3">
       <app-app-module-card *ngFor="let mod of moduleResolver.modules$ | async; trackBy: trackByFn" [module]="mod"
                            (showModuleIntegration)="showModule($event)"
                            class="module-card m-1">

@@ -618,6 +618,7 @@ app-root {
 
 app-header {
   position: sticky;
+  height: 95px;
   top: 0;
   z-index: 1001;
 }
@@ -1365,6 +1366,13 @@ app-logstash-pipelines{
 
 .rounded-4 {
   border-radius: 0.75rem !important;
+}
+
+app-utm-items-per-page {
+  .ng-select.ng-select-single .ng-select-container {
+    min-height: 30px !important;
+    height: 30px !important;
+  }
 }
 
 
