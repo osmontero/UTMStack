@@ -48,7 +48,8 @@
                      container="body"
                      placement="left"></i>
 
-                  <i (click)="editRule(rule)" class="icon-pencil3 cursor-pointer ml-2"
+                  <i *ngIf="!rule.systemOwner"
+                    (click)="editRule(rule)" class="icon-pencil3 cursor-pointer ml-2"
                      ngbTooltip="Edit"
                      container="body"
                      placement="left"></i>

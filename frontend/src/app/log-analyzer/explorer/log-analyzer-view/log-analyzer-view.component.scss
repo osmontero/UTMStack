@@ -1,3 +1,12 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
+
 .log-fields {
   min-width: 300px;
 }
@@ -40,5 +49,9 @@ app-log-analyzer-field {
 
 .gap-2 {
   gap: .5rem;
+}
+
+.container-elements {
+  min-height: 0;
 }
 

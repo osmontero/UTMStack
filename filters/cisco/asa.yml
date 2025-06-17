@@ -1,4 +1,4 @@
-# CISCO ASA filter, version 3.0.1
+# CISCO ASA filter, version 3.0.2
 # Based on examples provided and https://www.cisco.com/c/en/us/td/docs/security/asa/syslog/b_syslog.html
 # Filter Input requirements -> Syslog
 #
@@ -314,14 +314,14 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: exists(actionResult) (log.messageId==106102 || log.messageId==106103) && (actionResult == "Permitted" || actionResult == "permitted")
+          where: safe("actionResult", "") && (log.messageId==106102 || log.messageId==106103) && (actionResult == "Permitted" || actionResult == "permitted")
       # Adding action result
       - add:
           function: 'string'
           params:
             key: actionResult
             value: 'denied'
-          where: exists(actionResult) && (log.messageId==106102 || log.messageId==106103) && (actionResult != "Permitted" && actionResult != "permitted")
+          where: safe("actionResult", "") && (log.messageId==106102 || log.messageId==106103) && (actionResult != "Permitted" && actionResult != "permitted")
       #......................................................................#
       # ASA-4-109017
       - grok:

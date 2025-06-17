@@ -1,4 +1,4 @@
-# Sophos_XG filter, version 3.0.1
+# Sophos_XG filter, version 3.0.2
 # Supports SF 20.0 version log types
 # See manual: https://docs.sophos.com/nsg/sophos-firewall/20.0/pdf/sf-syslog-guide-20.0.pdf
 # and documentation https://docs.sophos.com/nsg/sophos-firewall/20.0/Help/en-us/webhelp/onlinehelp/AdministratorHelp/Logs/TroubleshootingLogs/LogFileDetails/index.html#https-ftp-waf
@@ -701,7 +701,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: exists(statusCode) && (statusCode >= 200 && statusCode <= 299 || (exists(origin.bytesReceived) == true && statusCode >= 300 && statusCode <= 399 && origin.bytesReceived > 0))
+          where: safe("statusCode", "") && (statusCode >= 200 && statusCode <= 299 || (safe("origin.bytesReceived", "") == true && statusCode >= 300 && statusCode <= 399 && origin.bytesReceived > 0))
 
       # Removing unused fields
       - delete:

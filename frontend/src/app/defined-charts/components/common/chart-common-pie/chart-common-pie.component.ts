@@ -76,11 +76,11 @@ export class ChartCommonPieComponent implements OnInit, OnDestroy {
      return this.overviewAlertDashboardService.getDataPie(this.endpoint, this.queryParams)
       .pipe(
         map(response => response.body),
-        tap(data => {
+        tap(response => {
           this.loadingPieOption = false;
-          if (data.length > 0) {
+          if (response.data.length > 0) {
             this.noData = false;
-            this.buildPieChart(data);
+            this.buildPieChart(response);
           } else {
             this.noData = true;
           }

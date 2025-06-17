@@ -1,4 +1,4 @@
-# Elasticsearch filter, version 3.0.1
+# Elasticsearch filter, version 3.0.2
 # Fields based on https://www.elastic.co/guide/en/elasticsearch/reference/8.17/audit-event-types.html, 
 # https://www.elastic.co/guide/en/beats/filebeat/7.13/filebeat-module-elasticsearch.html
 # and filebeat fields.yml version 7.13.4 oss
@@ -228,25 +228,25 @@ pipeline:
           from:
             - log.audit_compliance_operation
           to: log.auditComplianceOperation
-          where: exists(log.audit_compliance_operation)
+          where: safe("log.audit_compliance_operation)
       - rename:
           from:
             - log.node.id
             - log.audit_node_id
           to: log.nodeId
-          where: exists(log.node.id) || exists(log.audit_node_id)
+          where: safe("log.node.id", "") || safe("log.audit_node_id", "")
       - rename:
           from:
             - log.node.name
             - log.audit_node_name
           to: log.nodeName
-          where: exists(log.node.name) || exists(log.node.name)
+          where: safe("log.node.name", "") || safe("log.node.name", "")
       - rename:
           from:
             - log.cluster.name
             - log.audit_cluster_name
           to: log.clusterName
-          where: exists(log.cluster.name) || exists(log.audit_cluster_name)
+          where: safe("log.cluster.name", "") || safe("log.audit_cluster_name", "")
       - rename:
           from:
             - log.cluster.uuid
@@ -420,4 +420,4 @@ pipeline:
 
       # Droping unwanted logs
       - drop:
-          where: exists(log.eventDataset) && exists(log.component) && ( (log.eventDataset != "elasticsearch.server" && log.eventDataset != "elasticsearch.audit") || (log.eventDataset == "elasticsearch.server" && (log.component.matches("(A|a)udit")==false && log.component.matches("(S|s)(S|s)(L|l)")==false && log.component.matches("(S|s)ecurity")==false ) ) )
+          where: safe("log.eventDataset", "") && safe("log.component", "") && ( (log.eventDataset != "elasticsearch.server" && log.eventDataset != "elasticsearch.audit") || (log.eventDataset == "elasticsearch.server" && (log.component.matches("(A|a)udit")==false && log.component.matches("(S|s)(S|s)(L|l)")==false && log.component.matches("(S|s)ecurity")==false ) ) )

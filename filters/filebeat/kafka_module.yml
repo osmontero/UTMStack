@@ -1,4 +1,4 @@
-# Kafka module filter, version 3.0.1
+# Kafka module filter, version 3.0.2
 # Filter Input requirements -> fileset: datatype
 #                              log: plain text
 # 
@@ -142,21 +142,21 @@ pipeline:
           params:
             key: severity
             value: 'low'
-          where: exists(log.severity) && (log.severity=="INFO" || log.severity=="TRACE" || log.severity=="DEBUG")
+          where: safe("log.severity", "") && (log.severity=="INFO" || log.severity=="TRACE" || log.severity=="DEBUG")
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where: exists(log.severity) && (log.severity=="WARNING" || log.severity=="WARN")
+          where: safe("log.severity", "") && (log.severity=="WARNING" || log.severity=="WARN")
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'high'
-          where: exists(log.severity) && log.severity=="ERROR"
+          where: safe("log.severity", "") && log.severity=="ERROR"
       
       # Removing unused fields
       - delete:

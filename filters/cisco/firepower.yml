@@ -1,4 +1,4 @@
-# CISCO Firepower filter, version 3.0.1
+# CISCO Firepower filter, version 3.0.2
 # Based on examples provided and https://www.cisco.com/c/en/us/td/docs/security/firepower/Syslogs/b_fptd_syslog_guide.html
 # Filter Input requirements -> Syslog
 #
@@ -312,14 +312,14 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: exists(actionResult) && (log.messageId==106102 || log.messageId==106103) && (actionResult == "Permitted" || actionResult == "permitted")
+          where: safe("actionResult", "") && (log.messageId==106102 || log.messageId==106103) && (actionResult == "Permitted" || actionResult == "permitted")
       # Adding action result
       - add:
           function: 'string'
           params:
             key: actionResult
             value: 'denied'
-          where: exists(actionResult) && (log.messageId==106102 || log.messageId==106103) && (actionResult != "Permitted" && actionResult != "permitted")
+          where: safe("actionResult", "") && (log.messageId==106102 || log.messageId==106103) && (actionResult != "Permitted" && actionResult != "permitted")
       #......................................................................#
       # FTD-6-109101
       - grok:

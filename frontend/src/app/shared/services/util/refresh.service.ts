@@ -28,7 +28,6 @@ export class RefreshService {
   startInterval() {
     this.subscription = this.interval$
       .subscribe(() => {
-        console.log('emitting refresh');
         this.sendRefresh();
       });
   }

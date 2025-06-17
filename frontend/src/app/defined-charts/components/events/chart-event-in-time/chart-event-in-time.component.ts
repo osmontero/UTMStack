@@ -101,9 +101,9 @@ export class ChartEventInTimeComponent implements OnInit, OnDestroy {
         tap(data => {
           this.loadingPieOption = false;
           if (data.categories.length > 0) {
-            this.noData = false;
             buildMultilineObject(data).then(option => {
               this.multilineOption = option;
+              this.noData = false;
             });
           } else {
             this.noData = true;
