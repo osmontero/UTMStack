@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
 	"github.com/threatwinds/go-sdk/utils"
@@ -30,13 +31,17 @@ func startHTTPServer(middlewares *Middlewares, cert string, key string) {
 	router.GET("/v1/ping", Ping)
 	router.GET("/v1/health", func(c *gin.Context) { c.Status(http.StatusOK) })
 
+	var loadedCert tls.Certificate
+	var err error
+
 	for retry := 0; retry < maxRetries; retry++ {
-		err := router.RunTLS(":8080", cert, key)
+		loadedCert, err = tls.LoadX509KeyPair(cert, key)
+
 		if err == nil {
 			break
 		}
 
-		_ = catcher.Error("failed to start http server, retrying", err, map[string]any{
+		_ = catcher.Error("failed to read the certificate files, retrying", err, map[string]any{
 			"retry":      retry + 1,
 			"maxRetries": maxRetries,
 		})
@@ -47,10 +52,27 @@ func startHTTPServer(middlewares *Middlewares, cert string, key string) {
 			retryDelay *= 2
 		} else {
 			// If all retries failed, log the error and return
-			_ = catcher.Error("all retries failed when starting http server", err, nil)
+			_ = catcher.Error("could not read the certificate files, all retries failed", err, nil)
 			return
 		}
 	}
+
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{loadedCert},
+		MinVersion:   tls.VersionTLS13,
+	}
+
+	server := &http.Server{
+		Addr:      ":8080",
+		Handler:   router,
+		TLSConfig: tlsConfig,
+	}
+
+	err = server.ListenAndServeTLS("", "")
+	if err != nil {
+		_ = catcher.Error("could not start http server", err, nil)
+	}
+
 }
 
 func Log(c *gin.Context) {
@@ -138,16 +160,17 @@ func startGRPCServer(middlewares *Middlewares, cert string, key string) error {
 	// Retry logic for creating credentials
 	maxRetries := 3
 	retryDelay := 2 * time.Second
-	var transportCredentials credentials.TransportCredentials
+	var loadedCert tls.Certificate
 	var err error
 
 	for retry := 0; retry < maxRetries; retry++ {
-		transportCredentials, err = credentials.NewServerTLSFromFile(cert, key)
+
+		loadedCert, err = tls.LoadX509KeyPair(cert, key)
 		if err == nil {
 			break
 		}
 
-		_ = catcher.Error("failed to create credentials, retrying", err, map[string]any{
+		_ = catcher.Error("failed to read the certificate files, retrying", err, map[string]any{
 			"retry":      retry + 1,
 			"maxRetries": maxRetries,
 		})
@@ -158,9 +181,14 @@ func startGRPCServer(middlewares *Middlewares, cert string, key string) error {
 			retryDelay *= 2
 		} else {
 			// If all retries failed, log the error and return
-			return catcher.Error("all retries failed when creating credentials", err, nil)
+			return catcher.Error("could not read the certificate files, all retries failed", err, nil)
 		}
 	}
+
+	transportCredentials := credentials.NewTLS(&tls.Config{
+		Certificates: []tls.Certificate{loadedCert},
+		MinVersion:   tls.VersionTLS13,
+	})
 
 	server := grpc.NewServer(
 		grpc.Creds(transportCredentials),
