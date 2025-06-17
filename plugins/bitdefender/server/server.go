@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"github.com/threatwinds/go-sdk/catcher"
 	"net/http"
@@ -76,38 +77,29 @@ func StartServer(cnf *types.ConfigurationSection, cert string, key string) {
 		_, _ = w.Write([]byte("Server is up and running"))
 	}).Methods("GET")
 
+	loadedCerts, err := tls.LoadX509KeyPair(cert, key)
+	if err != nil {
+		_ = catcher.Error("failed to load certificates", err, nil)
+	}
+
 	server := &http.Server{
 		Addr:           ":" + configuration.BitdefenderGZPort,
 		Handler:        r,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
+		TLSConfig: &tls.Config{
+			Certificates: []tls.Certificate{loadedCerts},
+			MinVersion:   tls.VersionTLS13,
+		},
 	}
 
 	go func() {
-		// Recover from panics to ensure the goroutine doesn't terminate
-		defer func() {
-			if r := recover(); r != nil {
-				_ = catcher.Error("recovered from panic in HTTP server", nil, map[string]any{
-					"panic": r,
-				})
-				// Restart the server after a brief delay
-				time.Sleep(5 * time.Second)
-				go func() {
-					err := server.ListenAndServeTLS(cert, key)
-					if err != nil {
-						_ = catcher.Error("error creating server", err, map[string]any{})
-					}
-				}()
-			}
-		}()
-
-		// Retry logic for starting the server
 		maxRetries := 3
 		retryDelay := 2 * time.Second
 
 		for retry := 0; retry < maxRetries; retry++ {
-			err := server.ListenAndServeTLS(cert, key)
+			err := server.ListenAndServeTLS("", "")
 			// If the server exits without error, it was likely closed properly
 			if err == nil {
 				return

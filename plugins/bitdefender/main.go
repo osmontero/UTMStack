@@ -72,35 +72,9 @@ func main() {
 
 	server.StartServer(&moduleConfig, cert, key)
 
-	go func() {
-		// Recover from panics to ensure the goroutine doesn't terminate
-		defer func() {
-			if r := recover(); r != nil {
-				_ = catcher.Error("recovered from panic in ConfigureModules", nil, map[string]any{
-					"panic": r,
-				})
-				// Restart the goroutine after a brief delay
-				time.Sleep(5 * time.Second)
-				go configuration.ConfigureModules(&moduleConfig, mutex)
-			}
-		}()
-		configuration.ConfigureModules(&moduleConfig, mutex)
-	}()
+	go configuration.ConfigureModules(&moduleConfig, mutex)
 
-	go func() {
-		// Recover from panics to ensure the goroutine doesn't terminate
-		defer func() {
-			if r := recover(); r != nil {
-				_ = catcher.Error("recovered from panic in ProcessLogs", nil, map[string]any{
-					"panic": r,
-				})
-				// Restart the goroutine after a brief delay
-				time.Sleep(5 * time.Second)
-				go processor.ProcessLogs()
-			}
-		}()
-		processor.ProcessLogs()
-	}()
+	go processor.ProcessLogs()
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGINT)
