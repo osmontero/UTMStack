@@ -6,6 +6,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/threatwinds/go-sdk v1.0.43
 	gopkg.in/yaml.v3 v3.0.1
+	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
@@ -50,5 +51,4 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250603155806-513f23925822 // indirect
 	google.golang.org/grpc v1.73.0 // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
-	sigs.k8s.io/yaml v1.4.0 // indirect
 )

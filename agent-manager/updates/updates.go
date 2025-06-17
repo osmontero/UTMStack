@@ -1,9 +1,10 @@
 package updates
 
 import (
+	"compress/gzip"
+	"crypto/tls"
 	"net/http"
 
-	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
 	"github.com/utmstack/UTMStack/agent-manager/config"
 	"github.com/utmstack/UTMStack/agent-manager/utils"
@@ -28,8 +29,24 @@ func ServeDependencies() {
 	group := r.Group("/private", HTTPAuthInterceptor())
 	group.StaticFS("/dependencies", http.Dir(config.UpdatesDependenciesFolder))
 
+	loadedCert, err := tls.LoadX509KeyPair(config.CertPath, config.CertKeyPath)
+	if err != nil {
+		utils.ALogger.Fatal("failed to load TLS credentials: %v", err)
+	}
+
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{loadedCert},
+		MinVersion:   tls.VersionTLS13,
+	}
+
+	server := &http.Server{
+		Addr:      ":8080",
+		Handler:   r,
+		TLSConfig: tlsConfig,
+	}
+
 	utils.ALogger.Info("Starting HTTP server on port 8080")
-	if err := r.RunTLS(":8080", config.CertPath, config.CertKeyPath); err != nil {
+	if err := server.ListenAndServeTLS("", ""); err != nil {
 		utils.ALogger.ErrorF("error starting HTTP server: %v", err)
 		return
 	}

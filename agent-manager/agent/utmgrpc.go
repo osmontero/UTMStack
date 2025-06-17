@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"crypto/tls"
 	"net"
 
 	"github.com/utmstack/UTMStack/agent-manager/config"
@@ -27,15 +28,22 @@ func StartGrpcServer() {
 	listener, err := net.Listen("tcp", "0.0.0.0:50051")
 	if err != nil {
 		utils.ALogger.Fatal("failed to listen: %v", err)
+		return
 	}
 
-	creds, err := credentials.NewServerTLSFromFile(config.CertPath, config.CertKeyPath)
+	loadedCert, err := tls.LoadX509KeyPair(config.CertPath, config.CertKeyPath)
 	if err != nil {
 		utils.ALogger.Fatal("failed to load TLS credentials: %v", err)
+		return
 	}
 
+	transportCredentials := credentials.NewTLS(&tls.Config{
+		Certificates: []tls.Certificate{loadedCert},
+		MinVersion:   tls.VersionTLS13,
+	})
+
 	grpcServer := grpc.NewServer(
-		grpc.Creds(creds),
+		grpc.Creds(transportCredentials),
 		grpc.ChainUnaryInterceptor(UnaryInterceptor),
 		grpc.StreamInterceptor(StreamInterceptor))
 
