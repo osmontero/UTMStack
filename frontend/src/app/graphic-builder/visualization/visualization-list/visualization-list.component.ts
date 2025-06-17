@@ -48,6 +48,7 @@ export class VisualizationListComponent implements OnInit {
   sort: SortEvent;
   private requestParams: any;
   isDevMode = isDevMode;
+  loadingPreview = false;
 
   constructor(private modalService: NgbModal,
               private visualizationService: VisualizationService,

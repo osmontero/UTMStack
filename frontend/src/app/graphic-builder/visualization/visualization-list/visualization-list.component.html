@@ -87,7 +87,7 @@
               </td>
               <td class="">
                 <div #p="ngbPopover"
-                     (click)="p.open()"
+                     (click)="p.open(); loadingPreview = true"
                      [closeDelay]="1000"
                      [ngbPopover]="popPreview"
                      [openDelay]="1000"
@@ -101,12 +101,14 @@
                 </div>
                 <ng-template #popPreview let-visualization="vis">
                   <div class="tooltip-fixed-height w-100 h-100">
+                    <app-utm-spinner [loading]="loadingPreview" label="Loading visualization..."></app-utm-spinner>
                     <app-utm-viewer [building]="true"
                                     [chart]="vis.chartType"
                                     [chartId]="vis.id"
                                     [height]="'250px'"
                                     [visualization]="vis"
-                                    [width]="'250px'">
+                                    [width]="'250px'"
+                                    (runned)="loadingPreview = !loadingPreview">
                     </app-utm-viewer>
                   </div>
                 </ng-template>

@@ -1,4 +1,13 @@
-import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output, SimpleChanges
+} from '@angular/core';
 import { Observable, of, Subject} from 'rxjs';
 import {catchError, filter, switchMap, takeUntil, tap} from 'rxjs/operators';
 import {UtmToastService} from '../../../../../shared/alert/utm-toast.service';
@@ -29,7 +38,7 @@ require('echarts-wordcloud');
   styleUrls: ['./chart-view.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ChartViewComponent implements OnInit, OnDestroy {
+export class ChartViewComponent implements OnInit, OnChanges, OnDestroy {
 
   @Input() chartId: number;
   @Input() building: boolean;
@@ -59,6 +68,11 @@ export class ChartViewComponent implements OnInit, OnDestroy {
               private dashboardBehavior: DashboardBehavior,
               private utmChartClickActionService: UtmChartClickActionService,
               private refreshService: RefreshService) {
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    this.refreshType = `${this.chartId}`;
+    this.refreshService.sendRefresh(this.refreshType);
   }
 
   ngOnInit() {
