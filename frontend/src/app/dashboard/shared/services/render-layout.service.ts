@@ -1,8 +1,8 @@
 import {Injectable} from '@angular/core';
 import {GridsterItem} from 'angular-gridster2';
 import {UUID} from 'angular2-uuid';
-import {VisualizationType} from '../../../shared/chart/types/visualization.type';
 import {UtmDashboardType} from '../../../shared/chart/types/dashboard/utm-dashboard.type';
+import {VisualizationType} from '../../../shared/chart/types/visualization.type';
 
 
 export interface IComponent {

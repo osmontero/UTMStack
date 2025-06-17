@@ -81,7 +81,7 @@ export class DashboardRenderComponent implements OnInit, OnDestroy, AfterViewIni
       .pipe(
         tap((visualizations) => {
           this.dashboard = this.layoutService.dashboard;
-          this.filters = this.dashboard.filters ? JSON.parse(this.dashboard.filters) : [];
+          this.filters = this.dashboard && this.dashboard.filters ? JSON.parse(this.dashboard.filters) : [];
          /* if (this.dashboard.refreshTime) {
             console.log(this.dashboard.refreshTime);
             this.onRefreshTime(this.dashboard.refreshTime);
