@@ -1,8 +1,8 @@
 package updates
 
 import (
-	"compress/gzip"
 	"crypto/tls"
+	"github.com/gin-contrib/gzip"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
