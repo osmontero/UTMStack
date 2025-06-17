@@ -104,7 +104,7 @@ pipeline:
           params:
             source: target.ip
             destination: target.geolocation
-          where: exists(target.ip)
+          where: exists("target.ip")
 
       - cast:
           fields:
@@ -162,7 +162,7 @@ pipeline:
       - delete:
           fields:
             - log.method
-          where: exists(action)
+          where: exists("action")
 
       # Removing unused fields
       - delete:

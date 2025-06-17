@@ -135,20 +135,20 @@ pipeline:
             - fieldName: log.protoVersion
               pattern: '{{.greedy}}'
           source: protocol
-          where: exists(protocol)
+          where: exists("protocol")
       - trim:
           function: suffix
           substring: '/'
           fields:
             - protocol
-          where: exists(protocol)
+          where: exists("protocol")
       # Adding geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: origin.ip
             destination: origin.geolocation
-          where: exists(origin.ip)
+          where: exists("origin.ip")
       # Normalizing request method and renaming to action
       - add:
           function: 'string'
@@ -190,7 +190,7 @@ pipeline:
       - delete:
           fields:
             - log.method
-          where: exists(action)
+          where: exists("action")
       # Reformat and field conversions
       - cast:
           fields:
@@ -215,7 +215,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: safe("log.statusCode", 0) && (log.statusCode >= 200 && log.statusCode <= 299 || (safe("origin.bytesReceived", 0) && log.statusCode >= 300 && log.statusCode <= 399 && origin.bytesReceived > 0))
+          where: safe("log.statusCode", 0,0) && (log.statusCode >= double(200) && log.statusCode <= double(299) || (safe("origin.bytesReceived", 0,0) && log.statusCode >= double(300) && log.statusCode <= double(399) && origin.bytesReceived > double(0)))
       # Removing unused fields
       - delete:
           fields:

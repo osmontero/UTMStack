@@ -1,4 +1,4 @@
-# SentinelOne filter
+# SentinelOne filter, version 3.0.0
 # Supports CEF Syslog format and [something@number something="xxxx"] format
 # Based on https://docs.centrify.com/Content/IntegrationContent/SIEM/arcsight-cef/arcsight-cef-format.htm
 # and https://docs.fortinet.com/document/fortisiem/6.1.0/external-systems-configuration-guide/298395/sentinelone

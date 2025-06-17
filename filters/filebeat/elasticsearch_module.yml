@@ -83,7 +83,7 @@ pipeline:
             - log.level
             - log.component
             - log.nodeName
-          where: exists(log.msg)
+          where: exists("log.msg")
       - trim:
           function: suffix
           substring: ']'
@@ -92,182 +92,182 @@ pipeline:
             - log.level
             - log.component
             - log.nodeName
-          where: exists(log.msg)
+          where: exists("log.msg")
       - reformat:
           fields:
             - deviceTime
           function: time
           fromFormat: '2022-01-20T22:52:07,431'
           toFormat: '2024-09-23T15:57:40.338364445Z'
-          where: exists(deviceTime)
+          where: exists("deviceTime")
       # Begin parsing when message comes in json format
       - json:
           source: log.message
-          where: exists(log.msg)
+          where: exists("log.msg")
       # Performing json step over the remaining message field (Cases when log.message has a message field inside)
       - json:
           source: log.message
-          where: exists(log.message)
+          where: exists("log.message")
       # Rename audit fields from json
       - rename:
           from:
             - log.audit_format_version
           to: log.auditFormatVersion
-          where: exists(log.audit_format_version)
+          where: exists("log.audit_format_version")
       - rename:
           from:
             - log.audit_category
           to: action
-          where: exists(log.audit_category)
+          where: exists("log.audit_category")
       - rename:
           from:
             - log.audit_node_host_address
           to: log.auditNodeHostAddress
-          where: exists(log.audit_node_host_address)
+          where: exists("log.audit_node_host_address")
       - rename:
           from:
             - log.audit_node_host_name
           to: log.auditNodeHostName
-          where: exists(log.audit_node_host_name)
+          where: exists("log.audit_node_host_name")
       - rename:
           from:
             - log.audit_request_layer
           to: log.auditRequestLayer
-          where: exists(log.audit_request_layer)
+          where: exists("log.audit_request_layer")
       - rename:
           from:
             - log.audit_request_origin
           to: log.auditRequestOrigin
-          where: exists(log.audit_request_origin)
+          where: exists("log.audit_request_origin")
       - rename:
           from:
             - log.audit_request_effective_user_is_admin
           to: log.auditRequestEffectiveUserIsAdmin
-          where: exists(log.audit_request_effective_user_is_admin)
+          where: exists("log.audit_request_effective_user_is_admin")
       - rename:
           from:
             - log.audit_request_effective_user
           to: log.auditRequestEffectiveUser
-          where: exists(log.audit_request_effective_user)
+          where: exists("log.audit_request_effective_user")
       - rename:
           from:
             - log.audit_rest_request_path
           to: log.auditRestRequestPath
-          where: exists(log.audit_rest_request_path)
+          where: exists("log.audit_rest_request_path")
       - rename:
           from:
             - log.audit_rest_request_params
           to: log.auditRestRequestParams
-          where: exists(log.audit_rest_request_params)
+          where: exists("log.audit_rest_request_params")
       - rename:
           from:
             - log.audit_rest_request_headers
           to: log.auditRestRequestHeaders
-          where: exists(log.audit_rest_request_headers)
+          where: exists("log.audit_rest_request_headers")
       - rename:
           from:
             - log.audit_request_initiating_user
           to: log.auditRequestInitiatingUser
-          where: exists(log.audit_request_initiating_user)
+          where: exists("log.audit_request_initiating_user")
       - rename:
           from:
             - log.audit_request_body
           to: log.auditRequestBody
-          where: exists(log.audit_request_body)
+          where: exists("log.audit_request_body")
       - rename:
           from:
             - log.audit_rest_request_method
           to: log.auditRestRequestMethod
-          where: exists(log.audit_rest_request_method)
+          where: exists("log.audit_rest_request_method")
       - rename:
           from:
             - log.audit_request_exception_stacktrace
           to: log.auditRequestExceptionStacktrace
-          where: exists(log.audit_request_exception_stacktrace)
+          where: exists("log.audit_request_exception_stacktrace")
       - rename:
           from:
             - log.audit_trace_task_id
           to: log.auditTraceTaskId
-          where: exists(log.audit_trace_task_id)
+          where: exists("log.audit_trace_task_id")
       - rename:
           from:
             - log.audit_transport_headers
           to: log.auditTransportHeaders
-          where: exists(log.audit_transport_headers)
+          where: exists("log.audit_transport_headers")
       - rename:
           from:
             - log.audit_transport_request_type
           to: log.auditTransportRequestType
-          where: exists(log.audit_transport_request_type)
+          where: exists("log.audit_transport_request_type")
       - rename:
           from:
             - log.audit_trace_indices
           to: log.auditTraceIndices
-          where: exists(log.audit_trace_indices)
+          where: exists("log.audit_trace_indices")
       - rename:
           from:
             - log.audit_trace_resolved_indices
           to: log.auditTraceResolvedIndices
-          where: exists(log.audit_trace_resolved_indices)
+          where: exists("log.audit_trace_resolved_indices")
       - rename:
           from:
             - log.audit_trace_doc_types
           to: log.auditTraceDocTypes
-          where: exists(log.audit_trace_doc_types)
+          where: exists("log.audit_trace_doc_types")
       - rename:
           from:
             - log.audit_trace_task_parent_id
           to: log.auditTraceTaskParentId
-          where: exists(log.audit_trace_task_parent_id)
+          where: exists("log.audit_trace_task_parent_id")
       - rename:
           from:
             - log.audit_request_privilege
           to: log.auditRequestPrivilege
-          where: exists(log.audit_request_privilege)
+          where: exists("log.audit_request_privilege")
       - rename:
           from:
             - log.audit_compliance_operation
           to: log.auditComplianceOperation
-          where: safe("log.audit_compliance_operation)
+          where: safe("log.audit_compliance_operation")
       - rename:
           from:
             - log.node.id
             - log.audit_node_id
           to: log.nodeId
-          where: safe("log.node.id", "") || safe("log.audit_node_id", "")
+          where: exists("log.node.id") || exists("log.audit_node_id")
       - rename:
           from:
             - log.node.name
             - log.audit_node_name
           to: log.nodeName
-          where: safe("log.node.name", "") || safe("log.node.name", "")
+          where: exists("log.node.name") || exists("log.node.name")
       - rename:
           from:
             - log.cluster.name
             - log.audit_cluster_name
           to: log.clusterName
-          where: safe("log.cluster.name", "") || safe("log.audit_cluster_name", "")
+          where: exists("log.cluster.name") || exists("log.audit_cluster_name")
       - rename:
           from:
             - log.cluster.uuid
           to: log.clusterUuid
-          where: exists(log.cluster.uuid)
+          where: exists("log.cluster.uuid")
       # Adding fields from elastic audit json file
       - rename:
           from:
             - log.event.type
           to: log.eventType
-          where: exists(log.event.type)
+          where: exists("log.event.type")
       - rename:
           from:
             - log.event.action
           to: action
-          where: exists(log.event.action)
+          where: exists("log.event.action")
       - rename:
           from:
             - log.request.id
           to: log.requestId
-          where: exists(log.request.id)
+          where: exists("log.request.id")
       # Extracting ip and port from address
       - grok:
           patterns:
@@ -276,97 +276,97 @@ pipeline:
             - fieldName: origin.port
               pattern: '{{.greedy}}'
           source: log.origin.address
-          where: exists(log.origin.address)
+          where: exists("log.origin.address")
       # Cleaning ip address if has port
       - trim:
           function: suffix
           substring: ':'
           fields:
             - log.origin.address
-          where: exists(log.origin.address)
+          where: exists("log.origin.address")
       - rename:
           from:
             - log.origin.address
           to: origin.ip
-          where: exists(log.origin.address)
+          where: exists("log.origin.address")
       # Adding geolocation
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: origin.ip
             destination: origin.geolocation
-          where: exists(origin.ip)
+          where: exists("origin.ip")
       # Port field conversion
       - cast:
           fields:
             - origin.port
           to: int
-          where: exists(origin.port)
+          where: exists("origin.port")
       - rename:
           from:
             - log.origin.type
           to: log.originType
-          where: exists(log.origin.type)
+          where: exists("log.origin.type")
       - rename:
           from:
             - log.url.path
           to: origin.url
-          where: exists(log.url.path)
+          where: exists("log.url.path")
       - rename:
           from:
             - log.url.query
           to: log.urlQuery
-          where: exists(log.url.query)
+          where: exists("log.url.query")
       - rename:
           from:
             - log.request.method
           to: log.method
-          where: exists(log.request.method)
+          where: exists("log.request.method")
       - rename:
           from:
             - log.transport_profile
           to: log.transportProfile
-          where: exists(log.transport_profile)
+          where: exists("log.transport_profile")
       - rename:
           from:
             - log.user.name
           to: origin.user
-          where: exists(log.user.name)
+          where: exists("log.user.name")
       - rename:
           from:
             - log.user.realm
           to: log.userRealm
-          where: exists(log.user.realm)
+          where: exists("log.user.realm")
       - rename:
           from:
             - log.user.run_by.name
           to: log.userRunByName
-          where: exists(log.user.run_by.name)
+          where: exists("log.user.run_by.name")
       - rename:
           from:
             - log.authentication.type
           to: log.authenticationType
-          where: exists(log.authentication.type)
+          where: exists("log.authentication.type")
       - rename:
           from:
             - log.apikey.name
           to: log.apikeyName
-          where: exists(log.apikey.name)
+          where: exists("log.apikey.name")
       - rename:
           from:
             - log.user.roles
           to: log.userRoles
-          where: exists(log.user.roles)
+          where: exists("log.user.roles")
       - rename:
           from:
             - log.user.run_as.name
           to: log.userRunAsName
-          where: exists(log.user.run_as.name)
+          where: exists("log.user.run_as.name")
       - rename:
           from:
             - log.user.run_as.name
           to: log.userRunAsName
-          where: exists(log.user.run_as.name)
+          where: exists("log.user.run_as.name")
       # Casting new fields after json parsing
       - cast:
           to: '[]string'
@@ -381,19 +381,19 @@ pipeline:
           params:
             key: severity
             value: 'high'
-          where: log.level == true && (log.level == "CRITICAL" || log.level == "FATAL" || log.level == "ERROR")
+          where: safe("log.level", "") && (log.level == "CRITICAL" || log.level == "FATAL" || log.level == "ERROR")
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where: log.level == true && log.level == "WARN"
+          where: safe("log.level", "") && log.level == "WARN"
       - add:
           function: 'string'
           params:
             key: severity
             value: 'low'
-          where: log.level == true && (log.level == "INFO" || log.level == "DEBUG" || log.level == "TRACE")
+          where: safe("log.level", "") && (log.level == "INFO" || log.level == "DEBUG" || log.level == "TRACE")
 
       # Removing unused fields
       - delete:

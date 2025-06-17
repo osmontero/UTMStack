@@ -1508,31 +1508,31 @@ pipeline:
           params:
             source: origin.ip
             destination: origin.geolocation
-          where: exists(origin.ip)
+          where: exists("origin.ip")
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: target.ip
             destination: target.geolocation
-          where: exists(target.ip)
+          where: exists("target.ip")
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.serverIp
             destination: log.serverIp.geolocation
-          where: exists(log.serverIp)
+          where: exists("log.serverIp")
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.localIp
             destination: log.localIp.geolocation
-          where: exists(log.localIp)
+          where: exists("log.localIp")
       - dynamic:
           plugin: com.utmstack.geolocation
           params:
             source: log.ipResp
             destination: log.ipResp.geolocation
-          where: exists(log.ipResp)
+          where: exists("log.ipResp")
       #......................................................................#
       # Common field conversions
       - cast:

@@ -659,7 +659,7 @@ pipeline:
           params:
             source: target.ip
             destination: target.geolocation
-          where: exists(target.ip)
+          where: exists("target.ip")
 
       # Adding geolocation to origin ip
       - dynamic:
@@ -667,7 +667,7 @@ pipeline:
           params:
             source: origin.ip
             destination: origin.geolocation
-          where: exists(origin.ip)
+          where: exists("origin.ip")
 
       # Field conversions
       - cast:
@@ -675,6 +675,11 @@ pipeline:
             - log.statusCode
             - target.port
           to: int
+
+      - cast:
+          fields:
+            - log.statusCode
+          to: float
 
       - cast:
           fields:
@@ -701,7 +706,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: safe("statusCode", "") && (statusCode >= 200 && statusCode <= 299 || (safe("origin.bytesReceived", "") == true && statusCode >= 300 && statusCode <= 399 && origin.bytesReceived > 0))
+          where: safe("statusCode", 0,0) && (statusCode >= double(200) && statusCode <= double(299) || (safe("origin.bytesReceived", 0,0) && statusCode >= double(300) && statusCode <= double(399) && origin.bytesReceived > double(0)))
 
       # Removing unused fields
       - delete:

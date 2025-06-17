@@ -1,0 +1,7 @@
+# Macos filter, version 3.0.0
+pipeline:
+  - dataTypes:
+      - macos
+    steps:
+      - json:
+          source: raw
