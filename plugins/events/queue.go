@@ -60,8 +60,15 @@ func startQueue() {
 	numCPU := runtime.NumCPU() * 2
 	for i := 0; i < numCPU; i++ {
 		go func() {
-			ndM := utils.NewMeter("Generate NDJson")
-			bulkM := utils.NewMeter("Send Bulk")
+			ndM := utils.NewMeter("NDJson", utils.MeterOptions{
+				LogSlow:       true,
+				SlowThreshold: 20 * time.Millisecond,
+			})
+
+			bulkM := utils.NewMeter("Bulk", utils.MeterOptions{
+				LogSlow:       true,
+				SlowThreshold: 1 * time.Second,
+			})
 
 			var ndMutex = &sync.Mutex{}
 			var nd = make([]opensearch.BulkItem, 0, 10)
@@ -73,17 +80,17 @@ func startQueue() {
 						continue
 					}
 
+					ndMutex.Lock()
 					bulkM.Reset()
 
-					ndMutex.Lock()
 					err := opensearch.Bulk(context.Background(), nd)
 					if err != nil {
 						_ = catcher.Error("failed to send logs to OpenSearch", err, nil)
 					}
 
 					nd = make([]opensearch.BulkItem, 0, 10)
-					ndMutex.Unlock()
 
+					ndMutex.Unlock()
 					bulkM.Elapsed("bulk sent")
 				}
 			}()
@@ -94,21 +101,23 @@ func startQueue() {
 				ndM.Reset()
 
 				dataType := gjson.Get(l, "dataType").String()
-
 				id := gjson.Get(l, "id").String()
-
 				index := opensearch.BuildCurrentIndex("v11", "log", dataType)
 
+				ndM.Elapsed("get index and id")
+
 				ndMutex.Lock()
+				ndM.Reset()
+
 				nd = append(nd, opensearch.BulkItem{
 					Index:  index,
 					Id:     id,
 					Body:   []byte(l),
 					Action: "index",
 				})
-				ndMutex.Unlock()
 
-				ndM.Elapsed("nd json generated")
+				ndMutex.Unlock()
+				ndM.Elapsed("append to NDJson list")
 			}
 		}()
 	}
