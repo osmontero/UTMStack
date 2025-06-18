@@ -12,7 +12,6 @@ import (
 
 	"github.com/threatwinds/go-sdk/entities"
 	"github.com/threatwinds/go-sdk/plugins"
-	"github.com/threatwinds/validations"
 	"github.com/utmstack/UTMStack/agent/config"
 	"github.com/utmstack/UTMStack/agent/logservice"
 	"github.com/utmstack/UTMStack/agent/parser"
@@ -344,7 +343,7 @@ func (m *SyslogModule) handleConnectionUDP(logsChannel chan config.MSGDS) {
 		case msgDS := <-logsChannel:
 			message := msgDS.Message
 			message = strings.TrimSuffix(message, "\n")
-			message, _, err := validations.ValidateString(message, false)
+			message, _, err := entities.ValidateString(message, false)
 			if err != nil {
 				utils.Logger.ErrorF("error validating string: %v: message: %s", err, message)
 				continue

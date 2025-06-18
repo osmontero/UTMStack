@@ -114,8 +114,6 @@ github.com/threatwinds/go-sdk v1.0.43 h1:q2Pl0DvmFpeBCs5sZRcsG1oDn2zIoIB5vHwcJ/V
 github.com/threatwinds/go-sdk v1.0.43/go.mod h1:S0R7kQj2BsTgaYnX6eZ3keEFRy9yt4f9SCEKYMJzD6g=
 github.com/threatwinds/logger v1.2.2 h1:sVuT8yhbecPqP4tT8EwHfp1czNC6e1wdkE1ihNnuBdA=
 github.com/threatwinds/logger v1.2.2/go.mod h1:Amq0QI1y7fkTpnBUgeGVu2Z/C4u4ys2pNLUOuj3UAAU=
-github.com/threatwinds/validations v1.0.14 h1:mgSEaD+61sAVRcQn5+9Vn0AAQrptSprwpxCTKJgBBNg=
-github.com/threatwinds/validations v1.0.14/go.mod h1:68bixaVUcfX3u5zH6hVSygdLcx8/Iy3/qvtdELtKqog=
 github.com/tidwall/gjson v1.18.0 h1:FIDeeyB800efLX89e5a8Y0BNH+LOngJyGrIWxG2FKQY=
 github.com/tidwall/gjson v1.18.0/go.mod h1:/wbyibRr2FHMks5tjHJ5F8dMZh3AcwJEMf5vlfC0lxk=
 github.com/tidwall/match v1.1.1 h1:+Ho715JplO36QYgwN9PGYNhgZvoUSc9X2c80KVTi+GA=
