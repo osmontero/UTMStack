@@ -19,7 +19,7 @@
              <span *ngIf="menu.menuIcon" class="svg-icon svg-icon-md mr-2"
                    [ngClass]="isActiveChildren(menu.childrens, menu.actions,menu.id)?'svg-icon-active':'svg-icon-primary'"
                    [inlineSVG]="iconPath+menu.menuIcon"></span>
-            {{menu.name | titlecase}}
+            {{ menu.name === 'SOAR' ? menu.name : menu.name | titlecase }}
             <div *ngIf="menu.name.toLowerCase() === 'threat management' && prevTotal$ | async as prevTotal" class="notification_number">
               {{prevTotal > 20 ? '+20' : prevTotal}}
             </div>
