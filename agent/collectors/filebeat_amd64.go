@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/threatwinds/validations"
+	"github.com/threatwinds/go-sdk/entities"
 	"github.com/utmstack/UTMStack/agent/config"
 	"github.com/utmstack/UTMStack/agent/logservice"
 	"github.com/utmstack/UTMStack/agent/parser"
@@ -121,7 +121,7 @@ func (f Filebeat) SendLogs() {
 	go utils.WatchFolder("modulescollector", filebLogPath, logLinesChan)
 
 	for logLine := range logLinesChan {
-		message, _, err := validations.ValidateString(logLine, false)
+		message, _, err := entities.ValidateString(logLine, false)
 		if err != nil {
 			utils.Logger.ErrorF("error validating string: %v: message: %s", err, message)
 			continue

@@ -11,8 +11,8 @@ import (
 	"github.com/tehmaze/netflow/netflow6"
 	"github.com/tehmaze/netflow/netflow7"
 	"github.com/tehmaze/netflow/netflow9"
+	"github.com/threatwinds/go-sdk/entities"
 	"github.com/threatwinds/go-sdk/plugins"
-	"github.com/threatwinds/validations"
 	"github.com/utmstack/UTMStack/agent/config"
 	pnf "github.com/utmstack/UTMStack/agent/parser/netflow"
 	"github.com/utmstack/UTMStack/agent/utils"
@@ -66,7 +66,7 @@ func (p *NetflowParser) ProcessData(logMessage interface{}, _ string, queue chan
 	messages := pnf.Dump(metrics)
 
 	for _, msg := range messages {
-		message, _, err := validations.ValidateString(msg, false)
+		message, _, err := entities.ValidateString(msg, false)
 		if err != nil {
 			utils.Logger.ErrorF("error validating string: %v: message: %s", err, message)
 			continue

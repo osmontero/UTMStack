@@ -8,8 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/threatwinds/go-sdk/entities"
 	"github.com/threatwinds/go-sdk/plugins"
-	"github.com/threatwinds/validations"
 	"github.com/utmstack/UTMStack/agent/config"
 	"github.com/utmstack/UTMStack/agent/logservice"
 	"github.com/utmstack/UTMStack/agent/utils"
@@ -84,7 +84,7 @@ func (w Windows) SendLogs() {
 
 	go utils.WatchFolder("windowscollector", winbLogPath, logLinesChan)
 	for logLine := range logLinesChan {
-		validatedLog, _, err := validations.ValidateString(logLine, false)
+		validatedLog, _, err := entities.ValidateString(logLine, false)
 		if err != nil {
 			utils.Logger.ErrorF("error validating log: %s: %v", logLine, err)
 			continue

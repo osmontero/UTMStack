@@ -17,8 +17,8 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/threatwinds/go-sdk/entities"
 	"github.com/threatwinds/go-sdk/plugins"
-	"github.com/threatwinds/validations"
 	"github.com/utmstack/UTMStack/agent/config"
 	"github.com/utmstack/UTMStack/agent/logservice"
 	"github.com/utmstack/UTMStack/agent/utils"
@@ -307,7 +307,7 @@ func eventWorker() {
 			continue
 		}
 
-		validatedLog, _, err := validations.ValidateString(eventJSON, false)
+		validatedLog, _, err := entities.ValidateString(eventJSON, false)
 		if err != nil {
 			utils.Logger.LogF(100, "validation error: %s: %v", eventJSON, err)
 			continue
