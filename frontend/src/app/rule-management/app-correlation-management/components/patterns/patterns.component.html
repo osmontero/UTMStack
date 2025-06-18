@@ -56,7 +56,7 @@
                 <td class="td-action pr-4">
                     <div class="d-flex justify-content-end align-items-center medium-icon">
 
-                        <i (click)="editRegexPattern(pattern)" class="icon-pencil cursor-pointer ml-2"
+                        <i *ngIf="!pattern.systemOwner" (click)="editRegexPattern(pattern)" class="icon-pencil cursor-pointer ml-2"
                            ngbTooltip="Edit"
                            container="body"
                            placement="left"></i>

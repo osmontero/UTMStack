@@ -1,6 +1,15 @@
 @import "../../../../../assets/styles/theme";
 @import "../../../../../assets/styles/var";
 
+
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
+
 $topnav-background-color: #FFFFFF;
 .sidebar-app-management {
   //border-radius: 0;
