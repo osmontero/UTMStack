@@ -127,6 +127,7 @@ export class DashboardRenderComponent implements OnInit, OnDestroy, AfterViewIni
         });
       }
     });
+
     this.timeFilterBehavior.$time.subscribe(time => {
       if (time) {
         rebuildVisualizationFilterTime({timeFrom: time.from, timeTo: time.to}, this.filtersValues).then(filters => {

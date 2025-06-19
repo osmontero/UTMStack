@@ -29,6 +29,7 @@ import {UtmChartClickActionService} from '../../../services/utm-chart-click-acti
 import {rebuildVisualizationFilterTime} from '../../../util/chart-filter/chart-filter.util';
 import {resolveDefaultVisualizationTime} from '../../../util/visualization/visualization-render.util';
 import EChartOption = echarts.EChartOption;
+import {TimeFilterBehavior} from "../../../../../shared/behaviors/time-filter.behavior";
 // @ts-ignore
 require('echarts-wordcloud');
 
@@ -67,7 +68,8 @@ export class ChartViewComponent implements OnInit, OnChanges, OnDestroy {
               private toastService: UtmToastService,
               private dashboardBehavior: DashboardBehavior,
               private utmChartClickActionService: UtmChartClickActionService,
-              private refreshService: RefreshService) {
+              private refreshService: RefreshService,
+              private timeFilterBehavior: TimeFilterBehavior) {
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -118,6 +120,19 @@ export class ChartViewComponent implements OnInit, OnChanges, OnDestroy {
     window.addEventListener('print', (event) => {
       this.resizeChart();
     });
+
+    this.timeFilterBehavior.$time
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(time => !!time))
+      .subscribe(time => {
+        if (time) {
+          this.onTimeFilterChange({
+            timeFrom: time.from,
+            timeTo: time.to
+          });
+        }
+      });
 
     if (!this.defaultTime) {
       this.refreshService.sendRefresh(this.refreshType);

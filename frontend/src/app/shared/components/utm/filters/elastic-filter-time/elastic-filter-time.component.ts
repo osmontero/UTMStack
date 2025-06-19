@@ -97,12 +97,6 @@ export class ElasticFilterTimeComponent implements OnInit, OnChanges, OnDestroy 
     // }
   }
 
-  ngOnDestroy(): void {
-    this.timeFilterBehavior.$time.next(null);
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   ngOnInit() {
     this.timeFilterBehavior.$time
       .pipe(takeUntil(this.destroy$))
@@ -291,6 +285,12 @@ export class ElasticFilterTimeComponent implements OnInit, OnChanges, OnDestroy 
       default:
         return 0;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.timeFilterBehavior.$time.next(null);
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
 

@@ -19,6 +19,7 @@ import {resolveDefaultVisualizationTime} from '../../../util/visualization/visua
 import {Observable, of, Subject} from "rxjs";
 import {RefreshService, RefreshType} from "../../../../../shared/services/util/refresh.service";
 import {catchError, filter, switchMap, takeUntil, tap} from 'rxjs/operators';
+import {TimeFilterBehavior} from "../../../../../shared/behaviors/time-filter.behavior";
 
 @Component({
   selector: 'app-metric-view',
@@ -50,6 +51,7 @@ export class MetricViewComponent implements OnInit, OnDestroy {
               private toastService: UtmToastService,
               private dashboardBehavior: DashboardBehavior,
               private utmChartClickActionService: UtmChartClickActionService,
+              private timeFilterBehavior: TimeFilterBehavior,
               private refreshService: RefreshService) {
   }
 
@@ -80,6 +82,19 @@ export class MetricViewComponent implements OnInit, OnDestroy {
         mergeParams(dashboardFilter.filter, this.visualization.filterType).then(newFilters => {
           this.visualization.filterType = sanitizeFilters(newFilters);
           this.refreshService.sendRefresh(this.refreshType);
+        });
+      }
+    });
+
+    this.timeFilterBehavior.$time
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(time => !!time))
+      .subscribe(time => {
+      if (time) {
+        this.onTimeFilterChange({
+          timeFrom: time.from,
+          timeTo: time.to
         });
       }
     });

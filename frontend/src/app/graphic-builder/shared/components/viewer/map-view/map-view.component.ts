@@ -20,6 +20,7 @@ import {rebuildVisualizationFilterTime} from '../../../util/chart-filter/chart-f
 import {resolveDefaultVisualizationTime} from '../../../util/visualization/visualization-render.util';
 import {RefreshService, RefreshType} from "../../../../../shared/services/util/refresh.service";
 import {catchError, filter, map, switchMap, takeUntil, tap} from "rxjs/operators";
+import {TimeFilterBehavior} from "../../../../../shared/behaviors/time-filter.behavior";
 
 @Component({
   selector: 'app-map-view',
@@ -227,7 +228,8 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
               private utmChartClickActionService: UtmChartClickActionService,
               private dashboardBehavior: DashboardBehavior,
               private toastService: UtmToastService,
-              private refreshService: RefreshService) {
+              private refreshService: RefreshService,
+              private timeFilterBehavior: TimeFilterBehavior) {
 
   }
 
@@ -306,6 +308,19 @@ export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
         });
       }
     });
+
+    this.timeFilterBehavior.$time
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(time => !!time))
+      .subscribe(time => {
+        if (time) {
+          this.onTimeFilterChange({
+            timeFrom: time.from,
+            timeTo: time.to
+          });
+        }
+      });
 
     this.defaultTime = resolveDefaultVisualizationTime(this.visualization);
     if(!this.defaultTime){

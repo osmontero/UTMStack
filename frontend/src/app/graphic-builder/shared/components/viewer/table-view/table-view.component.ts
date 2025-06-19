@@ -1,6 +1,4 @@
 import {
-  AfterViewInit,
-  ChangeDetectorRef,
   Component,
   EventEmitter,
   Input,
@@ -15,6 +13,7 @@ import {Observable, of, Subject} from 'rxjs';
 import {catchError, filter, map, switchMap, takeUntil, tap} from 'rxjs/operators';
 import {UtmToastService} from '../../../../../shared/alert/utm-toast.service';
 import {DashboardBehavior} from '../../../../../shared/behaviors/dashboard.behavior';
+import {TimeFilterBehavior} from "../../../../../shared/behaviors/time-filter.behavior";
 import {EchartClickAction} from '../../../../../shared/chart/types/action/echart-click-action';
 import {UtmTableOptionType} from '../../../../../shared/chart/types/charts/table/utm-table-option.type';
 import {TableBuilderResponseType} from '../../../../../shared/chart/types/response/table-builder-response.type';
@@ -79,10 +78,10 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
   constructor(private runVisualizationService: RunVisualizationService,
               private utmChartClickActionService: UtmChartClickActionService,
               private runVisualizationBehavior: RunVisualizationBehavior,
-              private cdr: ChangeDetectorRef,
               private dashboardBehavior: DashboardBehavior,
               private toastService: UtmToastService,
-              private refreshService: RefreshService) {
+              private refreshService: RefreshService,
+              private timeFilterBehavior: TimeFilterBehavior) {
   }
 
   ngOnInit() {
@@ -113,6 +112,19 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
         });
       }
     });
+
+    this.timeFilterBehavior.$time
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(time => !!time))
+      .subscribe(time => {
+        if (time) {
+          this.onTimeFilterChange({
+            timeFrom: time.from,
+            timeTo: time.to
+          });
+        }
+      });
 
     if (!this.defaultTime) {
       this.refreshService.sendRefresh(this.refreshType);
