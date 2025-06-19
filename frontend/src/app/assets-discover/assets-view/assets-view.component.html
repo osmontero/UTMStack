@@ -20,15 +20,15 @@
   </div>
 
   <!--TABLE-->
-  <div class="d-flex flex-nowrap m-0 align-items-start h-100">
+  <div class="d-flex flex-nowrap m-0 align-items-start pb-3 m-h-0 h-100">
     <div (resizeEnd)="onResize($event)"
          (resizing)="onResize($event)"
          [enableGhostResize]="true"
          [ngStyle]="{'width':filterWidth+'px'}"
          [resizeEdges]="{ bottom: false, right: true, top: false, left: false }"
-         class="resizable-filter-container mr-2"
+         class="resizable-filter-container mr-2 h-100"
          mwlResizable>
-      <div class="card h-100">
+      <div class="card m-h-0 h-100">
         <div class="card-header header-elements-sm-inline p-2 bg-white card-header-title">
           <label class="card-title">Filters</label>
           <div class="d-flex">
@@ -51,8 +51,8 @@
         </div>
       </div>
     </div>
-    <div class="flex-grow-1">
-      <div class="card h-100">
+    <div class="flex-grow-1 h-100 m-h-0">
+      <div class="card h-100 m-h-0">
         <div class="card-header p-2 w-100">
           <div class="d-flex justify-content-between align-items-center">
             <app-asset-filter-applying (filterApplyingChange)="onFilterChange($event)"
@@ -193,7 +193,7 @@
                   </div>
                 </td>
                 <td (click)="viwAgentDetail($event, asset)">
-                  {{ getLastInput(asset) }}
+                  {{ getLastInput(asset) | date:'short' }}
                 </td>
 
                 <td class="td-action">
