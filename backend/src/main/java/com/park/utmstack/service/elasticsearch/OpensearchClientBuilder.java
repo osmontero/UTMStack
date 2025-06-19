@@ -3,7 +3,6 @@ package com.park.utmstack.service.elasticsearch;
 import com.park.utmstack.config.Constants;
 import com.utmstack.opensearch_connector.OpenSearch;
 import com.utmstack.opensearch_connector.enums.HttpScheme;
-import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -17,7 +16,6 @@ import org.springframework.util.Assert;
 public class OpensearchClientBuilder {
     private static final String CLASSNAME = "OpensearchClientBuilder";
     private final Logger log = LoggerFactory.getLogger(OpensearchClientBuilder.class);
-    @Getter
     private OpenSearch client;
 
     @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -37,5 +35,9 @@ public class OpensearchClientBuilder {
             log.error(msg);
             throw new RuntimeException(msg);
         }
+    }
+
+    public OpenSearch getClient() {
+        return client;
     }
 }

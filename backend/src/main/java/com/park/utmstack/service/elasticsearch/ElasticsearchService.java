@@ -18,7 +18,6 @@ import com.utmstack.opensearch_connector.enums.TermOrder;
 import com.utmstack.opensearch_connector.exceptions.OpenSearchException;
 import com.utmstack.opensearch_connector.types.ElasticCluster;
 import com.utmstack.opensearch_connector.types.IndexSort;
-import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.SortOrder;
 import org.opensearch.client.opensearch._types.query_dsl.Query;
 import org.opensearch.client.opensearch.cat.indices.IndicesRecord;
@@ -57,18 +56,15 @@ public class ElasticsearchService {
     private final UtmSpaceNotificationControlService spaceNotificationControlService;
     private final OpensearchClientBuilder client;
 
-    private final OpenSearchClient openSearchClient;
-
     public ElasticsearchService(ApplicationEventService eventService, UserRepository userRepository,
                                 MailService mailService,
                                 UtmSpaceNotificationControlService spaceNotificationControlService,
-                                OpensearchClientBuilder client, OpenSearchClient openSearchClient) {
+                                OpensearchClientBuilder client) {
         this.eventService = eventService;
         this.userRepository = userRepository;
         this.mailService = mailService;
         this.spaceNotificationControlService = spaceNotificationControlService;
         this.client = client;
-        this.openSearchClient = openSearchClient;
     }
 
     /**
