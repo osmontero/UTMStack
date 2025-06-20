@@ -164,7 +164,7 @@ func pull(group types.ModuleGroup) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Minute)
 	defer cancel()
 
 	go func() {
@@ -187,56 +187,58 @@ func pull(group types.ModuleGroup) {
 func processPartition(pc *azeventhubs.ProcessorPartitionClient, groupName string) {
 	defer pc.Close(context.Background())
 
-	recvCtx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
-	defer cancel()
+	for {
+		recvCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		events, err := pc.ReceiveEvents(recvCtx, 100, nil)
+		cancel()
 
-	events, err := pc.ReceiveEvents(recvCtx, 500, nil)
-	if err != nil && !errors.Is(err, context.DeadlineExceeded) {
-		_ = catcher.Error("error receiving events", err, map[string]any{
-			"group":       groupName,
-			"partitionID": pc.PartitionID(),
-		})
-		return
-	}
-
-	if len(events) == 0 {
-		return
-	}
-
-	for _, event := range events {
-		var logData map[string]any
-		if err := json.Unmarshal(event.Body, &logData); err != nil {
-			_ = catcher.Error("cannot parse event body", err, map[string]any{
+		if err != nil && !errors.Is(err, context.DeadlineExceeded) {
+			_ = catcher.Error("error receiving events", err, map[string]any{
 				"group":       groupName,
 				"partitionID": pc.PartitionID(),
 			})
+			return
+		}
+
+		if len(events) == 0 {
 			continue
 		}
 
-		jsonLog, err := json.Marshal(logData)
-		if err != nil {
-			_ = catcher.Error("cannot encode log to JSON", err, map[string]any{
+		for _, event := range events {
+			var logData map[string]any
+			if err := json.Unmarshal(event.Body, &logData); err != nil {
+				_ = catcher.Error("cannot parse event body", err, map[string]any{
+					"group":       groupName,
+					"partitionID": pc.PartitionID(),
+				})
+				continue
+			}
+
+			jsonLog, err := json.Marshal(logData)
+			if err != nil {
+				_ = catcher.Error("cannot encode log to JSON", err, map[string]any{
+					"group":       groupName,
+					"partitionID": pc.PartitionID(),
+				})
+				continue
+			}
+
+			plugins.EnqueueLog(&plugins.Log{
+				Id:         uuid.New().String(),
+				TenantId:   defaultTenant,
+				DataType:   "azure",
+				DataSource: groupName,
+				Timestamp:  time.Now().UTC().Format(time.RFC3339Nano),
+				Raw:        string(jsonLog),
+			})
+		}
+
+		if err := pc.UpdateCheckpoint(context.Background(), events[len(events)-1], nil); err != nil {
+			_ = catcher.Error("checkpoint error", err, map[string]any{
 				"group":       groupName,
 				"partitionID": pc.PartitionID(),
 			})
-			continue
 		}
-
-		plugins.EnqueueLog(&plugins.Log{
-			Id:         uuid.New().String(),
-			TenantId:   defaultTenant,
-			DataType:   "azure",
-			DataSource: groupName,
-			Timestamp:  time.Now().UTC().Format(time.RFC3339Nano),
-			Raw:        string(jsonLog),
-		})
-	}
-
-	if err := pc.UpdateCheckpoint(context.Background(), events[len(events)-1], nil); err != nil {
-		_ = catcher.Error("checkpoint error", err, map[string]any{
-			"group":       groupName,
-			"partitionID": pc.PartitionID(),
-		})
 	}
 }
 
