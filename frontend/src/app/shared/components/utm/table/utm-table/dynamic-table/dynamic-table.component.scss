@@ -43,4 +43,25 @@ table {
   gap: .5rem;
 }
 
+.table-responsive {
+  overflow: hidden!important;
+  overflow-y: auto!important;
+}
+
+.summary-wrapper {
+  max-height: 30px;
+  overflow: hidden;
+  white-space: pre-wrap;
+  position: relative;
+}
+
+.filter-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+
+
 

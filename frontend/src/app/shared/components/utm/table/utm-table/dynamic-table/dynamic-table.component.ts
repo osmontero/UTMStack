@@ -1,15 +1,15 @@
 import {
-  Component,
+  AfterViewInit,
+  Component, ElementRef,
   EventEmitter,
-  Input,
+  Input, OnChanges,
   OnDestroy,
   OnInit,
-  Output, Type,
-  ViewChild,
+  Output, QueryList, SimpleChanges, Type,
+  ViewChild, ViewChildren,
   ViewContainerRef
 } from '@angular/core';
 import {Subject} from 'rxjs';
-import {takeUntil} from 'rxjs/operators';
 import {IndexPatternBehavior} from '../../../../../../log-analyzer/shared/behaviors/index-pattern.behavior';
 import {SortEvent} from '../../../../../directives/sortable/type/sort-event';
 import {ElasticDataTypesEnum} from '../../../../../enums/elastic-data-types.enum';
@@ -20,13 +20,17 @@ import {
   extractValueFromObjectByPath
 } from '../../../../../util/get-value-object-from-property-path.util';
 import {SUMMARY_COLUMNS} from './summary-fields';
+import {container} from "@angular/core/src/render3";
 
 @Component({
   selector: 'app-dynamic-table',
   templateUrl: './dynamic-table.component.html',
   styleUrls: ['./dynamic-table.component.scss']
 })
-export class UtmDynamicTableComponent implements OnInit, OnDestroy {
+export class UtmDynamicTableComponent implements OnInit, OnChanges, OnDestroy {
+
+  constructor(private indexPatternBehavior: IndexPatternBehavior) {
+  }
   /**
    * Field to show in header
    */
@@ -84,6 +88,7 @@ export class UtmDynamicTableComponent implements OnInit, OnDestroy {
    */
   @Input() editableColumn = true;
   @ViewChild('container', {read: ViewContainerRef}) entry: ViewContainerRef;
+  @ViewChild('container') containerRef!: ElementRef<HTMLDivElement>;
   viewDetail = -1;
   @Input() pageable = true;
   dataTypeEnum = ElasticDataTypesEnum;
@@ -92,8 +97,7 @@ export class UtmDynamicTableComponent implements OnInit, OnDestroy {
 
   summaryColumns = SUMMARY_COLUMNS;
 
-  constructor(private indexPatternBehavior: IndexPatternBehavior) {
-  }
+  @ViewChildren('summaryWrapper') summaryWrappers: QueryList<ElementRef>;
 
   ngOnInit(): void {
   }
@@ -153,9 +157,61 @@ export class UtmDynamicTableComponent implements OnInit, OnDestroy {
     }
   }
 
+  getSummaryChunks(row: any): { visible: any[], hidden: any[] } {
+    if (!this.summaryColumns) { return { visible: [], hidden: [] }; }
+
+    const all = this.summaryColumns.filter(col => this.resolveTdValue(row, col.key) !== '-');
+    const container = this.containerRef.nativeElement;
+    if (!container) { return { visible: all, hidden: [] }; }
+
+    const visible: any[] = [];
+    const tempDiv = document.createElement('div');
+    tempDiv.style.position = 'absolute';
+    tempDiv.style.visibility = 'hidden';
+    tempDiv.style.display = 'flex';
+    tempDiv.style.flexWrap = 'wrap';
+    container.appendChild(tempDiv);
+
+    let totalWidth = 0;
+    for (const item of all) {
+      const chip = document.createElement('div');
+      chip.className = 'chip-summary';
+      chip.innerText = `${item.title}: ${this.resolveTdValue(row, item.key)}`;
+      tempDiv.appendChild(chip);
+
+      const width = chip.getBoundingClientRect().width;
+      totalWidth += width + 8; // padding + gap
+      if (totalWidth < container.clientWidth) {
+        visible.push(item);
+      } else {
+        break;
+      }
+    }
+
+    container.removeChild(tempDiv);
+
+    return {
+      visible,
+      hidden: all.slice(visible.length)
+    };
+  }
+
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!this.loading) {
+      setTimeout(() => {
+        this.summaryWrappers.forEach((wrapper, index) => {
+          const el = wrapper.nativeElement;
+          const row = this.rows[index];
+          row._hasOverflow = el.scrollHeight > 30;
+        });
+      }, 300);
+    }
   }
 
 }
