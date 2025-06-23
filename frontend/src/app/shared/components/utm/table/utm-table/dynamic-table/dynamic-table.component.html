@@ -41,47 +41,84 @@
           </td>
         </tr>
       </tbody>
-      <tbody *ngFor="let row of rows; let index = index"
-             [hidden]="!(rows || rows.length>0) && !loading" class="tbody-dynamic">
-      <tr (click)="viewDetail===index?viewDetail=-1:viewDetail=index" class="cursor-pointer">
-        <td class="cursor-pointer pr-0"
-            style="width:15px">
-          <span *ngIf="showDetail" class="text-blue-800">
-            <i [ngClass]="viewDetail===index?'icon-arrow-up32':'icon-arrow-down32'"></i>
-          </span>
-        </td>
-        <ng-container *ngFor="let td of fields">
-          <td *ngIf="td.field === 'Summary' && td.visible">
-            <div class="w-100 d-flex flex-wrap gap-2">
-              <ng-container *ngFor="let summary of summaryColumns">
-                <div *ngIf="resolveTdValue(row, summary.key) !== '-'" class="cursor-pointer d-flex justify-content-center align-items-center border-1 p-1 border-grey-100 border-radius-1">
-                  <div class="filter-label">
-                <span class="text-center pt-1 pb-1 m-1 border-blue-800" >
-                    <strong>{{ summary.title }}</strong>: <em> {{ resolveTdValue(row, summary.key) }} </em>
-                </span>
-                  </div>
-                </div>
-              </ng-container>
-            </div>
-          </td>
-          <td *ngIf="td.field !== 'Summary' && td.visible && td.type !== dataTypeEnum.DATE; else date"
-              [innerHTML]="resolveTdValue(row, td)"
-              style="word-break: break-all;white-space: pre-wrap">
-          </td>
+      <ng-container *ngIf="rows && rows.length > 0 && !loading">
+        <tbody class="tbody-dynamic">
+         <ng-container *ngFor="let row of rows; let index = index">
+           <tr (click)="viewDetail===index?viewDetail=-1:viewDetail=index" class="cursor-pointer">
+             <td style="width:15px" class="cursor-pointer pr-0">
+              <span *ngIf="showDetail" class="text-blue-800">
+                <i [ngClass]="viewDetail===index?'icon-arrow-up32':'icon-arrow-down32'"></i>
+              </span>
+             </td>
+             <ng-container *ngFor="let td of fields">
+               <td *ngIf="td.field === 'Summary' && td.visible">
+                 <div class="d-flex">
+                   <div #summaryWrapper class="d-flex flex-wrap gap-2 summary-wrapper">
+                     <ng-container *ngFor="let summary of summaryColumns">
+                       <div *ngIf="resolveTdValue(row, summary.key) !== '-'" class="cursor-pointer d-flex justify-content-center align-items-center border-1 p-1 border-grey-100 border-radius-1">
+                         <div class="filter-label">
+                          <span class="text-center pt-1 pb-1 m-1 border-blue-800" >
+                              <strong>{{ summary.title }}</strong>: <em> {{ resolveTdValue(row, summary.key) }} </em>
+                          </span>
+                         </div>
+                       </div>
+                     </ng-container>
+                   </div>
+                   <ng-container *ngIf="row._hasOverflow">
+                     <div class="d-flex flex-wrap gap-2">
+                       <div #p="ngbPopover"
+                            (click)="p.open()"
+                         [closeDelay]="1000"
+                         [ngbPopover]="popPreview"
+                         [openDelay]="1000"
+                         autoClose="outside"
+                         placement="left"
+                         triggers="manual"
+                         class="cursor-pointer d-flex justify-content-center align-items-center border-1 p-1 border-grey-100 border-radius-1">
+                         <div class="filter-label">
+                          <span class="text-center pt-1 pb-1 m-1 border-blue-800" >
+                           <strong>{{ '... ' }}</strong> <em> {{ 'More' }} </em>
+                          </span>
+                         </div>
+                       </div>
+                     </div>
 
-          <ng-template #date>
-            <td *ngIf="td.field !== 'Summary' && td.visible">
-              <span>{{resolveTdValue(row, td)|date:utmDateFormat.MEDIUM:'UTC'}}</span>
-            </td>
-          </ng-template>
-        </ng-container>
-      </tr>
-      <tr *ngIf="index=== viewDetail && showDetail">
-        <td [attr.colspan]="fields?fields.length+1:5">
-          <app-utm-dtable-detail-resolver [component]="componentDetail" [row]="row"></app-utm-dtable-detail-resolver>
-        </td>
-      </tr>
-      </tbody>
+                     <ng-template #popPreview let-visualization="vis">
+                         <div class="d-flex flex-column w-100 gap-2">
+                           <ng-container *ngFor="let summary of summaryColumns">
+                             <div *ngIf="resolveTdValue(row, summary.key) !== '-'" class="cursor-pointer d-flex justify-content-center align-items-center border-1 p-1 border-grey-100 border-radius-1">
+                               <div class="filter-label">
+                                <span class="text-center pt-1 pb-1 m-1 border-blue-800" >
+                                    <strong>{{ summary.title }}</strong>: <em> {{ resolveTdValue(row, summary.key) }} </em>
+                                </span>
+                               </div>
+                             </div>
+                           </ng-container>
+                         </div>
+                     </ng-template>
+                   </ng-container>
+                 </div>
+               </td>
+               <td *ngIf="td.field !== 'Summary' && td.visible && td.type !== dataTypeEnum.DATE; else date"
+                   [innerHTML]="resolveTdValue(row, td)"
+                   style="word-break: break-all;white-space: pre-wrap">
+               </td>
+
+               <ng-template #date>
+                 <td *ngIf="td.field !== 'Summary' && td.visible">
+                   <span>{{resolveTdValue(row, td)|date:utmDateFormat.MEDIUM:'UTC'}}</span>
+                 </td>
+               </ng-template>
+             </ng-container>
+           </tr>
+           <tr *ngIf="index=== viewDetail && showDetail">
+             <td [attr.colspan]="fields?fields.length+1:5">
+               <app-utm-dtable-detail-resolver [component]="componentDetail" [row]="row"></app-utm-dtable-detail-resolver>
+             </td>
+           </tr>
+         </ng-container>
+        </tbody>
+      </ng-container>
       <tbody *ngIf="(rows && rows.length===0)  && !loading">
       <tr>
         <td [attr.colspan]="fields?fields.length +1:5">
