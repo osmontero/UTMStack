@@ -2,8 +2,10 @@ package config
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/utmstack/UTMStack/installer/utils"
 )
@@ -35,12 +37,28 @@ func GetConfig() *Config {
 			}
 		}
 
-		mainIP, err := utils.GetMainIP()
-		if err != nil {
-			fmt.Printf("error getting main IP: %v", err)
-			os.Exit(1)
+		// Detect if the system is in air-gapped mode
+		ConnectedToInternet = !DetectAirGapMode()
+		if !ConnectedToInternet {
+			fmt.Println("⚠️  AirGap mode detected - some features will be limited")
 		}
-		config.MainServer = mainIP
+
+		// Check if the main server is reachable (AirGap mode)
+		if !ConnectedToInternet {
+			mainIP, err := utils.GetMainIPInAirGapMode()
+			if err != nil {
+				fmt.Printf("error getting main IP: %v", err)
+				os.Exit(1)
+			}
+			config.MainServer = mainIP
+		} else {
+			mainIP, err := utils.GetMainIP()
+			if err != nil {
+				fmt.Printf("error getting main IP: %v", err)
+				os.Exit(1)
+			}
+			config.MainServer = mainIP
+		}
 
 		sName, err := os.Hostname()
 		if err != nil {
@@ -88,4 +106,24 @@ func GetConfig() *Config {
 
 func (c *Config) Set() error {
 	return utils.WriteYAML(ConfigPath, c)
+}
+
+func DetectAirGapMode() bool {
+	endpoints := []string{
+		"https://8.8.8.8",
+		"https://1.1.1.1",
+		"https://google.com",
+	}
+
+	client := &http.Client{
+		Timeout: 3 * time.Second,
+	}
+
+	for _, endpoint := range endpoints {
+		if _, err := client.Get(endpoint); err == nil {
+			return false
+		}
+	}
+
+	return true
 }

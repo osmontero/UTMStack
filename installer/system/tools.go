@@ -6,12 +6,13 @@ import (
 )
 
 func InstallTools(distro string) error {
-	if distro == config.RequiredDistroUbuntu {
+	switch distro {
+	case config.RequiredDistroUbuntu:
 		env := []string{"DEBIAN_FRONTEND=noninteractive"}
 		if err := utils.RunEnvCmd(env, "apt-get", "install", "-y", "cockpit"); err != nil {
 			return err
 		}
-	} else if distro == config.RequiredDistroRHEL {
+	case config.RequiredDistroRHEL:
 		env := []string{"DNF_YUM_AUTO_YES=1"}
 		if err := utils.RunEnvCmd(env, "dnf", "install", "-y", "cockpit"); err != nil {
 			return err
