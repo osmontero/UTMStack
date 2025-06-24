@@ -1,4 +1,4 @@
-<div class="card w-100 h-100">
+<div class="card w-100 h-100 m-h-0">
   <div class="card-header d-flex justify-content-between align-items-center">
     <h6 class="card-title mb-0 text-uppercase label-header">
       Application theme
@@ -9,7 +9,7 @@
     </button>
   </div>
 
-  <div class="card-body w-100">
+  <div class="card-body w-100 h-100 m-h-0 overflow-auto">
     <div *ngIf="loading" class="d-flex justify-content-center align-items-center has-fixed-height">
       <app-utm-spinner [label]="'Loading theme...'" [loading]="true"></app-utm-spinner>
     </div>
