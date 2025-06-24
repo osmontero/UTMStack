@@ -18,6 +18,7 @@ import {RefreshService, RefreshType} from '../../../../shared/services/util/refr
 import {PieResponseType} from '../../../../shared/types/chart-reponse/pie-response.type';
 import {ElasticFilterCommonType} from '../../../../shared/types/filter/elastic-filter-common.type';
 import {TimeFilterType} from '../../../../shared/types/time-filter.type';
+import {TimeFilterBehavior} from "../../../../shared/behaviors/time-filter.behavior";
 
 @Component({
   selector: 'app-chart-common-pie',
@@ -48,7 +49,8 @@ export class ChartCommonPieComponent implements OnInit, OnDestroy {
   constructor(private overviewAlertDashboardService: OverviewAlertDashboardService,
               private router: Router,
               private refreshService: RefreshService,
-              private spinner: NgxSpinnerService) {
+              private spinner: NgxSpinnerService,
+              private timeFilterBehavior: TimeFilterBehavior) {
   }
 
   ngOnInit() {
@@ -64,6 +66,19 @@ export class ChartCommonPieComponent implements OnInit, OnDestroy {
           filter(refreshType => (
               refreshType === RefreshType.ALL || refreshType === this.type)),
           switchMap(() => this.getPieData()));
+
+    this.timeFilterBehavior.$time
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(time => !!time))
+      .subscribe(time => {
+        if (time) {
+          this.onTimeFilterChange({
+            timeFrom: time.from,
+            timeTo: time.to
+          });
+        }
+      });
   }
 
   onTimeFilterChange($event: TimeFilterType) {

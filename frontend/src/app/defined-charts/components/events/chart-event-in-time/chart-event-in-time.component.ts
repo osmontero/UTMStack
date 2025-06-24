@@ -12,6 +12,7 @@ import {OverviewAlertDashboardService} from '../../../../shared/services/charts-
 import {RefreshService, RefreshType} from '../../../../shared/services/util/refresh.service';
 import {ElasticFilterCommonType} from '../../../../shared/types/filter/elastic-filter-common.type';
 import {TimeFilterType} from '../../../../shared/types/time-filter.type';
+import {TimeFilterBehavior} from "../../../../shared/behaviors/time-filter.behavior";
 
 @Component({
   selector: 'app-chart-event-in-time',
@@ -35,7 +36,8 @@ export class ChartEventInTimeComponent implements OnInit, OnDestroy {
   constructor(private overviewAlertDashboardService: OverviewAlertDashboardService,
               private refreshService: RefreshService,
               private router: Router,
-              private spinner: NgxSpinnerService) {
+              private spinner: NgxSpinnerService,
+              private timeFilterBehavior: TimeFilterBehavior) {
   }
 
   ngOnInit() {
@@ -50,6 +52,19 @@ export class ChartEventInTimeComponent implements OnInit, OnDestroy {
         filter(refreshType => (
           refreshType === RefreshType.ALL || refreshType === this.type)),
         switchMap(() => this.getEventByTime()));
+
+    this.timeFilterBehavior.$time
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(time => !!time))
+      .subscribe(time => {
+        if (time) {
+          this.onTimeFilterChange({
+            timeFrom: time.from,
+            timeTo: time.to
+          });
+        }
+      });
   }
 
   onTimeFilterChange($event: TimeFilterType) {

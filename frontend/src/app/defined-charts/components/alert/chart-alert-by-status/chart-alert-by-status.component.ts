@@ -27,6 +27,7 @@ import {TimeFilterType} from '../../../../shared/types/time-filter.type';
 import {RefreshService, RefreshType} from "../../../../shared/services/util/refresh.service";
 import {Observable, Subject} from "rxjs";
 import {filter, map, switchMap, takeUntil, tap} from "rxjs/operators";
+import {TimeFilterBehavior} from "../../../../shared/behaviors/time-filter.behavior";
 
 @Component({
   selector: 'app-chart-alert-by-status',
@@ -55,7 +56,8 @@ export class ChartAlertByStatusComponent implements OnInit, OnDestroy {
   constructor(private overviewAlertDashboardService: OverviewAlertDashboardService,
               private refreshService: RefreshService,
               private router: Router,
-              private spinner: NgxSpinnerService) {
+              private spinner: NgxSpinnerService,
+              private timeFilterBehavior: TimeFilterBehavior) {
   }
 
   ngOnInit() {
@@ -71,6 +73,19 @@ export class ChartAlertByStatusComponent implements OnInit, OnDestroy {
         filter((refreshType: string) => (
           refreshType === RefreshType.ALL || refreshType === RefreshType.CHART_ALERT_BY_STATUS)),
         switchMap(() => this.getAlertByStatus(this.time)));
+
+    this.timeFilterBehavior.$time
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(time => !!time))
+      .subscribe(time => {
+        if (time) {
+          this.onChangeAlertByStatus({
+            timeFrom: time.from,
+            timeTo: time.to
+          });
+        }
+      });
   }
 
   onChangeAlertByStatus($event: TimeFilterType) {

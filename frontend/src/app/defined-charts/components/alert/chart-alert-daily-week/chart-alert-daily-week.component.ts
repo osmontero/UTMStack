@@ -10,6 +10,7 @@ import {
 } from '../../../../shared/services/charts-overview/overview-alert-dashboard.service';
 import {RefreshService, RefreshType} from '../../../../shared/services/util/refresh.service';
 import {ChartSerieValueType} from '../../../../shared/types/chart-reponse/chart-serie-value.type';
+import {TimeFilterBehavior} from "../../../../shared/behaviors/time-filter.behavior";
 
 @Component({
   selector: 'app-chart-alert-daily-week',
@@ -32,12 +33,7 @@ export class ChartAlertDailyWeekComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    /*if (this.refreshInterval) {
-      this.interval = setInterval(() => {
-        this.getDailyAlert();
-      }, this.refreshInterval);
-    }*/
-    // this.getDailyAlert();
+
     this.dailyAlert$ = this.refreshService.refresh$
       .pipe(
         takeUntil(this.destroy$),
