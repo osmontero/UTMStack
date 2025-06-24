@@ -1,4 +1,8 @@
-.card-usage-container {
-  min-height: 180px;
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
 }
 
