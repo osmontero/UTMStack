@@ -1,18 +1,19 @@
 @import "src/assets/styles/theme";
 @import "src/assets/styles/var";
 
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .utm-menu {
   height: 100%;
   padding-top: 30px;
   padding-bottom: 30px;
 }
 
-
-:host {
-
-  display: block;
-  box-sizing: border-box;
-}
 
 .dndDraggingSource {
   opacity: .5;
