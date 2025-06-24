@@ -1,3 +1,9 @@
+:host{
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
 
 .index-health {
   width: 12px;
