@@ -1,4 +1,4 @@
-<div class="card w-100 h-100">
+<div class="card w-100 m-h-0 h-100">
   <div class="card-header d-flex justify-content-between align-items-center">
     <h6 class="card-title mb-0 text-uppercase label-header">
       Application logs
@@ -28,8 +28,7 @@
       </app-elastic-filter-time>
     </div>
   </div>
-  <div class="card-body">
-    <div class="table-responsive">
+    <div class="table-responsive resizable-table-responsive m-h-0">
       <table class="table text-nowrap">
         <thead>
         <tr>
@@ -88,7 +87,7 @@
         </tbody>
       </table>
     </div>
-    <div *ngIf="logs && logs.length>0" class="mb-4">
+    <div *ngIf="logs && logs.length>0" class="py-3">
       <div class="row justify-content-center">
         <ngb-pagination
           (pageChange)="loadPage($event)"
@@ -101,7 +100,6 @@
           [size]="'sm'"></ngb-pagination>
       </div>
     </div>
-  </div>
 </div>
 
 <div *ngIf="message" class="utm-right-container">
