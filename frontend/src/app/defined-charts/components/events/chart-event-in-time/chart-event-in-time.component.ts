@@ -25,7 +25,7 @@ export class ChartEventInTimeComponent implements OnInit, OnDestroy {
   @Input() type: RefreshType;
   interval: any;
   defaultTime: ElasticFilterCommonType = {time: ElasticTimeEnum.DAY, last: 7, label: 'last 7 days'};
-  queryParams = {from: 'now-7d', to: 'now', interval: 'Day'};
+  request = {from: 'now-7d', to: 'now', interval: 'Day'};
   loadingPieOption = true;
   chartEnumType = ChartTypeEnum;
   multilineOption: any;
@@ -68,8 +68,11 @@ export class ChartEventInTimeComponent implements OnInit, OnDestroy {
   }
 
   onTimeFilterChange($event: TimeFilterType) {
-    this.queryParams.from = $event.timeFrom;
-    this.queryParams.to = $event.timeTo;
+    this.request = {
+      from: $event.timeFrom,
+      to: $event.timeTo,
+      interval: this.getAutoInterval($event.timeFrom, $event.timeTo)
+    };
     this.refreshService.sendRefresh(this.type);
   }
 
@@ -110,7 +113,7 @@ export class ChartEventInTimeComponent implements OnInit, OnDestroy {
         }
       });*/
 
-    return this.overviewAlertDashboardService.getEventInTime(this.queryParams)
+    return this.overviewAlertDashboardService.getEventInTime(this.request)
       .pipe(
         map( response => response.body),
         tap(data => {
@@ -126,6 +129,35 @@ export class ChartEventInTimeComponent implements OnInit, OnDestroy {
           this.loaded.emit();
         })
       );
+  }
+
+  getAutoInterval(from: string, to: string) {
+    if (to !== 'now') { return 'Day'; }
+
+    const match = from.match(/^now-(\d+)([smhdwMy])$/i);
+    if (!match) { return 'Day'; }
+
+    const [, amountStr, unit] = match;
+    const amount = parseInt(amountStr, 10);
+    const unitLower = unit.toLowerCase();
+
+    switch (unitLower) {
+      case 's':
+      case 'm':
+        return 'Minute';
+
+      case 'h':
+        return amount > 1 ? 'Hour' : 'Minute';
+
+      case 'd':
+        return amount <= 7 ? 'Day' : 'Week';
+
+      case 'w':
+        return 'Week';
+
+      default:
+        return 'Day';
+    }
   }
 
   ngOnDestroy(): void {
