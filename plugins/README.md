@@ -757,7 +757,7 @@ sophisticated rules and filters.
 
 #### Complex Expressions
 
-The `where.expression` field in rules supports complex expressions using the Common Expression Language (CEL). CEL is a
+The `where` field in rules supports complex expressions using the Common Expression Language (CEL). CEL is a
 powerful expression language that allows for complex logic, including:
 
 - **Logical Operators**: `&&` (AND), `||` (OR), `!` (NOT)
@@ -769,7 +769,7 @@ powerful expression language that allows for complex logic, including:
 Example of a complex expression:
 
 ```yaml
-expression: has(origin.country) && !(origin.country in ["United States", "Canada", "United Kingdom"]) && (origin.user != "" && origin.user.startsWith("admin"))
+where: has(origin.country) && !(origin.country in ["United States", "Canada", "United Kingdom"]) && (origin.user != "" && origin.user.startsWith("admin"))
 ```
 
 #### Nested AfterEvents
