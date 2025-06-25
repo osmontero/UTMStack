@@ -1,10 +1,9 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {UtmModulesEnum} from '../../shared/enum/utm-module.enum';
-import {Step} from "../shared/step";
-import {SYSLOGSTEPS} from "../guide-syslog/syslog.steps";
-import {FILEBEAT_STEPS} from './filebeat.steps';
-import {FILEBEAT_PLATFORMS, Platform} from '../shared/constant';
 import {replaceCommandTokens} from '../../../shared/util/replace-command-tokens.util';
+import {UtmModulesEnum} from '../../shared/enum/utm-module.enum';
+import {FILEBEAT_PLATFORMS, Platform} from '../shared/constant';
+import {Step} from '../shared/step';
+import {FILEBEAT_STEPS} from './filebeat.steps';
 
 @Component({
   selector: 'app-guide-filebeat-generic',
@@ -18,14 +17,16 @@ export class GuideFilebeatGenericComponent implements OnInit {
   module = UtmModulesEnum;
   @Input() serverId: number;
   platform: Platform;
-  platformOnlyModules = [{
-    module: UtmModulesEnum.AUDITD,
-    os: 'LINUX'
-  },{
-
-    module: UtmModulesEnum.IIS,
-    os: 'WINDOWS'
-  }];
+  platformOnlyModules = [
+    {
+      module: UtmModulesEnum.AUDITD,
+      os: 'LINUX'
+    },
+    {
+      module: UtmModulesEnum.IIS,
+      os: 'WINDOWS'
+    },
+  ];
   commandsActivate: FilebeatCommands[] = [
     {module: UtmModulesEnum.TRAEFIK, os: 'linux', command: 'cd /opt/utmstack-linux-agent/beats/filebeat/ && '
         + './filebeat modules enable traefik',
