@@ -113,7 +113,7 @@ A rule is defined as a YAML object with the following fields:
     - indexPattern: v11-log-*     # Index pattern to search in
       with: # Conditions for the search
         - field: origin.ip.keyword  # Field to match
-          operator: eq              # Operator (eq, neq)
+          operator: filter_term              # Operator (filter_term, must_not_term, filter_match, must_not_match)
           value: '{{origin.ip}}'    # Value to match (can use variables from the event)
       within: now-12h             # Time window for the search
       count: 1                    # Number of events to match
@@ -782,7 +782,7 @@ afterEvents:
   - indexPattern: v11-log-*
     with:
       - field: origin.ip.keyword
-        operator: eq
+        operator: filter_term
         value: '{{origin.ip}}'
     within: now-12h
     count: 1
@@ -790,7 +790,7 @@ afterEvents:
       - indexPattern: v11-alert-*
         with:
           - field: adversary.ip.keyword
-            operator: eq
+            operator: filter_term
             value: '{{origin.ip}}'
         within: now-24h
         count: 2
@@ -811,10 +811,10 @@ afterEvents:
   - indexPattern: v11-log-*
     with:
       - field: origin.user.keyword
-        operator: eq
+        operator: filter_term
         value: '{{origin.user}}'
       - field: origin.ip.keyword
-        operator: neq
+        operator: must_not_term
         value: '{{origin.ip}}'
     within: now-24h
     count: 3
@@ -987,10 +987,10 @@ pipeline:
     - indexPattern: v11-log-auth_logs
       with:
         - field: origin.ip.keyword
-          operator: eq
+          operator: filter_term
           value: '{{origin.ip}}'
         - field: actionResult.keyword
-          operator: eq
+          operator: filter_term
           value: 'failure'
       within: now-1h
       count: 5
@@ -1052,10 +1052,10 @@ pipeline:
     - indexPattern: v11-log-network_logs
       with:
         - field: origin.ip.keyword
-          operator: eq
+          operator: filter_term
           value: '{{origin.ip}}'
         - field: target.ip.keyword
-          operator: eq
+          operator: filter_term
           value: '{{target.ip}}'
       within: now-24h
       count: 1
@@ -1118,10 +1118,10 @@ pipeline:
     - indexPattern: v11-log-user_activity
       with:
         - field: origin.user.keyword
-          operator: eq
+          operator: filter_term
           value: '{{origin.user}}'
         - field: action.keyword
-          operator: eq
+          operator: filter_term
           value: '{{action}}'
       within: now-7d
       count: 1
