@@ -244,11 +244,11 @@ public class OverviewService {
                 List<BucketAggregation> subBuckets = TermAggregateParser.parse(bucket.getSubAggregations().get(EVENT_TYPE_SUB_AGG));
 
                 if (CollectionUtils.isEmpty(subBuckets)) {
-                    eventTypes.forEach(eventType -> result.addSerie(eventType, 0L));
+                    eventTypes.forEach(eventType -> result.addSeries(eventType, 0L));
                 } else {
                     Map<String, Long> subBucketMap = subBuckets.stream().collect(
                         Collectors.toMap(BucketAggregation::getKey, BucketAggregation::getDocCount));
-                    eventTypes.forEach(eventType -> result.addSerie(eventType, subBucketMap.getOrDefault(eventType, 0L)));
+                    eventTypes.forEach(eventType -> result.addSeries(eventType, subBucketMap.getOrDefault(eventType, 0L)));
                 }
             });
 

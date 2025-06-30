@@ -1,36 +1,25 @@
 package com.park.utmstack.domain.shared_types;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@Setter
+@Getter
 public class EventsByObjectsInTimeType {
     private List<String> categories = new ArrayList<>();
     private List<Metadata> series = new ArrayList<>();
-
-    public List<String> getCategories() {
-        return categories;
-    }
-
-    public void setCategories(List<String> categories) {
-        this.categories = categories;
-    }
-
-    public List<Metadata> getSeries() {
-        return series;
-    }
-
-    public void setSeries(List<Metadata> series) {
-        this.series = series;
-    }
 
     public void addCategory(String category) {
         categories.add(category);
     }
 
-    public void addSerie(String serie, Long value) {
+    public void addSeries(String serie, Long value) {
         boolean existMetadata = false;
         for (Metadata metadata : series) {
-            if (metadata.serie.equals(serie)) {
+            if (metadata.series.equals(serie)) {
                 metadata.addValue(value);
                 existMetadata = true;
                 break;
@@ -44,27 +33,13 @@ public class EventsByObjectsInTimeType {
     }
 
     public static class Metadata {
-        private String serie;
+        private final String series;
+        @Setter
+        @Getter
         private List<Long> values = new ArrayList<>();
 
-        public Metadata(String serie) {
-            this.serie = serie;
-        }
-
-        public String getSerie() {
-            return serie;
-        }
-
-        public void setSerie(String serie) {
-            this.serie = serie;
-        }
-
-        public List<Long> getValues() {
-            return values;
-        }
-
-        public void setValues(List<Long> values) {
-            this.values = values;
+        public Metadata(String series) {
+            this.series = series;
         }
 
         public void addValue(Long val) {
