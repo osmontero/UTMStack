@@ -58,12 +58,13 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.initForm();
     this.apiServiceCheckerService.isOnlineApi$.subscribe(result => {
       if (result) {
         this.activatedRoute.queryParams.subscribe(params => {
           if (params.token) {
-            this.loadingLogin = false;
-            this.loginService.loginWithToken(params.token, true).then(() => {
+              this.loadingLogin = false;
+              this.loginService.loginWithToken(params.token, true).then(() => {
               this.loadingLogin = false;
               this.isInternalNavigation = true;
               this.startInternalNavigation(params);
@@ -75,7 +76,6 @@ export class LoginComponent implements OnInit {
               this.startInternalNavigation(params);
             });
           } else {
-            this.initForm();
             this.loadingAuth = false;
           }
         });
