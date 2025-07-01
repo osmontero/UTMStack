@@ -156,7 +156,7 @@ pipeline:
           params:
             key: severity
             value: 'high'
-          where: safe("log.severity", "") && log.severity=="ERROR"
+          where: safe("log.severity", "") == "ERROR"
       
       # Removing unused fields
       - delete:
