@@ -228,7 +228,7 @@ pipeline:
           from:
             - log.audit_compliance_operation
           to: log.auditComplianceOperation
-          where: safe("log.audit_compliance_operation")
+          where: exists("log.audit_compliance_operation")
       - rename:
           from:
             - log.node.id
@@ -387,7 +387,7 @@ pipeline:
           params:
             key: severity
             value: 'medium'
-          where: safe("log.level", "") && log.level == "WARN"
+          where: safe("log.level", "") == "WARN"
       - add:
           function: 'string'
           params:
