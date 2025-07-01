@@ -107,7 +107,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: safe("log.connectivity", "") && log.connectivity == "true"
+          where: safe("log.connectivity", "") == "true"
       # ........................................
       # event uplink connectivity change
       - rename:
