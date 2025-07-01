@@ -157,7 +157,7 @@ pipeline:
           params:
             key: log.severity
             value: 'medium'
-          where: safe("log.severityLabel", "") && log.severityLabel == "warning"
+          where: safe("log.severityLabel", "") == "warning"
 
       - add:
           function: 'string'
