@@ -280,7 +280,7 @@ pipeline:
       - cast:
           fields:
             - log.statusCode
-          to: int
+          to: float64
 
       - cast:
           fields:
@@ -306,35 +306,35 @@ pipeline:
           params:
             key: action
             value: 'get'
-          where: safe("log.method", "") && log.method == "GET"
+          where: safe("log.method", "") == "GET"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'post'
-          where: safe("log.method", "") && log.method == "POST"
+          where: safe("log.method", "") == "POST"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'put'
-          where: safe("log.method", "") && log.method == "PUT"
+          where: safe("log.method", "") == "PUT"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'delete'
-          where: safe("log.method", "") && log.method == "DELETE"
+          where: safe("log.method", "") == "DELETE"
 
       - add:
           function: 'string'
           params:
             key: action
             value: 'request'
-          where: safe("log.method", "") && log.method == "REQUEST"
+          where: safe("log.method", "") == "REQUEST"
 
       # Adding actionResult
       # denied by default
@@ -349,7 +349,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: safe("statusCode", 0,0) && (statusCode >= double(200) && statusCode <= double(299) || (safe("origin.bytesReceived", 0,0) && statusCode >= double(300) && statusCode <= double(399) && origin.bytesReceived > double(0,0)))
+          where: safe("statusCode", 0.0) && (statusCode >= double(200) && statusCode <= double(299) || (safe("origin.bytesReceived", 0.0) && statusCode >= double(300) && statusCode <= double(399) && origin.bytesReceived > double(0)))
 
       # Adding severity based on log.severityLabel
       - add:
@@ -364,7 +364,7 @@ pipeline:
           params:
             key: log.severity
             value: 'medium'
-          where: safe("log.severityLabel"", "") && log.severityLabel == "warning"
+          where: safe("log.severityLabel", "") == "warning"
 
       - add:
           function: 'string'
