@@ -162,7 +162,7 @@ pipeline:
           params:
             key: severity
             value: 'high'
-          where: safe("log.severity", "") && log.severity=="error"
+          where: safe("log.severity", "") == "error"
 
       # Parse beats field
       - rename:
