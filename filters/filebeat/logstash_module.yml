@@ -120,7 +120,7 @@ pipeline:
           params:
             key: severity
             value: 'medium'
-          where: safe("log.level", "") && log.level == "WARN"
+          where: safe("log.level", "") == "WARN"
       - add:
           function: 'string'
           params:
