@@ -1,7 +1,7 @@
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
-import {Subject} from 'rxjs';
-import {filter, takeUntil} from 'rxjs/operators';
+import {Observable, of, Subject} from 'rxjs';
+import {catchError, filter, finalize, map, takeUntil, tap} from 'rxjs/operators';
 import {UtmToastService} from '../../../../shared/alert/utm-toast.service';
 import {NavBehavior} from '../../../../shared/behaviors/nav.behavior';
 import {ModuleChangeStatusBehavior} from '../../behavior/module-change-status.behavior';
@@ -11,6 +11,7 @@ import {UtmModulesService} from '../../services/utm-modules.service';
 import {UtmModuleType} from '../../type/utm-module.type';
 import {AppModuleChecksComponent} from '../app-module-checks/app-module-checks.component';
 import {AppModuleDeactivateComponent} from '../app-module-deactivate/app-module-deactivate.component';
+import {HttpErrorResponse} from "@angular/common/http";
 
 @Component({
   selector: 'app-app-module-activate-button',
@@ -24,10 +25,11 @@ export class AppModuleActivateButtonComponent implements OnInit, OnDestroy {
   @Input() disabled = false;
   @Input() serverId: number;
   @Output() disableModuleClicked = new EventEmitter<void>();
-  loadingDetail = true;
+  loadingDetail = false;
   moduleDetail: UtmModuleType;
   changingStatus: any;
   activatable: boolean;
+  moduleDetail$: Observable<UtmModuleType>;
   destroy$: Subject<void> = new Subject<void>();
 
   constructor(private utmModulesService: UtmModulesService,
@@ -49,16 +51,24 @@ export class AppModuleActivateButtonComponent implements OnInit, OnDestroy {
             this.changeModuleStatus(value.status);
           }
         });
-    this.getModuleDetail(this.module);
+    this.moduleDetail$ = this.getModuleDetail(this.module);
   }
 
   getModuleDetail(module: UtmModulesEnum) {
-    this.utmModulesService.getModulesDetails({nameShort: module, serverId: this.serverId})
-      .subscribe(response => {
-        this.activatable = response.body.activatable;
-        this.moduleDetail = response.body;
-        this.loadingDetail = false;
-      });
+   return this.utmModulesService.getModulesDetails({nameShort: module, serverId: this.serverId})
+     .pipe(
+       tap(() => this.loadingDetail = true),
+       map(response => {
+         this.activatable = response.body.activatable;
+         this.moduleDetail = response.body;
+         return response.body;
+       }),
+       catchError((error: HttpErrorResponse) => {
+         this.toastService.showError('Error', 'Unable to load module detail');
+         return of({} as UtmModuleType);
+       }),
+       finalize(() => this.loadingDetail = false)
+     );
   }
 
   enableModule() {
