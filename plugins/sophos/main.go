@@ -15,9 +15,7 @@ import (
 	"github.com/threatwinds/go-sdk/plugins"
 	"github.com/threatwinds/go-sdk/utils"
 
-	utmconf "github.com/utmstack/config-client-go"
-	"github.com/utmstack/config-client-go/enum"
-	"github.com/utmstack/config-client-go/types"
+	"github.com/utmstack/UTMStack/plugins/sophos/config"
 )
 
 const (
@@ -43,6 +41,20 @@ func main() {
 		go plugins.SendLogsFromChannel()
 	}
 
+	internalKey := ""
+	for {
+		utmConfig := plugins.PluginCfg("com.utmstack", false)
+		internalKey = utmConfig.Get("internalKey").String()
+		if internalKey == "" {
+			catcher.Info("Internal key is not set, waiting...", nil)
+			time.Sleep(10 * time.Second)
+			continue
+		}
+		break
+	}
+
+	go config.ConnectAndStreamConfig("localhost:9003", internalKey)
+
 	delay := 5 * time.Minute
 	ticker := time.NewTicker(delay)
 	defer ticker.Stop()
@@ -54,26 +66,19 @@ func main() {
 
 		if err := connectionChecker(urlCheckConnection); err != nil {
 			_ = catcher.Error("External connection failure detected: %v", err, nil)
-		}
-
-		utmConfig := plugins.PluginCfg("com.utmstack", false)
-		internalKey := utmConfig.Get("internalKey").String()
-		backendUrl := utmConfig.Get("backend").String()
-		if internalKey == "" || backendUrl == "" {
 			continue
 		}
 
-		client := utmconf.NewUTMClient(internalKey, backendUrl)
-		moduleConfig, err := client.GetUTMConfig(enum.SOPHOS)
-		if err == nil && moduleConfig.ModuleActive {
+		cnf := config.GetConfig()
+		if cnf != nil && cnf.ModuleActive {
 			var wg sync.WaitGroup
-			wg.Add(len(moduleConfig.ConfigurationGroups))
+			wg.Add(len(cnf.ModuleGroups))
 
-			for _, grp := range moduleConfig.ConfigurationGroups {
-				go func(group types.ModuleGroup) {
+			for _, grp := range cnf.ModuleGroups {
+				go func(group *config.ModuleGroup) {
 					defer wg.Done()
 					var invalid bool
-					for _, c := range group.Configurations {
+					for _, c := range group.ModuleGroupConfigurations {
 						if strings.TrimSpace(c.ConfValue) == "" {
 							invalid = true
 							break
@@ -91,9 +96,9 @@ func main() {
 	}
 }
 
-func pull(startTime time.Time, group types.ModuleGroup) {
+func pull(startTime time.Time, group *config.ModuleGroup) {
 	nextKeysMu.RLock()
-	prevKey := nextKeys[group.ModuleID]
+	prevKey := nextKeys[int(group.Id)]
 	nextKeysMu.RUnlock()
 
 	agent := getSophosCentralProcessor(group)
@@ -117,7 +122,7 @@ func pull(startTime time.Time, group types.ModuleGroup) {
 	}
 
 	nextKeysMu.Lock()
-	nextKeys[group.ModuleID] = newNextKey
+	nextKeys[int(group.Id)] = newNextKey
 	nextKeysMu.Unlock()
 }
 
@@ -130,15 +135,15 @@ type SophosCentralProcessor struct {
 	ExpiresAt    time.Time
 }
 
-func getSophosCentralProcessor(group types.ModuleGroup) SophosCentralProcessor {
+func getSophosCentralProcessor(group *config.ModuleGroup) SophosCentralProcessor {
 	sophosProcessor := SophosCentralProcessor{}
 
-	for _, cnf := range group.Configurations {
-		switch cnf.ConfName {
+	for _, conf := range group.ModuleGroupConfigurations {
+		switch conf.ConfName {
 		case "Client Id":
-			sophosProcessor.ClientID = cnf.ConfValue
+			sophosProcessor.ClientID = conf.ConfValue
 		case "Client Secret":
-			sophosProcessor.ClientSecret = cnf.ConfValue
+			sophosProcessor.ClientSecret = conf.ConfValue
 		}
 	}
 	return sophosProcessor
