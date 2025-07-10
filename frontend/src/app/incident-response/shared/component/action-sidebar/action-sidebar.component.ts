@@ -8,7 +8,7 @@ import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 @Component({
   selector: 'app-action-sidebar',
   templateUrl: './action-sidebar.component.html',
-  styleUrls: ['./action-sidebar.component.css']
+  styleUrls: ['./action-sidebar.component.scss']
 })
 export class ActionSidebarComponent implements OnInit {
 

@@ -13,7 +13,7 @@ import {IncidentRuleType} from '../../type/incident-rule.type';
 @Component({
   selector: 'app-condition-builder',
   templateUrl: './condition-builder.component.html',
-  styleUrls: ['./condition-builder.component.css']
+  styleUrls: ['./condition-builder.component.scss']
 })
 export class ConditionBuilderComponent implements OnInit {
 

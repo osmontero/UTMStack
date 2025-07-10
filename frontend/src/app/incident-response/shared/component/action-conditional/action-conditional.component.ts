@@ -10,7 +10,7 @@ export enum ActionConditionalEnum  {
 @Component({
   selector: 'app-action-conditional',
   templateUrl: './action-conditional.component.html',
-  styleUrls: ['./action-conditional.component.css']
+  styleUrls: ['./action-conditional.component.scss']
 })
 export class ActionConditionalComponent implements OnInit {
 

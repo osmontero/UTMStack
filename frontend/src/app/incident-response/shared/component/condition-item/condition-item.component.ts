@@ -14,7 +14,7 @@ import {ElasticSearchFieldInfoType} from '../../../../shared/types/elasticsearch
 @Component({
   selector: 'app-condition-item',
   templateUrl: './condition-item.component.html',
-  styleUrls: ['./condition-item.component.css']
+  styleUrls: ['./condition-item.component.scss']
 })
 export class ConditionItemComponent implements OnInit {
   @Input() group: FormGroup;
