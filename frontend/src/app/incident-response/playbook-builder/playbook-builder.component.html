@@ -7,13 +7,13 @@
       </button>
     </div>
   </div>
-  <form [formGroup]="formRule" class="h-100">
-    <div class="d-flex h-100">
-      <div class="col-auto px-0 sidebar-section h-100">
+  <form [formGroup]="formRule" class="h-100 m-h-0">
+    <div class="d-flex h-100  m-h-0">
+      <div class="col-auto px-0 sidebar-section h-100 m-h-0 pb-3">
         <app-action-sidebar></app-action-sidebar>
       </div>
 
-      <div class="col overflow-auto h-100 d-flex flex-column px-0 pl-2">
+      <div class="col overflow-auto h-100 m-h-0 d-flex flex-column px-0 pl-2 pb-3">
         <div class="card mb-4">
           <div class="card-body">
             <div class="mb-3">
@@ -75,12 +75,12 @@
           <app-action-builder [group]="formRule"></app-action-builder>
         </div>
 
-        <div class="button-container d-flex justify-content-end mt-auto pt-3 border-top w-100">
+        <div class="button-container d-flex justify-content-end mt-auto pt-3 border-top w-100 px-2">
           <!--<button class="btn utm-button utm-button-outline-primary ng-star-inserted">
             <i class="icon-eye mr-2"></i> Preview
           </button>-->
 
-          <button (click)="createRule()" class="btn utm-button utm-button-primary ml-2 ng-star-inserted"
+          <button (click)="createRule()" class="btn utm-button utm-button-primary ml-2"
           [disabled]="!formRule.valid">
             <i class="icon-terminal mr-2"></i>
             {{ (rule ? 'Update' : 'Create') + ' flow' }}
