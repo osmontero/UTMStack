@@ -4,7 +4,7 @@ import (
 	"regexp"
 
 	"github.com/threatwinds/go-sdk/plugins"
-	"github.com/utmstack/UTMStack/plugins/soc-ai/configurations"
+	"github.com/utmstack/UTMStack/plugins/soc-ai/config"
 	"github.com/utmstack/UTMStack/plugins/soc-ai/schema"
 
 	structpb "google.golang.org/protobuf/types/known/structpb"
@@ -18,19 +18,19 @@ func cleanAlerts(alert schema.AlertFields) schema.AlertFields {
 
 	if alert.Target != nil {
 		if alert.Target.User != "" {
-			alert.Target.User = configurations.FakeUserName
+			alert.Target.User = config.FakeUserName
 		}
 		if alert.Target.Email != "" {
-			alert.Target.Email = configurations.FakeEmail
+			alert.Target.Email = config.FakeEmail
 		}
 	}
 
 	if alert.LastEvent != nil {
 		if alert.LastEvent.Target != nil && alert.LastEvent.Target.User != "" {
-			alert.LastEvent.Target.User = configurations.FakeUserName
+			alert.LastEvent.Target.User = config.FakeUserName
 		}
 		if alert.LastEvent.Target != nil && alert.LastEvent.Target.Email != "" {
-			alert.LastEvent.Target.Email = configurations.FakeEmail
+			alert.LastEvent.Target.Email = config.FakeEmail
 		}
 
 		if alert.LastEvent.Log != nil {
@@ -39,7 +39,7 @@ func cleanAlerts(alert schema.AlertFields) schema.AlertFields {
 				case *structpb.Value_StringValue:
 					original := v.StringValue
 					cleaned := original
-					for _, pattern := range configurations.SensitivePatterns {
+					for _, pattern := range config.SensitivePatterns {
 						re := regexp.MustCompile(pattern.Regexp)
 						cleaned = re.ReplaceAllString(cleaned, pattern.FakeValue)
 					}

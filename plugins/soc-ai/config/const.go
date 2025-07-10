@@ -1,4 +1,4 @@
-package configurations
+package config
 
 const (
 	API_ALERT_ENDPOINT                  = "/api/elasticsearch/search"
@@ -9,9 +9,9 @@ const (
 	API_ALERT_INFO_PARAMS               = "?page=0&size=25&top=10000&indexPattern="
 	ELASTIC_DOC_ENDPOINT                = "/_doc/"
 	ELASTIC_UPDATE_BY_QUERY_ENDPOINT    = "/_update_by_query"
-	ALERT_INDEX_PATTERN                 = "alert-*"
-	LOGS_INDEX_PATTERN                  = "log-*"
-	SOC_AI_INDEX                        = "soc-ai"
+	ALERT_INDEX_PATTERN                 = "v11-alert-*"
+	LOGS_INDEX_PATTERN                  = "v11-log-*"
+	SOC_AI_INDEX                        = "v11-soc-ai"
 	GPT_API_ENDPOINT                    = "https://api.openai.com/v1/chat/completions"
 	TIME_FOR_GET_CONFIG                 = 10
 	CLEANER_DELAY                       = 10

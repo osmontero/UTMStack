@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/utmstack/UTMStack/plugins/soc-ai/configurations"
+	"github.com/utmstack/UTMStack/plugins/soc-ai/config"
 	"github.com/utmstack/UTMStack/plugins/soc-ai/schema"
 )
 
@@ -22,7 +22,7 @@ func ConvertFromAlertDBToGPTResponse(alertDetails *schema.AlertFields) schema.GP
 		AlertName:      alertDetails.Name,
 		ActivityID:     alertDetails.ID,
 		Classification: alertDetails.GPTClassification,
-		Reasoning:      strings.Split(alertDetails.GPTReasoning, configurations.LOGS_SEPARATOR),
+		Reasoning:      strings.Split(alertDetails.GPTReasoning, config.LOGS_SEPARATOR),
 		NextSteps:      []schema.NextStep{},
 	}
 

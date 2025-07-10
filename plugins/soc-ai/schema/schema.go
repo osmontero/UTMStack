@@ -63,6 +63,7 @@ type NextStep struct {
 
 type ChangeAlertStatus struct {
 	AlertIDs          []string `json:"alertIds"`
+	DataSource        string   `json:"dataSource"`
 	StatusObservation string   `json:"statusObservation"`
 	Status            int      `json:"status"`
 }

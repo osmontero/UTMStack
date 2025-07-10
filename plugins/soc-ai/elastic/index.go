@@ -4,22 +4,38 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
-	"github.com/utmstack/UTMStack/plugins/soc-ai/configurations"
+	"github.com/utmstack/UTMStack/plugins/soc-ai/config"
 	"github.com/utmstack/UTMStack/plugins/soc-ai/schema"
 	"github.com/utmstack/UTMStack/plugins/soc-ai/utils"
 )
 
 func ElasticQuery(index string, query interface{}, op string) error {
-	var endp string
+	var url string
+	var method string
+
 	switch op {
 	case "create":
-		endp = configurations.ELASTIC_DOC_ENDPOINT
+		if gptResp, ok := query.(schema.GPTAlertResponse); ok && gptResp.ActivityID != "" {
+			url = fmt.Sprintf("%s/%s/_doc/%s", config.GetConfig().Opensearch, index, gptResp.ActivityID)
+			method = "PUT"
+		} else {
+			url = fmt.Sprintf("%s/%s/_doc", config.GetConfig().Opensearch, index)
+			method = "POST"
+		}
 	case "update":
-		endp = configurations.ELASTIC_UPDATE_BY_QUERY_ENDPOINT
+		if gptResp, ok := query.(schema.GPTAlertResponse); ok && gptResp.ActivityID != "" {
+			url = fmt.Sprintf("%s/%s/_doc/%s", config.GetConfig().Opensearch, index, gptResp.ActivityID)
+			method = "PUT"
+		} else {
+			url = fmt.Sprintf("%s/%s%s", config.GetConfig().Opensearch, index, config.ELASTIC_UPDATE_BY_QUERY_ENDPOINT)
+			method = "POST"
+		}
+	default:
+		return fmt.Errorf("unsupported operation: %s", op)
 	}
-	url := fmt.Sprintf("%s/%s%s", configurations.GetConfig().Openseach, index, endp)
 	headers := map[string]string{
 		"Content-Type": "application/json",
 	}
@@ -29,7 +45,7 @@ func ElasticQuery(index string, query interface{}, op string) error {
 		return fmt.Errorf("error marshalling query: %v", err)
 	}
 
-	resp, statusCode, err := utils.DoReq(url, queryBytes, "POST", headers, configurations.HTTP_TIMEOUT)
+	resp, statusCode, err := utils.DoReq(url, queryBytes, method, headers, config.HTTP_TIMEOUT)
 	if err != nil || (statusCode != http.StatusOK && statusCode != http.StatusCreated) {
 		return fmt.Errorf("error while doing request: %v, status: %d, response: %v", err, statusCode, string(resp))
 	}
@@ -38,11 +54,11 @@ func ElasticQuery(index string, query interface{}, op string) error {
 }
 
 func ElasticSearch(index, field, value string) ([]byte, error) {
-	config := configurations.GetConfig()
-	url := config.Backend + configurations.API_ALERT_ENDPOINT + configurations.API_ALERT_INFO_PARAMS + index
+	cnf := config.GetConfig()
+	url := cnf.Backend + config.API_ALERT_ENDPOINT + config.API_ALERT_INFO_PARAMS + index
 	headers := map[string]string{
 		"Content-Type":     "application/json",
-		"Utm-Internal-Key": config.InternalKey,
+		"Utm-Internal-Key": cnf.InternalKey,
 	}
 
 	body := schema.SearchDetailsRequest{{Field: field, Operator: "IS", Value: value}}
@@ -51,7 +67,7 @@ func ElasticSearch(index, field, value string) ([]byte, error) {
 		return nil, fmt.Errorf("error marshalling body: %v", err)
 	}
 
-	resp, statusCode, err := utils.DoReq(url, bodyBytes, "POST", headers, configurations.HTTP_TIMEOUT)
+	resp, statusCode, err := utils.DoReq(url, bodyBytes, "POST", headers, config.HTTP_TIMEOUT)
 	if err != nil || statusCode != http.StatusOK {
 		return nil, fmt.Errorf("error while doing request for get Alert Details: %v: %s", err, string(resp))
 	}
@@ -67,29 +83,44 @@ func IndexStatus(id, status, op string) error {
 	}
 
 	if op == "update" {
-		query, err := ConvertGPTResponseToUpdateQuery(doc)
-		if err != nil {
-			return fmt.Errorf("error while converting response to update query: %v", err)
-		}
-		return ElasticQuery(configurations.SOC_AI_INDEX, query, op)
+		// For update operations, pass the GPTAlertResponse directly to use _doc endpoint
+		return ElasticQuery(config.SOC_AI_INDEX, doc, op)
 	} else {
-		return ElasticQuery(configurations.SOC_AI_INDEX, doc, op)
+		// Handle create operations with index creation retry logic
+		err := ElasticQuery(config.SOC_AI_INDEX, doc, op)
+		if err != nil {
+			// Check if the error is due to index not existing
+			if strings.Contains(err.Error(), "index_not_found_exception") || strings.Contains(err.Error(), "no such index") {
+				// Try to create the index first
+				if createErr := CreateIndexIfNotExist(config.SOC_AI_INDEX); createErr != nil {
+					return fmt.Errorf("error creating document in elastic: %v (failed to create index: %v)", err, createErr)
+				}
+
+				// Retry the create operation
+				if retryErr := ElasticQuery(config.SOC_AI_INDEX, doc, op); retryErr != nil {
+					return fmt.Errorf("error creating document in elastic after index creation: %v", retryErr)
+				}
+			} else {
+				return fmt.Errorf("error creating document in elastic: %v", err)
+			}
+		}
+		return nil
 	}
 }
 
 func CreateIndexIfNotExist(index string) error {
-	url := fmt.Sprintf("%s/%s", configurations.GetConfig().Openseach, index)
+	url := fmt.Sprintf("%s/%s", config.GetConfig().Opensearch, index)
 	headers := map[string]string{
 		"Content-Type": "application/json",
 	}
 
-	resp, statusCode, err := utils.DoReq(url, nil, "HEAD", headers, configurations.HTTP_TIMEOUT)
+	resp, statusCode, err := utils.DoReq(url, nil, "HEAD", headers, config.HTTP_TIMEOUT)
 	if err != nil {
 		return fmt.Errorf("error while doing request: %v, status: %d, response: %v", err, statusCode, string(resp))
 	}
 
 	if statusCode == 404 {
-		resp, statusCode, err = utils.DoReq(url, nil, "PUT", headers, configurations.HTTP_TIMEOUT)
+		resp, statusCode, err = utils.DoReq(url, nil, "PUT", headers, config.HTTP_TIMEOUT)
 		if err != nil || (statusCode != http.StatusOK && statusCode != http.StatusCreated) {
 			return fmt.Errorf("error while doing request: %v, status: %d, response: %v", err, statusCode, string(resp))
 		}

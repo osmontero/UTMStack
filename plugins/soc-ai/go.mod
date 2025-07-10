@@ -4,7 +4,6 @@ go 1.24.2
 
 require (
 	github.com/threatwinds/logger v1.2.2
-	github.com/utmstack/config-client-go v1.2.7
 	google.golang.org/grpc v1.73.0
 )
 

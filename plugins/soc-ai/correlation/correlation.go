@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/utmstack/UTMStack/plugins/soc-ai/configurations"
+	"github.com/utmstack/UTMStack/plugins/soc-ai/config"
 	"github.com/utmstack/UTMStack/plugins/soc-ai/elastic"
 	"github.com/utmstack/UTMStack/plugins/soc-ai/schema"
 )
@@ -28,7 +28,7 @@ func GetCorrelationContext(alert schema.AlertFields) (string, error) {
 func findRelatedAlerts(current schema.AlertFields) (schema.AlertCorrelation, error) {
 	correlation := schema.AlertCorrelation{CurrentAlert: current}
 
-	result, err := elastic.ElasticSearch(configurations.ALERT_INDEX_PATTERN, "name", current.Name)
+	result, err := elastic.ElasticSearch(config.ALERT_INDEX_PATTERN, "name", current.Name)
 	if err != nil {
 		return correlation, fmt.Errorf("error getting historical alerts: %v", err)
 	}
@@ -60,17 +60,17 @@ func isAlertRelated(current, historical schema.AlertFields) (bool, []string) {
 
 	var matches []string
 
-	if current.Adversary != nil && current.Adversary.Ip != "" && current.Adversary.Ip == historical.Adversary.Ip {
+	if current.Adversary != nil && current.Adversary.Ip != "" && historical.Adversary != nil && current.Adversary.Ip == historical.Adversary.Ip {
 		matches = append(matches, "AdversaryIP")
 	}
-	if current.Target != nil && current.Target.Ip != "" && current.Target.Ip == historical.Target.Ip {
+	if current.Target != nil && current.Target.Ip != "" && historical.Target != nil && current.Target.Ip == historical.Target.Ip {
 		matches = append(matches, "TargetIP")
 	}
-	if current.Adversary != nil && current.Adversary.User != "" && current.Adversary.User == historical.Adversary.User {
+	if current.Adversary != nil && current.Adversary.User != "" && historical.Adversary != nil && current.Adversary.User == historical.Adversary.User {
 		matches = append(matches, "AdversaryUser")
 	}
-	if current.Target != nil && current.Target.User != "" && current.Target.User == historical.Adversary.User {
-		matches = append(matches, "AdeversaryUser")
+	if current.Target != nil && current.Target.User != "" && historical.Adversary != nil && current.Target.User == historical.Adversary.User {
+		matches = append(matches, "AdversaryUser")
 	}
 
 	sort.Strings(matches)
