@@ -11,7 +11,7 @@ import {RuleService} from '../../../services/rule.service';
 import {ImportRuleService} from './import-rule.service';
 
 @Component({
-  selector: 'app-add-rule',
+  selector: 'app-import-rule',
   templateUrl: './import-rule.component.html',
   styleUrls: ['./import-rule.component.scss'],
 })
@@ -124,6 +124,10 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
             ).pipe(
               map(filteredDataTypes => ({
                 ...file,
+                confidentiality: file.impact.confidentiality || 0,
+                integrity: file.impact.integrity || 0,
+                availability: file.impact.availability || 0,
+                definition: file.where || '',
                 dataTypes: filteredDataTypes.filter(dt => !!dt)
               }))
             )
