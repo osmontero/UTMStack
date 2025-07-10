@@ -17,7 +17,7 @@ import {NewPlaybookComponent} from "../shared/component/new-playbook/new-playboo
 @Component({
   selector: 'app-playbooks',
   templateUrl: './playbooks.component.html',
-  styleUrls: ['./playbooks.component.css']
+  styleUrls: ['./playbooks.component.scss']
 })
 export class PlaybooksComponent implements OnInit, AfterViewInit {
   loading = true;

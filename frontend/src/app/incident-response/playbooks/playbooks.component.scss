@@ -49,7 +49,7 @@
 }
 
 .text-muted-foreground {
-  color: hsl(240 4% 46%)!important;
+  color: #6f7281!important;
 }
 
 .text-xs {
@@ -60,13 +60,6 @@
 .text-sm {
   font-size: .810rem;
   line-height: 1.25rem;
-}
-
-.line-clamp-2 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
 }
 
 .bg-background {
