@@ -116,6 +116,8 @@ func (s *ConfigServer) NotifyUpdate(moduleName string, section *ConfigurationSec
 	switch moduleName {
 	case "SOPHOS":
 		pluginType = PluginType_SOPHOS
+	case "SOC_AI":
+		pluginType = PluginType_SOC_AI
 	default:
 		_ = catcher.Error("unknown module name", fmt.Errorf("module: %s", moduleName), nil)
 		return
@@ -147,6 +149,7 @@ func (s *ConfigServer) NotifyUpdate(moduleName string, section *ConfigurationSec
 func (s *ConfigServer) SyncConfigs(backend string, internalKey string) {
 	var AllModules = map[string]PluginType{
 		"SOPHOS": PluginType_SOPHOS,
+		"SOC_AI": PluginType_SOC_AI,
 	}
 
 	for name, t := range AllModules {
