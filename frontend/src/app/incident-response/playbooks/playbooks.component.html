@@ -65,7 +65,7 @@
           <div class="w-100">
             <div class="d-flex justify-content-between">
               <div class="d-flex flex-column">
-                <div class="text-sm truncate font-semibold">{{ item.name }}</div>
+                <div style="display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;" class="text-sm truncate font-semibold">{{ item.name }}</div>
                 <div class="truncate text-xs text-muted-foreground">{{ item.createdDate | relativeTime }}</div>
               </div>
               <div  autoClose="outside" class="list-icons-item dropdown cursor-pointer"
