@@ -3,6 +3,8 @@ package com.park.utmstack.domain.application_modules;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.park.utmstack.domain.application_modules.types.ModuleConfigurationKey;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -11,6 +13,8 @@ import java.io.Serializable;
 /**
  * A UtmModuleGroupConfiguration.
  */
+@Setter
+@Getter
 @Entity
 @Table(name = "utm_module_group_configuration")
 public class UtmModuleGroupConfiguration implements Serializable {
@@ -64,85 +68,7 @@ public class UtmModuleGroupConfiguration implements Serializable {
         this.confDescription = key.getConfDescription();
         this.confDataType = key.getConfDataType();
         this.confRequired = key.getConfRequired();
+        this.confOptions = key.getConfOptions();
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getGroupId() {
-        return groupId;
-    }
-
-    public void setGroupId(Long groupId) {
-        this.groupId = groupId;
-    }
-
-    public String getConfKey() {
-        return confKey;
-    }
-
-    public void setConfKey(String confKey) {
-        this.confKey = confKey;
-    }
-
-    public String getConfValue() {
-        return confValue;
-    }
-
-    public void setConfValue(String confValue) {
-        this.confValue = confValue;
-    }
-
-    public String getConfName() {
-        return confName;
-    }
-
-    public void setConfName(String confName) {
-        this.confName = confName;
-    }
-
-    public String getConfDescription() {
-        return confDescription;
-    }
-
-    public void setConfDescription(String confDescription) {
-        this.confDescription = confDescription;
-    }
-
-    public String getConfDataType() {
-        return confDataType;
-    }
-
-    public void setConfDataType(String confDataType) {
-        this.confDataType = confDataType;
-    }
-
-    public Boolean getConfRequired() {
-        return confRequired;
-    }
-
-    public void setConfRequired(Boolean confRequired) {
-        this.confRequired = confRequired;
-    }
-
-    public UtmModuleGroup getModuleGroup() {
-        return moduleGroup;
-    }
-
-    public void setModuleGroup(UtmModuleGroup moduleGroup) {
-        this.moduleGroup = moduleGroup;
-    }
-
-    public String getConfOptions() {
-        return confOptions;
-    }
-
-    public void setConfOptions(String confOptions) {
-        this.confOptions = confOptions;
-    }
 }

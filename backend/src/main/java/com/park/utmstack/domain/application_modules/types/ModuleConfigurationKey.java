@@ -80,6 +80,7 @@ public class ModuleConfigurationKey {
         private String confDescription;
         private String confDataType;
         private Boolean confRequired;
+        private Boolean confVisible = true;
 
         private String confOptions;
 

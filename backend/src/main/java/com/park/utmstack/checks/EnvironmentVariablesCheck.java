@@ -41,6 +41,10 @@ public class EnvironmentVariablesCheck {
             missingVars.add(Constants.ENV_ENCRYPTION_KEY);
         if (!StringUtils.hasText(vars.get(Constants.ENV_SERVER_NAME)))
             missingVars.add(Constants.ENV_SERVER_NAME);
+        if (!StringUtils.hasText(vars.get(Constants.ENV_EVENT_PROCESSOR_HOST)))
+            missingVars.add(Constants.ENV_EVENT_PROCESSOR_HOST);
+        if (!StringUtils.hasText(vars.get(Constants.ENV_EVENT_PROCESSOR_PORT)))
+            missingVars.add(Constants.ENV_EVENT_PROCESSOR_PORT);
 
         if (CollectionUtils.isEmpty(missingVars)) {
             ConsoleColors.greenBold();

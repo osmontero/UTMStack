@@ -4,7 +4,9 @@ import com.park.utmstack.domain.application_events.enums.ApplicationEventType;
 import com.park.utmstack.domain.application_modules.UtmModuleGroupConfiguration;
 import com.park.utmstack.service.application_events.ApplicationEventService;
 import com.park.utmstack.service.application_modules.UtmModuleGroupConfigurationService;
+import com.park.utmstack.service.dto.application_modules.GroupConfigurationDTO;
 import com.park.utmstack.web.rest.util.HeaderUtil;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -12,28 +14,22 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api")
+
 public class UtmModuleGroupConfigurationResource {
 
     private static final String CLASSNAME = "UtmModuleGroupConfigurationResource";
     private final Logger log = LoggerFactory.getLogger(UtmModuleGroupConfigurationResource.class);
-
     private final UtmModuleGroupConfigurationService moduleGroupConfigurationService;
     private final ApplicationEventService applicationEventService;
 
-    public UtmModuleGroupConfigurationResource(UtmModuleGroupConfigurationService moduleGroupConfigurationService,
-                                               ApplicationEventService applicationEventService) {
-        this.moduleGroupConfigurationService = moduleGroupConfigurationService;
-        this.applicationEventService = applicationEventService;
-    }
 
     @PutMapping("/module-group-configurations/update")
-    public ResponseEntity<Void> updateConfiguration(@Valid @RequestBody UpdateConfigurationKeysBody body) {
+    public ResponseEntity<Void> updateConfiguration(@Valid @RequestBody GroupConfigurationDTO body) {
         final String ctx = CLASSNAME + ".updateConfiguration";
         try {
             moduleGroupConfigurationService.updateConfigurationKeys(body.getModuleId(), body.getKeys());
@@ -76,26 +72,4 @@ public class UtmModuleGroupConfigurationResource {
         }
     }
 
-    public static class UpdateConfigurationKeysBody {
-        @NotNull
-        private Long moduleId;
-        @NotEmpty
-        private List<UtmModuleGroupConfiguration> keys;
-
-        public Long getModuleId() {
-            return moduleId;
-        }
-
-        public void setModuleId(Long moduleId) {
-            this.moduleId = moduleId;
-        }
-
-        public List<UtmModuleGroupConfiguration> getKeys() {
-            return keys;
-        }
-
-        public void setKeys(List<UtmModuleGroupConfiguration> keys) {
-            this.keys = keys;
-        }
-    }
 }

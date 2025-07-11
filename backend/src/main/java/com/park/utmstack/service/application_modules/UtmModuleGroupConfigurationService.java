@@ -1,11 +1,15 @@
 package com.park.utmstack.service.application_modules;
 
 import com.park.utmstack.config.Constants;
+import com.park.utmstack.domain.application_modules.UtmModule;
 import com.park.utmstack.domain.application_modules.UtmModuleGroupConfiguration;
 import com.park.utmstack.domain.application_modules.enums.ModuleName;
 import com.park.utmstack.repository.UtmModuleGroupConfigurationRepository;
 import com.park.utmstack.repository.application_modules.UtmModuleRepository;
+import com.park.utmstack.event_processor.EventProcessorManagerService;
 import com.park.utmstack.util.CipherUtil;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -22,18 +26,15 @@ import java.util.stream.Collectors;
  */
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class UtmModuleGroupConfigurationService {
 
     private static final String CLASSNAME = "UtmModuleGroupConfigurationService";
 
     private final UtmModuleGroupConfigurationRepository moduleConfigurationRepository;
     private final UtmModuleRepository moduleRepository;
+    private final EventProcessorManagerService eventProcessorManagerService;
 
-    public UtmModuleGroupConfigurationService(UtmModuleGroupConfigurationRepository moduleConfigurationRepository,
-                                              UtmModuleRepository moduleRepository) {
-        this.moduleConfigurationRepository = moduleConfigurationRepository;
-        this.moduleRepository = moduleRepository;
-    }
 
     public void createConfigurationKeys(List<UtmModuleGroupConfiguration> keys) throws Exception {
         final String ctx = CLASSNAME + ".createConfigurationKeys";
@@ -71,6 +72,8 @@ public class UtmModuleGroupConfigurationService {
             moduleRepository.findById(moduleId).ifPresent(module -> {
                 module.setNeedsRestart(needRestartModules.contains(module.getModuleName()));
                 moduleRepository.save(module);
+                UtmModule detached = SerializationUtils.clone(module);
+                eventProcessorManagerService.updateModule(detached);
             });
         } catch (Exception e) {
             throw new Exception(ctx + ": " + e.getMessage());

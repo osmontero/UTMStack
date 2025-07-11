@@ -26,4 +26,6 @@ public interface UtmModuleRepository extends JpaRepository<UtmModule, Long>, Jpa
 
     @Query("select distinct m.moduleCategory from UtmModule m where m.moduleCategory is not null and (:serverId is null or m.serverId = :serverId)")
     List<String> findModuleCategories(@Param("serverId") Long serverId);
+
+    UtmModule findByPrettyName(String prettyName);
 }

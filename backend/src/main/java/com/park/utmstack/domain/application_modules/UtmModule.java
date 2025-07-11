@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.park.utmstack.domain.UtmServer;
 import com.park.utmstack.domain.application_modules.enums.ModuleName;
 import com.park.utmstack.domain.logstash_filter.UtmLogstashFilter;
+import lombok.Data;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -15,6 +16,7 @@ import java.util.Set;
  * A UtmModule.
  */
 @Entity
+@Data
 @Table(name = "utm_module")
 public class UtmModule implements Serializable {
 
@@ -66,103 +68,6 @@ public class UtmModule implements Serializable {
     @OneToMany(mappedBy = "module", fetch = FetchType.LAZY)
     private Set<UtmLogstashFilter> filters;
 
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getServerId() {
-        return serverId;
-    }
-
-    public void setServerId(Long serverId) {
-        this.serverId = serverId;
-    }
-
-    public String getPrettyName() {
-        return prettyName;
-    }
-
-    public void setPrettyName(String prettyName) {
-        this.prettyName = prettyName;
-    }
-
-    public ModuleName getModuleName() {
-        return moduleName;
-    }
-
-    public void setModuleName(ModuleName moduleName) {
-        this.moduleName = moduleName;
-    }
-
-    public String getModuleDescription() {
-        return moduleDescription;
-    }
-
-    public void setModuleDescription(String moduleDescription) {
-        this.moduleDescription = moduleDescription;
-    }
-
-    public Boolean getModuleActive() {
-        return moduleActive;
-    }
-
-    public void setModuleActive(Boolean moduleActive) {
-        this.moduleActive = moduleActive;
-    }
-
-    public String getModuleIcon() {
-        return moduleIcon;
-    }
-
-    public void setModuleIcon(String moduleIcon) {
-        this.moduleIcon = moduleIcon;
-    }
-
-    public String getModuleCategory() {
-        return moduleCategory;
-    }
-
-    public void setModuleCategory(String moduleCategory) {
-        this.moduleCategory = moduleCategory;
-    }
-
-    public Boolean getLiteVersion() {
-        return liteVersion;
-    }
-
-    public void setLiteVersion(Boolean liteVersion) {
-        this.liteVersion = liteVersion;
-    }
-
-    public Boolean getNeedsRestart() {
-        return needsRestart;
-    }
-
-    public void setNeedsRestart(Boolean needsRestart) {
-        this.needsRestart = needsRestart;
-    }
-
-    public UtmServer getServer() {
-        return server;
-    }
-
-    public void setServer(UtmServer server) {
-        this.server = server;
-    }
-
-    public Set<UtmModuleGroup> getModuleGroups() {
-        return moduleGroups;
-    }
-
-    public void setModuleGroups(Set<UtmModuleGroup> moduleGroups) {
-        this.moduleGroups = moduleGroups;
-    }
-
     public Boolean getActivatable() {
         return isActivatable;
     }
@@ -170,12 +75,5 @@ public class UtmModule implements Serializable {
     public void setActivatable(Boolean activatable) {
         isActivatable = activatable;
     }
-
-    public Set<UtmLogstashFilter> getFilters() {
-        return filters;
-    }
-
-    public void setFilters(Set<UtmLogstashFilter> filters) {
-        this.filters = filters;
-    }
 }
+
