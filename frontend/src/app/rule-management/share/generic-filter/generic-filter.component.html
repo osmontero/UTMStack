@@ -1,4 +1,4 @@
-<div class="card p-0 m-0 ">
+<div class="card p-0 m-0 h-100 m-h-0 ">
     <div class="card-header header-elements-sm-inline bg-white card-header-title p-2 pb-1 w-100">
         <span class="font-weight-light span-small-icon">
           {{fieldFilter.label ? fieldFilter.label : fieldFilter.field}}
@@ -18,7 +18,7 @@
              [infiniteScrollDistance]="1"
              [infiniteScrollThrottle]="80"
              [scrollWindow]="false"
-             class="filter-value-field-container"
+             class="filter-value-field-container h-100 m-h-0 overflow-auto"
              infiniteScroll>
             <app-filter [list]="items">
               <ng-template appTemplateSelector let-item let-i>
