@@ -21,7 +21,7 @@ export class GenericConfiguration extends IntegrationConfig {
               this.groups = response.body.map(group => {
                 group.moduleGroupConfigurations.forEach(config => {
                   if (config.confOptions) {
-                    config.confOptions = JSON.parse(config.confOptions);
+                    config.confOptions = this.tryParseJSON(config.confOptions);
                   }
                 });
                 return group;
@@ -39,4 +39,12 @@ export class GenericConfiguration extends IntegrationConfig {
     deleteIntegrationConfigs(group: UtmModuleGroupType): Observable<any> {
         return this.utmModuleGroupService.delete(group.id);
     }
+
+  tryParseJSON(value: any): any {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return value;
+    }
+  }
 }
