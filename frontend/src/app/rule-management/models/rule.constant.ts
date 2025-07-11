@@ -27,7 +27,7 @@ export const RULE_FIELDS: UtmFieldType[] = [
         type: ElasticDataTypesEnum.STRING,
         visible: true,
         filter: false,
-        width: '15%'
+        width: '30%'
     },
     {
         label: 'Types',
@@ -36,7 +36,7 @@ export const RULE_FIELDS: UtmFieldType[] = [
         visible: true,
         filter: true,
         filterField: RULE_FILTER_DATA_TYPES,
-        width: '30%'
+        width: '10%'
     },
     {
         label: 'Category',
@@ -45,7 +45,7 @@ export const RULE_FIELDS: UtmFieldType[] = [
         visible: true,
         filter: true,
         filterField: RULE_FILTER_CATEGORY,
-        width: '10%'
+        width: '15%'
     },
     {
         label: 'Technique',
@@ -54,7 +54,7 @@ export const RULE_FIELDS: UtmFieldType[] = [
         visible: true,
         filter: true,
         filterField: RULE_FILTER_TECHNIQUE,
-        width: '10%'
+        width: '30%'
     },
     {
       label: 'Adversary',
@@ -71,7 +71,7 @@ export const RULE_FIELDS: UtmFieldType[] = [
         type: ElasticDataTypesEnum.STRING,
         visible: true,
         filter: false,
-        width: '10%'
+        width: '5%'
     },
     {
       label: 'Integrity',
@@ -79,7 +79,7 @@ export const RULE_FIELDS: UtmFieldType[] = [
       type: ElasticDataTypesEnum.STRING,
       visible: true,
       filter: false,
-      width: '10%'
+      width: '5%'
     },
     {
       label: 'Availability',
@@ -87,7 +87,7 @@ export const RULE_FIELDS: UtmFieldType[] = [
       type: ElasticDataTypesEnum.STRING,
       visible: true,
       filter: false,
-      width: '10%'
+      width: '5%'
     },
 ];
 
