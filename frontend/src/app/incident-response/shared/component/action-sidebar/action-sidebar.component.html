@@ -14,17 +14,16 @@
                             placeholder="Search more actions ..."></app-utm-search-input>
     </div>
 
-    <!-- título -->
     <div class="text-muted small px-3 mb-2">
       Click an action to add it to the workflow
     </div>
 
-    <!-- aquí comienza la sección con scroll -->
+
     <div class="px-3 pb-3 overflow-auto flex-grow-1">
       <div *ngFor="let action of actionSidebarService.actionTemplates$ | async"
            class="card mb-3 action-block shadow-sm cursor-pointer"
            (click)="addToWorkFlow(action)">
-        <div class="card-body d-flex flex-column">
+        <div class="card-body px-2 d-flex flex-column">
           <div class="d-flex align-items-center mb-2">
             <div class="icon-box mr-2"></div>
             <div>
@@ -37,7 +36,7 @@
 
       <div class="card mb-3 available-action phantom-action"
            (click)="openActionSidebar()">
-        <div class="card-body d-flex flex-column">
+        <div class="card-body d-flex flex-column px-2">
           <div class="d-flex align-items-center mb-2">
             <div class="icon-terminal mr-2"></div>
             <div>

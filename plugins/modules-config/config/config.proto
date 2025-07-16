@@ -11,6 +11,7 @@ service ConfigService {
 enum PluginType {
     UNKNOWN = 0;
     SOPHOS = 1;
+    SOC_AI = 2;
 }
 
 message BiDirectionalMessage {

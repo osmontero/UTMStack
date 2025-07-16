@@ -6,7 +6,7 @@ import {INCIDENT_AUTOMATION_ALERT_FIELDS} from '../../../../shared/constants/ale
 @Component({
   selector: 'app-action-terminal',
   templateUrl: './action-terminal.component.html',
-  styleUrls: ['./action-terminal.component.css']
+  styleUrls: ['./action-terminal.component.scss']
 })
 export class ActionTerminalComponent implements OnInit {
 

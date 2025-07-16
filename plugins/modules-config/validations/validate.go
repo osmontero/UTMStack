@@ -12,6 +12,10 @@ func ValidateModuleConfig(moduleName string, config *config.ModuleGroup) error {
 		if err := ValidateSophosConfig(config); err != nil {
 			return fmt.Errorf("%v", err)
 		}
+	case "SOC_AI":
+		if err := ValidateSOCAIConfig(config); err != nil {
+			return fmt.Errorf("%v", err)
+		}
 	default:
 		return fmt.Errorf("unsupported module: %s", moduleName)
 	}

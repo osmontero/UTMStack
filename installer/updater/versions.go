@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"sync"
 
@@ -68,6 +69,9 @@ func ExtractVersionFromFolder(folder string) (string, error) {
 		return "", fmt.Errorf("error reading directory: %v", err)
 	}
 
+	// Regex pattern to find versions like 11_0_0
+	versionRegex := regexp.MustCompile(`-(\d+_\d+_\d+)-enterprise\.tar$`)
+
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
@@ -75,12 +79,11 @@ func ExtractVersionFromFolder(folder string) (string, error) {
 
 		name := entry.Name()
 		if strings.HasPrefix(name, "utmstack-") && strings.HasSuffix(name, "-enterprise.tar") {
-			base := strings.TrimPrefix(name, "utmstack-")
-			base = strings.TrimSuffix(base, "-enterprise.tar")
-
-			version := strings.ReplaceAll(base, "_", ".")
-
-			return version, nil
+			matches := versionRegex.FindStringSubmatch(name)
+			if len(matches) >= 2 {
+				version := strings.ReplaceAll(matches[1], "_", ".")
+				return version, nil
+			}
 		}
 	}
 

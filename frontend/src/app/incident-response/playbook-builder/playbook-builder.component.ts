@@ -27,7 +27,7 @@ import {IncidentRuleType} from '../shared/type/incident-rule.type';
 @Component({
   selector: 'app-playbook-builder',
   templateUrl: './playbook-builder.component.html',
-  styleUrls: ['./playbook-builder.component.css']
+  styleUrls: ['./playbook-builder.component.scss']
 })
 export class PlaybookBuilderComponent implements OnInit, OnDestroy {
 

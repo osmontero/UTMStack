@@ -15,15 +15,15 @@ export class ImportRuleService {
 
   isValidRule(obj: Rule): obj is Rule {
      console.log('Valid');
-    if (!obj || typeof obj !== 'object') { return false; }
+     if (!obj || typeof obj !== 'object') { return false; }
 
      const requiredProps: (keyof Rule)[] = [
        'dataTypes', 'name', 'confidentiality', 'integrity', 'availability',
-      'category', 'technique', 'description', 'references', 'definition',
+      'category', 'technique', 'description', 'references', 'definition', 'adversary'
     ];
 
 
-    if (!requiredProps.every(prop => prop in obj)) { return false; }
+     if (!requiredProps.every(prop => prop in obj)) { return false; }
 
      if (
       !Array.isArray(obj.dataTypes) ||
@@ -32,10 +32,11 @@ export class ImportRuleService {
       typeof obj.integrity !== 'number' ||
       typeof obj.availability !== 'number' ||
       typeof obj.category !== 'string' ||
+      typeof obj.adversary !== 'string' ||
       typeof obj.technique !== 'string' ||
       typeof obj.description !== 'string' ||
       !Array.isArray(obj.references) ||
-      typeof obj.definition !== 'object'
+      typeof obj.definition !== 'string'
     ) {
       return false;
     }

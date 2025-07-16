@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"os"
 	"time"
@@ -9,7 +10,7 @@ import (
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
 	twutil "github.com/threatwinds/go-sdk/utils"
-	"github.com/utmstack/UTMStack/plugins/soc-ai/configurations"
+	"github.com/utmstack/UTMStack/plugins/soc-ai/config"
 	"github.com/utmstack/UTMStack/plugins/soc-ai/elastic"
 	"github.com/utmstack/UTMStack/plugins/soc-ai/utils"
 	"google.golang.org/grpc"
@@ -23,7 +24,7 @@ type socAiServer struct {
 func main() {
 	utils.Logger.Info("Starting soc-ai plugin...")
 
-	go configurations.UpdateGPTConfigurations()
+	go config.StartConfigurationSystem()
 
 	// Retry logic for creating socket directory
 	maxRetries := 3
@@ -141,7 +142,22 @@ func main() {
 
 func (p *socAiServer) Correlate(_ context.Context,
 	alert *plugins.Alert) (*emptypb.Empty, error) {
-	utils.Logger.LogF(100, "Received alert: %s", alert.Id)
+	defer func() {
+		if r := recover(); r != nil {
+			_ = catcher.Error("recovered from panic in Correlate method", nil, map[string]any{
+				"panic": r,
+				"alert": alert.Name,
+			})
+		}
+	}()
+
+	// Check if the module is active before processing the alert
+	if !config.GetConfig().ModuleActive {
+		utils.Logger.LogF(100, "SOC-AI module is disabled, skipping alert: %s", alert.Id)
+		return &emptypb.Empty{}, nil
+	}
+
+	fmt.Printf("Processing alert: %s\n", alert.Name)
 
 	alertFields := cleanAlerts(alertToAlertFields(alert))
 

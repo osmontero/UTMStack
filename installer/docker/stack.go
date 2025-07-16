@@ -116,31 +116,27 @@ func StackUP(tag string) error {
 			fmt.Println(" [OK]")
 		}
 	} else {
-		fmt.Println("  Loading images from local folder (airgap mode):")
-		loadedImages := make(map[string]bool)
+		fmt.Println("  Loading images from local folder:")
 
-		for _, service := range compose.Services {
-			imageName := *service.Image
-			imageName = strings.ReplaceAll(imageName, "${UTMSTACK_TAG}", tag)
-			parts := strings.Split(imageName, "/")
-			shortName := parts[len(parts)-1]
-			shortName = strings.ReplaceAll(shortName, ":"+tag, "")
-			tarPattern := fmt.Sprintf("utmstack-%s-%s-enterprise.tar", shortName, strings.ReplaceAll(tag, ".", "_"))
-			tarPath := filepath.Join(config.ImagesPath, tarPattern)
-			if loadedImages[shortName] {
-				continue // Skip if already loaded
-			}
-			if _, err := os.Stat(tarPath); err == nil {
-				fmt.Printf("    Importing %s...", tarPath)
-				if err := utils.RunCmd("docker", "load", "-i", tarPath); err != nil {
-					return fmt.Errorf("failed to load image from %s: %w", tarPath, err)
-				}
-				fmt.Println(" [OK]")
-				loadedImages[shortName] = true
-			} else {
-				return fmt.Errorf("required image archive not found: %s", tarPath)
-			}
+		files, err := filepath.Glob(filepath.Join(config.ImagesPath, "*.tar"))
+		if err != nil {
+			return fmt.Errorf("failed to list tar files: %w", err)
 		}
+
+		if len(files) == 0 {
+			return fmt.Errorf("no .tar files found in %s", config.ImagesPath)
+		}
+
+		for _, tarPath := range files {
+			fileName := filepath.Base(tarPath)
+			fmt.Printf("    Importing %s...", fileName)
+
+			if err := utils.RunCmd("docker", "load", "-i", tarPath); err != nil {
+				return fmt.Errorf("failed to load image from %s: %w", tarPath, err)
+			}
+			fmt.Println(" [OK]")
+		}
+
 	}
 
 	env := []string{"UTMSTACK_TAG=" + tag}

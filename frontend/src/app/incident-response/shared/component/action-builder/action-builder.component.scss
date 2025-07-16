@@ -4,7 +4,6 @@
   transition: background-color 0.2s ease;
   justify-content: center;
   min-height: 210px;
-
 }
 
 .action-block {
@@ -27,6 +26,7 @@
     justify-content: center;
     font-size: 1rem;
     color: #495057;
+    flex-shrink: 0;
   }
 }
 
