@@ -40,44 +40,87 @@ jobs:
     name: Build & Push Images with dependencies
     needs: 
       - build_images
-    runs-on: signing
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out code into the right branch
         uses: actions/checkout@v4
 
       - name: Login to GitHub Container Registry
-        run: |
-          docker login ghcr.io -u utmstack -p ${{ secrets.GITHUB_TOKEN }}
-          echo "Logged in to GitHub Container Registry"
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: utmstack
+          password: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Download base images
         run: |
           docker pull ghcr.io/threatwinds/eventprocessor/base:${{ inputs.event_processor_tag }}
           echo "Downloaded base images"      
 
-      - name: Build Agent
+      - name: Build and Sign Agent
         run: |
-          cd ${{ github.workspace }}/agent/config; (Get-Content const.go) | Foreach-Object { $_ -replace 'const REPLACE_KEY string = ""', 'const REPLACE_KEY string = "${{ secrets.AGENT_SECRET_PREFIX }}"' } | Set-Content const.go
+          cd ${{ github.workspace }}/agent/config
+          sed -i 's|const REPLACE_KEY string = ""|const REPLACE_KEY string = "${{ secrets.AGENT_SECRET_PREFIX }}"|' const.go
+          
+          echo "Building Agent..."
           cd ${{ github.workspace }}/agent
           
-          $env:GOOS = "linux"
-          $env:GOARCH = "amd64"
-          go build -o utmstack_agent_service -v .
-      
-          $env:GOOS = "windows"
-          $env:GOARCH = "amd64"
-          go build -o utmstack_agent_service.exe -v .
-          signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f "${{ vars.SIGN_CERT }}" /csp "eToken Base Cryptographic Provider" /k "[{{${{ secrets.SIGN_KEY }}}}]=${{ secrets.SIGN_CONTAINER }}" "utmstack_agent_service.exe"
-          $env:GOARCH = "arm64"
-          go build -o utmstack_agent_service_arm64.exe -v .
-          signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f "${{ vars.SIGN_CERT }}" /csp "eToken Base Cryptographic Provider" /k "[{{${{ secrets.SIGN_KEY }}}}]=${{ secrets.SIGN_CONTAINER }}" "utmstack_agent_service_arm64.exe"
+          GOOS=linux GOARCH=amd64 go build -o utmstack_agent_service -v .
+          # GOOS=linux GOARCH=arm64 go build -o utmstack_agent_service_arm64 -v .
+          GOOS=windows GOARCH=amd64 go build -o utmstack_agent_service.exe -v .
+          GOOS=windows GOARCH=arm64 go build -o utmstack_agent_service_arm64.exe -v .
 
-          echo "Agent build completed"
+          echo "Signing Windows Agent..."
+          FILES_TO_SIGN=("utmstack_agent_service.exe" "utmstack_agent_service_arm64.exe")
+          for file in "${FILES_TO_SIGN[@]}"; do
+            echo "Uploading $file for signing..."
+            RESPONSE=$(curl -sS -f -X POST http://customermanager.utmstack.com:8081/api/v1/upload \
+              -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+              -F "file=@$file")
+
+            FILE_ID=$(echo "$RESPONSE" | jq -r '.file_id')
+
+            if [[ -z "$FILE_ID" || "$FILE_ID" == "null" ]]; then
+              echo "❌ Failed to upload $file for signing."
+              exit 1
+            fi
+
+            echo "Uploaded $file with file_id: $FILE_ID"
+            echo "Waiting for signing to complete..."
+
+            while true; do
+              STATUS=$(curl -sS -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+                http://customermanager.utmstack.com:8081/api/v1/status/$FILE_ID | jq -r '.status')
+
+              if [[ "$STATUS" == "ready" ]]; then
+                echo "✅ $file has been signed."
+                break
+              elif [[ "$STATUS" == "signing" ]]; then
+                echo "⏳ Still signing $file... waiting 5s"
+                sleep 5
+              else
+                echo "❌ Unexpected status: $STATUS"
+                exit 1
+              fi
+            done
+
+            echo "Downloading signed $file..."
+            curl -sS -f -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+              -o "$file" \
+              http://customermanager.utmstack.com:8081/api/v1/download/$FILE_ID
+
+            echo "Marking $file as finished..."
+            curl -sS -X POST -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+              http://customermanager.utmstack.com:8081/api/v1/finish/$FILE_ID > /dev/null || true
+          done
+
+          echo "✅ All agents signed successfully."
       
       - name: Build Plugins
+        env:
+          GOOS: linux
+          GOARCH: amd64
         run: |
-          $env:GOOS = "linux"
-          $env:GOARCH = "amd64"
           cd ${{ github.workspace }}/plugins/alerts; go build -o com.utmstack.alerts.plugin -v .
           cd ${{ github.workspace }}/plugins/aws; go build -o com.utmstack.aws.plugin -v .
           cd ${{ github.workspace }}/plugins/azure; go build -o com.utmstack.azure.plugin -v .
@@ -93,28 +136,34 @@ jobs:
           cd ${{ github.workspace }}/plugins/soc-ai; go build -o com.utmstack.soc-ai.plugin -v .
           cd ${{ github.workspace }}/plugins/modules-config; go build -o com.utmstack.modules-config.plugin -v .
       
-      - name: Build & Push Event Processor Image
+      - name: Prepare Dependencies for Event Processor Image
         run: |
-          New-Item -ItemType Directory -Force -Path "./geolocation/"
-          Copy-Item -Path "C:/dependencies/${{ inputs.environment }}/geolocation/*" -Destination "./geolocation/"
+          mkdir -p ./dependencies/geolocation
+          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/geolocation/asn-blocks-v4.csv" -o ./dependencies/geolocation/asn-blocks-v4.csv
+          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/geolocation/asn-blocks-v6.csv" -o ./dependencies/geolocation/asn-blocks-v6.csv
+          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/geolocation/blocks-v4.csv" -o ./dependencies/geolocation/blocks-v4.csv
+          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/geolocation/blocks-v6.csv" -o ./dependencies/geolocation/blocks-v6.csv
+          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/geolocation/locations-en.csv" -o ./dependencies/geolocation/locations-en.csv
+          
           docker build -t ghcr.io/utmstack/utmstack/eventprocessor:${{ inputs.version_tag }}-community --build-arg BASE_IMAGE=ghcr.io/threatwinds/eventprocessor/base:${{ inputs.event_processor_tag }} -f ./event_processor.Dockerfile .
           docker push ghcr.io/utmstack/utmstack/eventprocessor:${{ inputs.version_tag }}-community
           echo "Event Processor image built and pushed"
 
       - name: Build & Push Agent Manager Image
         run: |
-          $env:GOOS = "linux"
-          $env:GOARCH = "amd64"
-          cd ${{ github.workspace }}/agent-manager; go build -o agent-manager -v .
+          cd ${{ github.workspace }}/agent-manager
+          GOOS=linux GOARCH=amd64  go build -o agent-manager -v .
 
-          New-Item -ItemType Directory -Force -Path "./dependencies/agent/"
+          mkdir -p ./dependencies/agent/
+          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/agent/utmstack_agent_dependencies_linux.zip" -o ./dependencies/agent/utmstack_agent_dependencies_linux.zip
+          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/agent/utmstack_agent_dependencies_windows.zip" -o ./dependencies/agent/utmstack_agent_dependencies_windows.zip
+          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/agent/utmstack_agent_dependencies_windows_arm64.zip" -o ./dependencies/agent/utmstack_agent_dependencies_windows_arm64.zip
 
-          Copy-Item -Path "C:/dependencies/${{ inputs.environment }}/agent/*" -Destination "./dependencies/agent/"
-          Copy-Item -Path "${{ github.workspace }}/agent/utmstack_agent_service" -Destination "./dependencies/agent/"
-          # Copy-Item -Path "${{ github.workspace }}/agent/utmstack_agent_service_arm64" -Destination "./dependencies/agent/"
-          Copy-Item -Path "${{ github.workspace }}/agent/utmstack_agent_service.exe" -Destination "./dependencies/agent/"
-          Copy-Item -Path "${{ github.workspace }}/agent/utmstack_agent_service_arm64.exe" -Destination "./dependencies/agent/"
-          Copy-Item -Path "${{ github.workspace }}/agent/version.json" -Destination "./dependencies/agent/"
+          cp "${{ github.workspace }}/agent/utmstack_agent_service" ./dependencies/agent/
+          # cp "${{ github.workspace }}/agent/utmstack_agent_service_arm64" ./dependencies/agent/
+          cp "${{ github.workspace }}/agent/utmstack_agent_service.exe" ./dependencies/agent/
+          cp "${{ github.workspace }}/agent/utmstack_agent_service_arm64.exe" ./dependencies/agent/
+          cp "${{ github.workspace }}/agent/version.json" ./dependencies/agent/
 
           docker build -t ghcr.io/utmstack/utmstack/agent-manager:${{ inputs.version_tag }}-community .
           docker push ghcr.io/utmstack/utmstack/agent-manager:${{ inputs.version_tag }}-community
