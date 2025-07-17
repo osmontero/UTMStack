@@ -136,6 +136,14 @@ export class AlertRuleCreateComponent implements OnInit, OnDestroy {
               private alertService: AlertService) {
 
     this.fields = ALERT_FIELDS.filter(value => !this.excludeFields.includes(value.field));
+    this.fields = this.fields.reduce((acc: any[], field) => {
+      if (typeof field === 'object' && field !== null && 'fields' in field) {
+        return acc.concat(field.fields);
+      }
+
+      return acc.concat(field);
+    }, []);
+
     this.operators = FILTER_OPERATORS.filter(value => !this.excludeOperators.includes(value.operator));
   }
 

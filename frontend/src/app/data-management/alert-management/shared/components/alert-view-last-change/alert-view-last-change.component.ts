@@ -1,4 +1,6 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {Subject} from 'rxjs';
+import {filter, takeUntil} from 'rxjs/operators';
 import {AlertHistoryType} from '../../../../../shared/types/alert/alert-history.type';
 import {AlertUpdateHistoryBehavior} from '../../behavior/alert-update-history.behavior';
 import {AlertHistoryActionEnum} from '../../enums/alert-history-action.enum';
@@ -10,20 +12,27 @@ import {AlertHistoryService} from '../alert-history/alert-history.service';
   templateUrl: './alert-view-last-change.component.html',
   styleUrls: ['./alert-view-last-change.component.scss']
 })
-export class AlertViewLastChangeComponent implements OnInit {
+export class AlertViewLastChangeComponent implements OnInit, OnDestroy {
   @Input() action: AlertHistoryActionEnum;
   @Input() alert: any;
   @Output() emptyValue = new EventEmitter<boolean>(false);
   lastChange: AlertHistoryType;
   loadingChange = true;
+  changes: string[];
+  destroy$: Subject<void> = new Subject<void>();
 
   constructor(private alertHistoryService: AlertHistoryService,
               private alertUpdateHistoryBehavior: AlertUpdateHistoryBehavior) {
   }
 
   ngOnInit(): void {
-    this.alertUpdateHistoryBehavior.$refreshHistory.subscribe(value => {
-      if (value) {
+    this.alertUpdateHistoryBehavior.$refreshHistory
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(value => !!value)
+      )
+      .subscribe(value => {
+      if (value && !!this.action) {
         this.loadingChange = true;
         this.getAlertHistory();
       }
@@ -40,15 +49,20 @@ export class AlertViewLastChangeComponent implements OnInit {
       sort: 'logDate,desc'
     };
     this.alertHistoryService.query(req).subscribe(logs => {
-      this.alertUpdateHistoryBehavior.$refreshHistory.next(null);
       if (logs.body.length !== 0) {
-        this.lastChange = logs.body[0];
+        this.changes = logs && logs.body && logs.body[0].logMessage.split('[utm-logs-separator]');
       } else {
         this.emptyValue.emit(true);
       }
 
       this.loadingChange = false;
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.alertUpdateHistoryBehavior.$refreshHistory.next(null);
   }
 
 }

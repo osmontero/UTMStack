@@ -43,7 +43,8 @@
             class="btn utm-button utm-button-primary
              d-flex justify-content-center
               align-items-center">
-      {{group ? 'Edit' : 'Create'}}  group
+      <i *ngIf="loading" [ngClass]="loading ? 'icon-spinner2 spinner mr-1': 'icon-cog5'"></i>
+      {{group ? ' Edit' : ' Create'}}  group
     </button>
   </div>
 </div>

@@ -1,4 +1,4 @@
-<div class="container-fluid pr-3 pl-3 pt-2">
+<div class="d-flex flex-column flex-1 px-3 pt-2 h-100 m-h-0">
   <div class="d-flex justify-content-between align-items-center mb-2">
     <h5 class="card-title mb-0 text-uppercase label-header">
       Incidents
@@ -9,15 +9,15 @@
   </div>
 
   <!--TABLE-->
-  <div class="d-flex flex-nowrap m-0 align-items-start">
+  <div class="d-flex m-0 h-100 m-h-0 pb-3">
     <div (resizeEnd)="onResize($event)"
          (resizing)="onResize($event)"
          [enableGhostResize]="true"
          [ngStyle]="{'width':filterWidth+'px'}"
          [resizeEdges]="{ bottom: false, right: true, top: false, left: false }"
-         class="resizable-filter-container mr-2"
+         class="resizable-filter-container mr-2 h-100 m-h-0"
          mwlResizable>
-      <div class="card h-100">
+      <div class="card h-100 m-h-0">
         <div class="card-header header-elements-sm-inline p-2 bg-white card-header-title">
           <label class="card-title">Filters</label>
           <div class="d-flex">
@@ -37,7 +37,7 @@
                                 [type]="'number'"
                                 [placeholder]="'Search by incident ID'"></app-utm-search-input>
         </div>
-        <div class="filter-container p-2 d-flex flex-column justify-content-start h-100 w-100">
+        <div class="filter-container p-2 d-flex flex-column justify-content-start h-100 w-100 m-h-0 overflow-auto">
           <div class="card p-0 m-0 ">
             <div class="card-header header-elements-sm-inline bg-white card-header-title p-2 pb-1 w-100">
               <span class="font-weight-light span-small-icon">
@@ -107,7 +107,7 @@
       </div>
 
     </div>
-    <div class="flex-grow-1">
+    <div class="w-100 h-100 m-h-0">
       <div class="card h-100">
         <div class="card-header p-2 w-100">
           <div class="d-flex justify-content-between align-items-center mt-2">
@@ -123,8 +123,7 @@
 
           </div>
         </div>
-        <div [ngStyle]="{'max-width':tableWidth+'px'}"
-             class="table-responsive resizable-table-responsive h-100">
+        <div class="table-responsive resizable-table-responsive h-100">
           <table class="table text-nowrap">
             <thead>
             <tr>
@@ -269,10 +268,10 @@
           <a [ngClass]="{'active':tabSelected===incidentTabEnum.DETAIL}" class="nav-link">
             <i class="icon-target2 mr-1"></i> Detail </a>
         </li>
-        <li (click)="tabSelected=incidentTabEnum.COMMAND" class="nav-item cursor-pointer">
+        <!--<li (click)="tabSelected=incidentTabEnum.COMMAND" class="nav-item cursor-pointer">
           <a [ngClass]="{'active':tabSelected===incidentTabEnum.COMMAND}" class="nav-link">
             <i class="icon-terminal mr-1"></i> Execute command </a>
-        </li>
+        </li>-->
         <li (click)="tabSelected=incidentTabEnum.NOTES;" class="nav-item cursor-pointer">
           <a [ngClass]="{'active':tabSelected===incidentTabEnum.NOTES}" class="nav-link">
             <i class="icon-bubble9 mr-1"></i> Notes
