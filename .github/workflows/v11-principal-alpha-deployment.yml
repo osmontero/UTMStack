@@ -65,8 +65,7 @@ jobs:
       environment: alpha
     secrets:
       AGENT_SECRET_PREFIX: ${{ secrets.AGENT_SECRET_PREFIX }}
-      SIGN_KEY: ${{ secrets.SIGN_KEY }}
-      SIGN_CONTAINER: ${{ secrets.SIGN_CONTAINER }}
+      SIGNER_TOKEN: ${{ secrets.SIGNER_TOKEN }}
       CM_AUTH: ${{ secrets.CM_AUTH_ALPHA }}
 
   schedule:
