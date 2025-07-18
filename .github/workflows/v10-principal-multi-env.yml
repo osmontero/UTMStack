@@ -140,13 +140,18 @@ jobs:
           GOOS=linux GOARCH=amd64  go build -o agent-manager -v .
           
           mkdir -p ./dependencies/collector
-          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/${{ needs.setup_deployment.outputs.tag }}/collector/linux-as400-collector.zip" -o ./dependencies/collector/linux-as400-collector.zip
-          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/${{ needs.setup_deployment.outputs.tag }}/collector/windows-as400-collector.zip" -o ./dependencies/collector/windows-as400-collector.zip
+          curl -sSL -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+            "http://customermanager.utmstack.com:8081/api/v1/fs/${{ needs.setup_deployment.outputs.tag }}/collector/linux-as400-collector.zip" -o ./dependencies/collector/linux-as400-collector.zip
+          curl -sSL -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+            "http://customermanager.utmstack.com:8081/api/v1/fs/${{ needs.setup_deployment.outputs.tag }}/collector/windows-as400-collector.zip" -o ./dependencies/collector/windows-as400-collector.zip
 
           mkdir -p ./dependencies/agent/
-          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/${{ needs.setup_deployment.outputs.tag }}/agent/utmstack_agent_dependencies_linux.zip" -o ./dependencies/agent/utmstack_agent_dependencies_linux.zip
-          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/${{ needs.setup_deployment.outputs.tag }}/agent/utmstack_agent_dependencies_windows.zip" -o ./dependencies/agent/utmstack_agent_dependencies_windows.zip
-          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/${{ needs.setup_deployment.outputs.tag }}/agent/utmstack_agent_dependencies_windows_arm64.zip" -o ./dependencies/agent/utmstack_agent_dependencies_windows_arm64.zip
+          curl -sSL -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+            "http://customermanager.utmstack.com:8081/api/v1/fs/${{ needs.setup_deployment.outputs.tag }}/agent/utmstack_agent_dependencies_linux.zip" -o ./dependencies/agent/utmstack_agent_dependencies_linux.zip
+          curl -sSL -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+            "http://customermanager.utmstack.com:8081/api/v1/fs/${{ needs.setup_deployment.outputs.tag }}/agent/utmstack_agent_dependencies_windows.zip" -o ./dependencies/agent/utmstack_agent_dependencies_windows.zip
+          curl -sSL -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+            "http://customermanager.utmstack.com:8081/api/v1/fs/${{ needs.setup_deployment.outputs.tag }}/agent/utmstack_agent_dependencies_windows_arm64.zip" -o ./dependencies/agent/utmstack_agent_dependencies_windows_arm64.zip
 
           cp "${{ github.workspace }}/agent/utmstack_agent_service" ./dependencies/agent/
           # cp "${{ github.workspace }}/agent/utmstack_agent_service_arm64" ./dependencies/agent/
