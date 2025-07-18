@@ -76,7 +76,7 @@ jobs:
     steps:
       - name: Run publisher
         run: |
-          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/alpha/version-publisher" -o ./version-publisher
+          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-alpha/version-publisher" -o ./version-publisher
           chmod +x ./version-publisher
           ./version-publisher '43cb25b3-1426-4c77-8bbe-b2e0b491ce08' '${{ github.event.inputs.version_tag }}'
           echo "Scheduled release to alpha for version ${{ github.event.inputs.version_tag }}."

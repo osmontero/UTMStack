@@ -139,12 +139,12 @@ jobs:
       - name: Prepare Dependencies for Event Processor Image
         run: |
           mkdir -p ./dependencies/geolocation
-          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/geolocation/asn-blocks-v4.csv" -o ./dependencies/geolocation/asn-blocks-v4.csv
-          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/geolocation/asn-blocks-v6.csv" -o ./dependencies/geolocation/asn-blocks-v6.csv
-          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/geolocation/blocks-v4.csv" -o ./dependencies/geolocation/blocks-v4.csv
-          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/geolocation/blocks-v6.csv" -o ./dependencies/geolocation/blocks-v6.csv
-          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/geolocation/locations-en.csv" -o ./dependencies/geolocation/locations-en.csv
-          
+          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/geolocation/asn-blocks-v4.csv" -o ./dependencies/geolocation/asn-blocks-v4.csv
+          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/geolocation/asn-blocks-v6.csv" -o ./dependencies/geolocation/asn-blocks-v6.csv
+          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/geolocation/blocks-v4.csv" -o ./dependencies/geolocation/blocks-v4.csv
+          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/geolocation/blocks-v6.csv" -o ./dependencies/geolocation/blocks-v6.csv
+          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/geolocation/locations-en.csv" -o ./dependencies/geolocation/locations-en.csv
+
           docker build -t ghcr.io/utmstack/utmstack/eventprocessor:${{ inputs.version_tag }}-community --build-arg BASE_IMAGE=ghcr.io/threatwinds/eventprocessor/base:${{ inputs.event_processor_tag }} -f ./event_processor.Dockerfile .
           docker push ghcr.io/utmstack/utmstack/eventprocessor:${{ inputs.version_tag }}-community
           echo "Event Processor image built and pushed"
@@ -155,9 +155,9 @@ jobs:
           GOOS=linux GOARCH=amd64  go build -o agent-manager -v .
 
           mkdir -p ./dependencies/agent/
-          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/agent/utmstack_agent_dependencies_linux.zip" -o ./dependencies/agent/utmstack_agent_dependencies_linux.zip
-          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/agent/utmstack_agent_dependencies_windows.zip" -o ./dependencies/agent/utmstack_agent_dependencies_windows.zip
-          curl -sSL "https://storage.googleapis.com/utmstack-updates/dependencies/${{ inputs.environment }}/agent/utmstack_agent_dependencies_windows_arm64.zip" -o ./dependencies/agent/utmstack_agent_dependencies_windows_arm64.zip
+          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/agent/utmstack_agent_dependencies_linux.zip" -o ./dependencies/agent/utmstack_agent_dependencies_linux.zip
+          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/agent/utmstack_agent_dependencies_windows.zip" -o ./dependencies/agent/utmstack_agent_dependencies_windows.zip
+          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/agent/utmstack_agent_dependencies_windows_arm64.zip" -o ./dependencies/agent/utmstack_agent_dependencies_windows_arm64.zip
 
           cp "${{ github.workspace }}/agent/utmstack_agent_service" ./dependencies/agent/
           # cp "${{ github.workspace }}/agent/utmstack_agent_service_arm64" ./dependencies/agent/
