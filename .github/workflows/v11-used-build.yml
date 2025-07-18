@@ -136,12 +136,12 @@ jobs:
       
       - name: Prepare Dependencies for Event Processor Image
         run: |
-          mkdir -p ./dependencies/geolocation
-          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/geolocation/asn-blocks-v4.csv" -o ./dependencies/geolocation/asn-blocks-v4.csv
-          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/geolocation/asn-blocks-v6.csv" -o ./dependencies/geolocation/asn-blocks-v6.csv
-          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/geolocation/blocks-v4.csv" -o ./dependencies/geolocation/blocks-v4.csv
-          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/geolocation/blocks-v6.csv" -o ./dependencies/geolocation/blocks-v6.csv
-          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/geolocation/locations-en.csv" -o ./dependencies/geolocation/locations-en.csv
+          mkdir -p ./geolocation
+          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/geolocation/asn-blocks-v4.csv" -o ./geolocation/asn-blocks-v4.csv
+          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/geolocation/asn-blocks-v6.csv" -o ./geolocation/asn-blocks-v6.csv
+          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/geolocation/blocks-v4.csv" -o ./geolocation/blocks-v4.csv
+          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/geolocation/blocks-v6.csv" -o ./geolocation/blocks-v6.csv
+          curl -sSL "http://customermanager.utmstack.com:8081/api/v1/fs/v11-${{ inputs.environment }}/geolocation/locations-en.csv" -o ./geolocation/locations-en.csv
 
           docker build -t ghcr.io/utmstack/utmstack/eventprocessor:${{ inputs.version_tag }}-community --build-arg BASE_IMAGE=ghcr.io/threatwinds/eventprocessor/base:${{ inputs.event_processor_tag }} -f ./event_processor.Dockerfile .
           docker push ghcr.io/utmstack/utmstack/eventprocessor:${{ inputs.version_tag }}-community
