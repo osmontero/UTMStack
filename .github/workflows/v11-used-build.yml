@@ -170,23 +170,22 @@ jobs:
       - name: Push new release
         run: |
           echo "Pushing new release..."
-          $changelog = Get-Content -Path "CHANGELOG.md" -Raw
-          $changelog = [string]$changelog
+          changelog=$(cat CHANGELOG.md)
 
-          $cmAuth = '${{ secrets.CM_AUTH }}' | ConvertFrom-Json
+          cmAuth=$(echo '${{ secrets.CM_AUTH }}' | jq -r '.')
+          id=$(echo "$cmAuth" | jq -r '.id')
+          key=$(echo "$cmAuth" | jq -r '.key')
 
-          $body = @{
-              version   = '${{ inputs.version_tag }}'
-              changelog = $changelog
-          } | ConvertTo-Json -Depth 3
+          body=$(jq -n \
+            --arg version "${{ inputs.version_tag }}" \
+            --arg changelog "$changelog" \
+            '{version: $version, changelog: $changelog}'
+          )
 
-          $response = Invoke-RestMethod -Method Post `
-              -Uri "https://customermanager.utmstack.com/${{ inputs.environment }}/api/v1/versions/register" `
-              -Headers @{
-                  id  = $cmAuth.id
-                  key = $cmAuth.key
-              } `
-              -Body $body `
-              -ContentType "application/json"
+          response=$(curl -s -X POST "https://customermanager.utmstack.com/${{ inputs.environment }}/api/v1/versions/register" \
+            -H "Content-Type: application/json" \
+            -H "id: $id" \
+            -H "key: $key" \
+            -d "$body")
 
-          $response
+          echo "Response: $response"
