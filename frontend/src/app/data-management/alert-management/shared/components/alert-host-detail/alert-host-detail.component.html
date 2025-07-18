@@ -1,15 +1,17 @@
-<div class="utm-box mt-4 pt-3 pr-3 pl-3 pb-1 border-1 border-blue-800 position-relative w-100 min-height-host-detail">
+<div class="container-alert-detail utm-box mt-4 p-3 pb-1 border-1 border-blue-800">
      <span class="p-1 utm-box-label">
        {{type | titlecase}} detail
      </span>
 
-  <div *ngFor="let field of fields" class="alert-details w-100 d-flex justify-content-start mb-2">
-    <span class="text-blue-800 font-weight-light has-minimum-width">
-      {{ (field.id | uppercase) + ':'  }}
-    </span>&nbsp;
-    <app-data-field-render
-      [data]="alert"
-      [field]="field.fieldType">
-    </app-data-field-render>
+  <div *ngFor="let field of fields" class="alert-details w-100 mb-2">
+  <span class="label">
+    {{ field.id | uppercase }}:
+  </span>
+    <div class="value">
+      <app-data-field-render
+        [data]="alert"
+        [field]="field.fieldType">
+      </app-data-field-render>
+    </div>
   </div>
 </div>

@@ -4,5 +4,10 @@
     <i class="icon-spinner2 spinner mr-2"></i>
     <span>Loading last change</span>
   </div>
-  <p *ngIf="lastChange && !loadingChange" [innerHTML]="lastChange.logMessage"></p>
 </div>
+<ul>
+  <li *ngFor="let p of changes" class="font-weight-thin font-size-base mt-2 d-flex justify-content-start align-items-start">
+    <i class="icon-radio-unchecked" [ngStyle]="{'padding-top':'9px','font-size':'5px','margin-right':'5px'}"></i>
+    <p class="font-size-base text-justify">{{p}}</p>
+  </li>
+</ul>

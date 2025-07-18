@@ -1,5 +1,6 @@
-import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
-import {map, tap} from 'rxjs/operators';
+import {ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges} from '@angular/core';
+import {Subject} from 'rxjs';
+import {debounceTime, distinctUntilChanged, finalize, map, takeUntil, tap} from 'rxjs/operators';
 import {ModalService} from '../../../core/modal/modal.service';
 import {UtmToastService} from '../../../shared/alert/utm-toast.service';
 import {
@@ -23,7 +24,7 @@ import {IntegrationConfigFactory} from './int-config-types/IntegrationConfigFact
   templateUrl: './int-generic-group-config.component.html',
   styleUrls: ['./int-generic-group-config.component.css']
 })
-export class IntGenericGroupConfigComponent implements OnInit, OnChanges {
+export class IntGenericGroupConfigComponent implements OnInit, OnChanges, OnDestroy {
   @Input() serverId: number;
   @Input() moduleId: number;
   @Input() groupType = GroupTypeEnum.TENANT;
@@ -41,6 +42,10 @@ export class IntGenericGroupConfigComponent implements OnInit, OnChanges {
   configs: UtmModuleGroupConfType[] = [];
   groupName: string;
   config: IntegrationConfig;
+  inputChange$ = new Subject<{id: number, value: string}>();
+  destroy$ = new Subject<void>();
+  uniqueConfigNameConstrain = false;
+  invalidDomainOrIp = false;
 
   constructor(private utmModuleGroupService: UtmModuleGroupService,
               private toast: UtmToastService,
@@ -49,7 +54,8 @@ export class IntGenericGroupConfigComponent implements OnInit, OnChanges {
               private modalService: ModalService,
               private moduleChangeStatusBehavior: ModuleChangeStatusBehavior,
               private collectorService: UtmModuleCollectorService,
-              public configFactory: IntegrationConfigFactory) {
+              public configFactory: IntegrationConfigFactory,
+              private cdr: ChangeDetectorRef) {
   }
 
   ngOnInit() {
@@ -59,6 +65,20 @@ export class IntGenericGroupConfigComponent implements OnInit, OnChanges {
     this.btnTittle = this.groupType === GroupTypeEnum.TENANT ?
       'Add tenant' : 'Add collector';
     this.groupName = this.groupType === GroupTypeEnum.TENANT ? 'tenant' : 'collector';
+
+    this.inputChange$
+      .pipe(
+        takeUntil(this.destroy$),
+        debounceTime(400))
+      .subscribe(event => {
+        this.uniqueConfigNameConstrain = this.uniqueConfigNameConstrain = this.groups
+          .filter(g => g.id !== event.id)
+          .some(group =>
+              group.moduleGroupConfigurations.some(config =>
+               config.confOptions === 'unique' && config.confValue.toLowerCase() === event.value.toLowerCase()
+              )
+        );
+      });
 
   }
 
@@ -171,18 +191,31 @@ export class IntGenericGroupConfigComponent implements OnInit, OnChanges {
   saveConfig(group: UtmModuleGroupType) {
     this.savingConfig = true;
     const configs = this.changes.keys.filter(change => change.groupId === group.id);
+
     this.utmModuleGroupConfService.update({
       moduleId: group.moduleId,
       keys: configs
-    }).subscribe(response => {
-      this.savingConfig = false;
-      this.pendingChanges = false;
-      this.changes = {keys: [], moduleId: this.moduleId};
-      this.configValidChange.emit(this.tenantGroupConfigValid());
-      this.toast.showSuccessBottom('Configuration saved successfully');
-    }, () => {
-      this.toast.showError('Error saving configuration',
-        'Error while trying to save tenant configuration , please try again');
+    }).pipe(
+      finalize(() => {
+        this.savingConfig = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: () => {
+        this.pendingChanges = false;
+        this.changes = { keys: [], moduleId: this.moduleId };
+        this.configValidChange.emit(this.tenantGroupConfigValid());
+        this.toast.showSuccessBottom('Configuration saved successfully');
+      },
+      error: err => {
+        if (err.status === 400) {
+          this.toast.showError('Invalid Configuration',
+            'The configuration data is invalid. Please check your inputs and try again.');
+        } else {
+          this.toast.showError('Error saving configuration',
+            'Error while trying to save tenant configuration, please try again.');
+        }
+      }
     });
   }
 
@@ -213,6 +246,9 @@ export class IntGenericGroupConfigComponent implements OnInit, OnChanges {
   }
 
   addChange(integrationConfig: UtmModuleGroupConfType) {
+    if (integrationConfig.confKey === 'ipAddress') {
+      this.invalidDomainOrIp = !this.isValidDomainOrIp(integrationConfig.confValue);
+    }
     this.pendingChanges = true;
     const index = this.changes.keys
                             .findIndex(value =>
@@ -344,5 +380,21 @@ export class IntGenericGroupConfigComponent implements OnInit, OnChanges {
 
   activeModule() {
     this.moduleChangeStatusBehavior.setStatus(!this.moduleChangeStatusBehavior.getLastStatus() ? true : null, true);
+  }
+
+  isValidDomainOrIp(value: string): boolean {
+    const ipRegex = /^(?:\d{1,3}\.){3}\d{1,3}$/;
+    const domainRegex = /^(?!:\/\/)([a-zA-Z0-9-_]+\.)+[a-zA-Z]{2,}$/;
+    return ipRegex.test(value) || domainRegex.test(value);
+  }
+
+  configHasChanges(id: any): boolean {
+    return this.changes.keys.some(change => change.groupId === id);
+  }
+
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

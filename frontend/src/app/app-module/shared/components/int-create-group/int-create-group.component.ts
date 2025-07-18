@@ -23,6 +23,7 @@ export class IntCreateGroupComponent implements OnInit {
   @Output() groupChange = new EventEmitter<UtmModuleGroupType>();
   formGroupConfig: FormGroup;
   adding = false;
+  loading = false;
   GroupTypeEnum = GroupTypeEnum;
 
   constructor(private fb: FormBuilder,
@@ -52,6 +53,7 @@ export class IntCreateGroupComponent implements OnInit {
   }
 
   saveGroup() {
+    this.loading = true;
     this.adding = true;
     if (this.group) {
       this.editGroup();
@@ -62,6 +64,7 @@ export class IntCreateGroupComponent implements OnInit {
 
   createGroup() {
     this.groupService.create(this.getFormValue()).subscribe(response => {
+      this.loading = false;
       this.emitGroup(response.body);
     }, () => {
       this.error('creating');
@@ -70,6 +73,7 @@ export class IntCreateGroupComponent implements OnInit {
 
   editGroup() {
     this.groupService.update(this.formGroupConfig.value).subscribe(response => {
+      this.loading = false;
       this.emitGroup(response.body);
     }, () => {
       this.error('editing');
