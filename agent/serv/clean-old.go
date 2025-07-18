@@ -13,52 +13,11 @@ import (
 func CleanOldServices(cnf *config.Config) {
 	oldVersion := false
 
-	isUpdaterINstalled, err := utils.CheckIfServiceIsInstalled("UTMStackUpdater")
-	if err != nil {
-		utils.Logger.LogF(100, "error checking if service is installed: %v", err)
-	}
-
-	if isUpdaterINstalled {
-		oldVersion = true
-		err = utils.StopService("UTMStackUpdater")
-		if err != nil {
-			utils.Logger.LogF(100, "error stopping service: %v", err)
-		}
-
-		err = utils.UninstallService("UTMStackUpdater")
-		if err != nil {
-			utils.Logger.LogF(100, "error uninstalling service: %v", err)
-		}
-	}
-
-	isRedlineInstalled, err := utils.CheckIfServiceIsInstalled("UTMStackRedline")
-	if err != nil {
-		utils.Logger.LogF(100, "error checking if service is installed: %v", err)
-	}
-
-	if isRedlineInstalled {
-		oldVersion = true
-		err = utils.StopService("UTMStackRedline")
-		if err != nil {
-			utils.Logger.LogF(100, "error stopping service: %v", err)
-		}
-
-		err = utils.UninstallService("UTMStackRedline")
-		if err != nil {
-			utils.Logger.LogF(100, "error uninstalling service: %v", err)
-		}
-	}
-
 	if oldVersion {
 		utils.Logger.Info("old version of agent found, downloading new version")
-		headers := map[string]string{
-			"key":  cnf.AgentKey,
-			"id":   fmt.Sprintf("%v", cnf.AgentID),
-			"type": "agent",
-		}
 
 		if runtime.GOOS != "darwin" {
-			if err := utils.DownloadFile(fmt.Sprintf(config.DependUrl, cnf.Server, config.DependenciesPort, fmt.Sprintf(config.UpdaterSelf, "")), headers, fmt.Sprintf(config.UpdaterSelf, "_new"), utils.GetMyPath(), cnf.SkipCertValidation); err != nil {
+			if err := utils.DownloadFile(fmt.Sprintf(config.DependUrl, cnf.Server, config.DependenciesPort, fmt.Sprintf(config.UpdaterSelf, "")), map[string]string{}, fmt.Sprintf(config.UpdaterSelf, "_new"), utils.GetMyPath(), cnf.SkipCertValidation); err != nil {
 				utils.Logger.LogF(100, "error downloading updater: %v", err)
 				return
 			}
