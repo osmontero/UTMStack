@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, OnInit} from '@angular/core';
+import {AfterViewInit, Component, OnDestroy, OnInit} from '@angular/core';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {Observable, of} from 'rxjs';
 import {catchError, finalize, map, tap} from 'rxjs/operators';
@@ -19,7 +19,7 @@ import {NewPlaybookComponent} from "../shared/component/new-playbook/new-playboo
   templateUrl: './playbooks.component.html',
   styleUrls: ['./playbooks.component.scss']
 })
-export class PlaybooksComponent implements OnInit, AfterViewInit {
+export class PlaybooksComponent implements OnInit, AfterViewInit, OnDestroy {
   loading = true;
   rules: IncidentRuleType[];
   range: TimeFilterType;
@@ -142,5 +142,9 @@ export class PlaybooksComponent implements OnInit, AfterViewInit {
 
   newPlaybook() {
     this.modalService.open(NewPlaybookComponent, {size: 'lg', backdrop: 'static', centered: true});
+  }
+
+  ngOnDestroy(): void {
+    this.playbookService.reset();
   }
 }

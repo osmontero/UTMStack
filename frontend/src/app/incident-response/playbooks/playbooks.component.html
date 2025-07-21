@@ -115,7 +115,7 @@
       </div>
     </div>
 
-    <app-utm-spinner class="position-absolute right-50"  [height]="'110px'" [loading]="(playbookService.loading$ | async)" [width]="'110px'"
+    <app-utm-spinner *ngIf="(playbookService.loading$ | async)" class="position-absolute right-50"  [height]="'110px'" [loading]="loading" [width]="'110px'"
                      label="Loading playbooks">
     </app-utm-spinner>
 
@@ -127,7 +127,7 @@
                         [boundaryLinks]="true"
                         [collectionSize]="totalItems"
                         [maxSize]="10"
-                        [pageSize]="5"
+                        [pageSize]="itemsPerPage"
                         [rotate]="true"
                         [size]="'sm'"></ngb-pagination>
 

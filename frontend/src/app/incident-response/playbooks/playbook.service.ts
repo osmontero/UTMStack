@@ -40,4 +40,9 @@ export class PlaybookService {
   loadData(request: any){
     this.request$.next(request);
   }
+
+  reset() {
+    this.request$.next(null);
+    this.totalItems.next(0);
+  }
 }

@@ -19,7 +19,14 @@
     </div>
 
 
-    <div class="px-3 pb-3 overflow-auto flex-grow-1">
+    <div
+      infiniteScroll
+      (scrolled)="onScroll()"
+      [fromRoot]="true"
+      [infiniteScrollDistance]="1"
+      [infiniteScrollThrottle]="80"
+      [scrollWindow]="false"
+      class="px-3 pb-3 overflow-auto flex-grow-1">
       <div *ngFor="let action of actionSidebarService.actionTemplates$ | async"
            class="card mb-3 action-block shadow-sm cursor-pointer"
            (click)="addToWorkFlow(action)">
@@ -33,7 +40,9 @@
           </div>
         </div>
       </div>
-
+      <app-utm-spinner *ngIf="actionSidebarService.loading$ | async as loading"
+                       [loading]="loading" label="Loading actions...">
+      </app-utm-spinner>
       <div class="card mb-3 available-action phantom-action"
            (click)="openActionSidebar()">
         <div class="card-body d-flex flex-column px-2">
