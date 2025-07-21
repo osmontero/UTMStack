@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
-import {ALERT_FIELDS, INCIDENT_AUTOMATION_ALERT_FIELDS} from '../../../../shared/constants/alert/alert-field.constant';
+import {V11_ALERT_FIELDS} from '../../../../shared/constants/alert/v11-alert-fields.constants';
 
 @Component({
   selector: 'app-action-terminal',
@@ -11,7 +11,7 @@ import {ALERT_FIELDS, INCIDENT_AUTOMATION_ALERT_FIELDS} from '../../../../shared
 export class ActionTerminalComponent implements OnInit {
   @Input() action: any;
   form: FormGroup;
-  alertFields = ALERT_FIELDS;
+  alertFields = V11_ALERT_FIELDS;
   command: any;
 
   constructor(public activeModal: NgbActiveModal,
