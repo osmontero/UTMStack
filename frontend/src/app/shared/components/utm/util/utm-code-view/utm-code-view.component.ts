@@ -9,6 +9,7 @@ import {UtmToastService} from '../../../../alert/utm-toast.service';
 export class UtmCodeViewComponent implements OnInit, OnChanges {
     @Input() code: string;
     @Input() allowCopy = true;
+    @Input() template: 'default' | 'terminal' = 'default';
     private copy: any;
     str: string;
 
