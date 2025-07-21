@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {NgbActiveModal } from '@ng-bootstrap/ng-bootstrap';
 import {ALERT_FIELDS, INCIDENT_AUTOMATION_ALERT_FIELDS} from '../../../../shared/constants/alert/alert-field.constant';
@@ -9,7 +9,7 @@ import {ALERT_FIELDS, INCIDENT_AUTOMATION_ALERT_FIELDS} from '../../../../shared
   styleUrls: ['./action-terminal.component.scss']
 })
 export class ActionTerminalComponent implements OnInit {
-
+  @Input() action: any;
   form: FormGroup;
   alertFields = ALERT_FIELDS;
   command: any;
@@ -27,9 +27,9 @@ export class ActionTerminalComponent implements OnInit {
 
   ngOnInit() {
     this.form = this.fb.group({
-      title: ['', [Validators.required, Validators.minLength(5)]],
-      description: ['', [Validators.required, Validators.minLength(5)]],
-      command: ['', Validators.required],
+      title: [ this.action ? this.action.title : '', [Validators.required, Validators.minLength(5)]],
+      description: [this.action ? this.action.description : '', [Validators.required, Validators.minLength(5)]],
+      command: [this.action ? this.action.command : '', Validators.required],
     });
   }
 

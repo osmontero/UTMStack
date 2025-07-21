@@ -112,8 +112,9 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
       );
   }
 
-  openActionSidebar() {
+  openActionSidebar(action: any = null) {
     const dialogRef = this.modalService.open(ActionTerminalComponent, {size: 'lg', centered: true});
+    dialogRef.componentInstance.action = action || null;
 
     dialogRef.result.then(
       result => {
