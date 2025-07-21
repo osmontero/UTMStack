@@ -84,28 +84,42 @@
 
         <div class="workflow-timeline mb-3">
 
-          <div *ngFor="let action of workflow; let first = first" class="action-wrapper d-flex flex-column align-items-center w-100">
+          <div *ngFor="let action of workflow; let first = first" class="action-wrapper d-flex flex-column w-100">
             <!-- Action block -->
-            <div class="action-block d-flex flex-column align-items-center justify-content-center w-100 p-2" style="height: 120px;">
-              <div class="d-flex w-100 justify-content-end">
-                <app-action-conditional *ngIf="!first" [option]="action.conditional" (optionChange)="updateAction(action, $event)" ></app-action-conditional>
-              </div>
-              <div class="d-flex flex-column w-100 justify-content-center">
-                <div class="card-body pl-2 pr-0 py-2 d-flex align-items-center justify-content-between w-100">
-                  <div class="d-flex align-items-center">
-                      <div class="icon-box mr-2" style="margin-right: 8px;"></div>
-                    <div>
-                      <div class="fw-bold">{{ action.title }}</div>
-                      <small style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;"  class="text-muted">
-                        {{ action.description }}
-                      </small>
-                    </div>
+            <div class="action-block d-flex flex-column w-100 p-2" style="height: 120px;">
+
+              <div class="d-flex justify-content-between align-items-center w-100 mb-1">
+                <div class="fw-bold pl-2">{{ action.title }}</div>
+                <div class="d-flex align-items-center">
+                  <app-action-conditional
+                    *ngIf="!first"
+                    [option]="action.conditional"
+                    (optionChange)="updateAction(action, $event)">
+                  </app-action-conditional>
+                  <div
+                    class="icon-cross2 font-size-xs cursor-pointer ml-2"
+                    (click)="removeAction(action)">
                   </div>
-                  <div class="icon-bin font-size-xs text-danger cursor-pointer" (click)="removeAction(action)"></div>
                 </div>
               </div>
 
+              <div class="d-flex flex-grow-1 align-items-center w-100">
+                <div class="icon-box mr-2" style="margin-right: 8px;"></div>
+                <div class="d-flex flex-column w-100 justify-content-center">
+                  <div class="card-body pl-2 pr-0 py-2 w-100">
+                    <div class="text-muted" style="
+                      display: -webkit-box;
+                      -webkit-line-clamp: 2;
+                      -webkit-box-orient: vertical;
+                      overflow: hidden;
+                      text-overflow: ellipsis;">
+                      {{ action.description }}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
+
 
             <div *ngIf="workflow" class="timeline-connector">
               <div class="line-vertical"></div>

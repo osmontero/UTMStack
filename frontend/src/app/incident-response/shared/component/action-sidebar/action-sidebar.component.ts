@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {WorkflowActionsService} from '../../services/workflow-actions.service';
+import {ActionTerminalComponent} from '../action-terminal/action-terminal.component';
 import {ActionSidebarService} from './action-sidebar.service';
-import {ActionTerminalComponent} from "../action-terminal/action-terminal.component";
-import {ModalService} from "../../../../core/modal/modal.service";
-import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 
 @Component({
   selector: 'app-action-sidebar',
