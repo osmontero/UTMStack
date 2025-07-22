@@ -237,5 +237,7 @@
 
     <include file="/config/liquibase/changelog/20250630001_update_visualization_fields_to_new_log_format.xml" relativeToChangelogFile="false"/>
 
+    <include file="/config/liquibase/changelog/202507220001_add_interactive_console_menu_options.xml" relativeToChangelogFile="false"/>
+
 
 </databaseChangeLog>
