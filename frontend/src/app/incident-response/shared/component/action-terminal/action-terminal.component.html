@@ -74,7 +74,7 @@
     </button>
 
     <button [disabled]="!form.valid" (click)="create()" class="btn utm-button utm-button-primary ml-2 ng-star-inserted">
-       Create
+      {{ action ? 'Update' : 'Create' }}
     </button>
   </div>
   </form>

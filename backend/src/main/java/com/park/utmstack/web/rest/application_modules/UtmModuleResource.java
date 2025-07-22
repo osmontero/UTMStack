@@ -1,25 +1,22 @@
 package com.park.utmstack.web.rest.application_modules;
 
-import com.park.utmstack.config.Constants;
 import com.park.utmstack.domain.application_events.enums.ApplicationEventType;
 import com.park.utmstack.domain.application_modules.UtmModule;
-import com.park.utmstack.domain.application_modules.UtmModuleGroup;
 import com.park.utmstack.domain.application_modules.enums.ModuleName;
 import com.park.utmstack.domain.application_modules.enums.ModuleRequirementStatus;
 import com.park.utmstack.domain.application_modules.factory.ModuleFactory;
 import com.park.utmstack.domain.application_modules.types.ModuleRequirement;
 import com.park.utmstack.repository.UtmServerRepository;
 import com.park.utmstack.security.internalApiKey.InternalApiKeyFilter;
-import com.park.utmstack.service.UtmStackService;
 import com.park.utmstack.service.application_events.ApplicationEventService;
 import com.park.utmstack.service.application_modules.UtmModuleQueryService;
 import com.park.utmstack.service.application_modules.UtmModuleService;
+import com.park.utmstack.event_processor.EventProcessorManagerService;
 import com.park.utmstack.service.dto.application_modules.ModuleDTO;
 import com.park.utmstack.service.dto.application_modules.UtmModuleCriteria;
-import com.park.utmstack.util.CipherUtil;
 import com.park.utmstack.util.UtilResponse;
-import com.park.utmstack.web.rest.errors.BadRequestAlertException;
 import com.park.utmstack.web.rest.util.PaginationUtil;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -27,23 +24,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Formattable;
 import java.util.List;
-import java.util.Set;
-import java.util.logging.FileHandler;
-import java.util.logging.Formatter;
-import java.util.logging.Level;
 
 /**
  * REST controller for managing UtmModule.
  */
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class UtmModuleResource {
     private static final String CLASSNAME = "UtmModuleResource";
     private final Logger log = LoggerFactory.getLogger(UtmModuleResource.class);
@@ -54,19 +44,9 @@ public class UtmModuleResource {
     private final ApplicationEventService eventService;
     private final UtmServerRepository utmServerRepository;
     // List of configurations of type 'file' that needs content decryption
-    private final List<ModuleName> typeFileNeedsDecryptList = List.of(ModuleName.GCP);
+    private final EventProcessorManagerService eventProcessorManagerService;
 
-    public UtmModuleResource(UtmModuleService moduleService,
-                             ModuleFactory moduleFactory,
-                             UtmModuleQueryService utmModuleQueryService,
-                             ApplicationEventService eventService,
-                             UtmServerRepository utmServerRepository) {
-        this.moduleService = moduleService;
-        this.moduleFactory = moduleFactory;
-        this.utmModuleQueryService = utmModuleQueryService;
-        this.eventService = eventService;
-        this.utmServerRepository = utmServerRepository;
-    }
+
 
     @PutMapping("/utm-modules/activateDeactivate")
     public ResponseEntity<UtmModule> activateDeactivate(@RequestParam Long serverId,
@@ -138,15 +118,7 @@ public class UtmModuleResource {
         try {
             UtmModule module = moduleFactory.getInstance(nameShort).getDetails(utmServerRepository.getUtmServer());
             if (InternalApiKeyFilter.isApiKeyHeaderInUse()) {
-                Set<UtmModuleGroup> groups = module.getModuleGroups();
-                groups.forEach((gp) -> {
-                    gp.getModuleGroupConfigurations().forEach((gpc) -> {
-                        if ((gpc.getConfDataType().equals("password") && StringUtils.hasText(gpc.getConfValue()))
-                        || (gpc.getConfDataType().equals("file") && StringUtils.hasText(gpc.getConfValue())) && typeFileNeedsDecryptList.contains(nameShort)) {
-                            gpc.setConfValue(CipherUtil.decrypt(gpc.getConfValue(), System.getenv(Constants.ENV_ENCRYPTION_KEY)));
-                        }
-                    });
-                });
+                this.eventProcessorManagerService.decryptModuleConfig(module);
             } else {
                 String msg = ctx + ": You must provide the header used to communicate internally with this resource";
                 log.error(msg);

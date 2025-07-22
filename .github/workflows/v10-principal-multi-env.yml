@@ -65,57 +65,106 @@ jobs:
     name: Build Agent-Manager Image & Agent & Dependencies
     needs: [validations,setup_deployment]
     if: ${{ needs.setup_deployment.outputs.tag != '' }}
-    runs-on: signing
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out code into the right branch
         uses: actions/checkout@v4
 
       - name: Login to GitHub Container Registry
-        run: |
-          docker login ghcr.io -u utmstack -p ${{ secrets.GITHUB_TOKEN }}
-          echo "Logged in to GitHub Container Registry"
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: utmstack
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Agent
+      - name: Build and Sign Agent
         run: |
-          cd ${{ github.workspace }}/agent/config; (Get-Content const.go) | Foreach-Object { $_ -replace 'const REPLACE_KEY string = ""', 'const REPLACE_KEY string = "${{ secrets.AGENT_SECRET_PREFIX }}"' } | Set-Content const.go
+          cd ${{ github.workspace }}/agent/config
+          sed -i 's|const REPLACE_KEY string = ""|const REPLACE_KEY string = "${{ secrets.AGENT_SECRET_PREFIX }}"|' const.go
+
+          echo "Building Agent..."
           cd ${{ github.workspace }}/agent
+          GOOS=linux GOARCH=amd64 go build -o utmstack_agent_service -v .
+          GOOS=windows GOARCH=amd64 go build -o utmstack_agent_service.exe -v .
+          GOOS=windows GOARCH=arm64 go build -o utmstack_agent_service_arm64.exe -v .
 
-          $env:GOOS = "linux"
-          $env:GOARCH = "amd64"
-          go build -o utmstack_agent_service -v .
-          # $env:GOARCH = "arm64"
-          # go build -o utmstack_agent_service_arm64 -v .
+          echo "Signing Windows Agent..."
+          FILES_TO_SIGN=("utmstack_agent_service.exe" "utmstack_agent_service_arm64.exe")
+          for file in "${FILES_TO_SIGN[@]}"; do
+            echo "Uploading $file for signing..."
+            RESPONSE=$(curl -sS -f -X POST http://customermanager.utmstack.com:8081/api/v1/upload \
+              -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+              -F "file=@$file")
 
-          $env:GOOS = "windows"
-          $env:GOARCH = "amd64"
-          go build -o utmstack_agent_service.exe -v .
-          signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f "${{ vars.SIGN_CERT }}" /csp "eToken Base Cryptographic Provider" /k "[{{${{ secrets.SIGN_KEY }}}}]=${{ secrets.SIGN_CONTAINER }}" "utmstack_agent_service.exe"
-          $env:GOARCH = "arm64"
-          go build -o utmstack_agent_service_arm64.exe -v .
-          signtool sign /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /f "${{ vars.SIGN_CERT }}" /csp "eToken Base Cryptographic Provider" /k "[{{${{ secrets.SIGN_KEY }}}}]=${{ secrets.SIGN_CONTAINER }}" "utmstack_agent_service_arm64.exe"
+            FILE_ID=$(echo "$RESPONSE" | jq -r '.file_id')
 
-          echo "Agent build completed"
+            if [[ -z "$FILE_ID" || "$FILE_ID" == "null" ]]; then
+              echo "❌ Failed to upload $file for signing."
+              exit 1
+            fi
+
+            echo "Uploaded $file with file_id: $FILE_ID"
+            echo "Waiting for signing to complete..."
+
+            while true; do
+              STATUS=$(curl -sS -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+                http://customermanager.utmstack.com:8081/api/v1/status/$FILE_ID | jq -r '.status')
+
+              if [[ "$STATUS" == "ready" ]]; then
+                echo "✅ $file has been signed."
+                break
+              elif [[ "$STATUS" == "signing" ]]; then
+                echo "⏳ Still signing $file... waiting 5s"
+                sleep 5
+              else
+                echo "❌ Unexpected status: $STATUS"
+                exit 1
+              fi
+            done
+
+            echo "Downloading signed $file..."
+            curl -sS -f -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+              -o "$file" \
+              http://customermanager.utmstack.com:8081/api/v1/download/$FILE_ID
+
+            echo "Marking $file as finished..."
+            curl -sS -X POST -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+              http://customermanager.utmstack.com:8081/api/v1/finish/$FILE_ID > /dev/null || true
+          done
+
+          echo "✅ All agents signed successfully."
         
-      - name: Build & Push Agent Manager Image
+      - name: Prepare dependencies for Agent Manager Image
         run: |
-          $env:GOOS = "linux"
-          $env:GOARCH = "amd64"
-          cd ${{ github.workspace }}/agent-manager; go build -o agent-manager -v .
+          cd ${{ github.workspace }}/agent-manager
+          GOOS=linux GOARCH=amd64  go build -o agent-manager -v .
           
-          New-Item -ItemType Directory -Force -Path "./dependencies/collector/"
-          Copy-Item -Path "C:/dependencies/${{ needs.setup_deployment.outputs.tag }}/collector/*" -Destination "./dependencies/collector/"
+          mkdir -p ./dependencies/collector
+          curl -sSL -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+            "http://customermanager.utmstack.com:8081/api/v1/fs/${{ needs.setup_deployment.outputs.tag }}/collector/linux-as400-collector.zip" -o ./dependencies/collector/linux-as400-collector.zip
+          curl -sSL -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+            "http://customermanager.utmstack.com:8081/api/v1/fs/${{ needs.setup_deployment.outputs.tag }}/collector/windows-as400-collector.zip" -o ./dependencies/collector/windows-as400-collector.zip
 
-          New-Item -ItemType Directory -Force -Path "./dependencies/agent/"
-          Copy-Item -Path "C:/dependencies/${{ needs.setup_deployment.outputs.tag }}/agent/*" -Destination "./dependencies/agent/"
-          Copy-Item -Path "${{ github.workspace }}/agent/utmstack_agent_service" -Destination "./dependencies/agent/"
-          # Copy-Item -Path "${{ github.workspace }}/agent/utmstack_agent_service_arm64" -Destination "./dependencies/agent/"
-          Copy-Item -Path "${{ github.workspace }}/agent/utmstack_agent_service.exe" -Destination "./dependencies/agent/"
-          Copy-Item -Path "${{ github.workspace }}/agent/utmstack_agent_service_arm64.exe" -Destination "./dependencies/agent/"
-          Copy-Item -Path "${{ github.workspace }}/agent/version.json" -Destination "./dependencies/agent/"
+          mkdir -p ./dependencies/agent/
+          curl -sSL -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+            "http://customermanager.utmstack.com:8081/api/v1/fs/${{ needs.setup_deployment.outputs.tag }}/agent/utmstack_agent_dependencies_linux.zip" -o ./dependencies/agent/utmstack_agent_dependencies_linux.zip
+          curl -sSL -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+            "http://customermanager.utmstack.com:8081/api/v1/fs/${{ needs.setup_deployment.outputs.tag }}/agent/utmstack_agent_dependencies_windows.zip" -o ./dependencies/agent/utmstack_agent_dependencies_windows.zip
+          curl -sSL -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+            "http://customermanager.utmstack.com:8081/api/v1/fs/${{ needs.setup_deployment.outputs.tag }}/agent/utmstack_agent_dependencies_windows_arm64.zip" -o ./dependencies/agent/utmstack_agent_dependencies_windows_arm64.zip
 
-          docker build -t ghcr.io/utmstack/utmstack/agent-manager:${{ needs.setup_deployment.outputs.tag }} .
-          docker push ghcr.io/utmstack/utmstack/agent-manager:${{ needs.setup_deployment.outputs.tag }}
-          echo "Agent Manager image built and pushed"
+          cp "${{ github.workspace }}/agent/utmstack_agent_service" ./dependencies/agent/
+          # cp "${{ github.workspace }}/agent/utmstack_agent_service_arm64" ./dependencies/agent/
+          cp "${{ github.workspace }}/agent/utmstack_agent_service.exe" ./dependencies/agent/
+          cp "${{ github.workspace }}/agent/utmstack_agent_service_arm64.exe" ./dependencies/agent/
+          cp "${{ github.workspace }}/agent/version.json" ./dependencies/agent/
+      
+      - name: Build and Push the Agent Manager Image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./agent-manager
+          push: true
+          tags: ghcr.io/utmstack/utmstack/agent-manager:${{ needs.setup_deployment.outputs.tag }}
     
   runner_release:
     name: Images deployment

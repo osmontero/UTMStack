@@ -11,16 +11,14 @@ import (
 	"github.com/utmstack/UTMStack/agent/utils"
 )
 
-func DownloadFirstDependencies(address string, authKey string, insecure bool) error {
-	headers := map[string]string{"connection-key": authKey}
-
-	if err := utils.DownloadFile(fmt.Sprintf(config.DependUrl, address, config.DependenciesPort, "version.json"), headers, "version.json", utils.GetMyPath(), insecure); err != nil {
+func DownloadFirstDependencies(address string, insecure bool) error {
+	if err := utils.DownloadFile(fmt.Sprintf(config.DependUrl, address, config.DependenciesPort, "version.json"), map[string]string{}, "version.json", utils.GetMyPath(), insecure); err != nil {
 		return fmt.Errorf("error downloading version.json : %v", err)
 	}
 
 	dependFiles := config.DependFiles
 	for _, file := range dependFiles {
-		if err := utils.DownloadFile(fmt.Sprintf(config.DependUrl, address, config.DependenciesPort, file), headers, file, utils.GetMyPath(), insecure); err != nil {
+		if err := utils.DownloadFile(fmt.Sprintf(config.DependUrl, address, config.DependenciesPort, file), map[string]string{}, file, utils.GetMyPath(), insecure); err != nil {
 			return fmt.Errorf("error downloading file %s: %v", file, err)
 		}
 	}

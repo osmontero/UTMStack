@@ -53,7 +53,7 @@ func main() {
 			fmt.Println("[OK]")
 
 			fmt.Print("Downloading dependencies ... ")
-			if err := updates.DownloadFirstDependencies(cnf.Server, utmKey, cnf.SkipCertValidation); err != nil {
+			if err := updates.DownloadFirstDependencies(cnf.Server, cnf.SkipCertValidation); err != nil {
 				fmt.Println("\nError downloading dependencies: ", err)
 				os.Exit(1)
 			}

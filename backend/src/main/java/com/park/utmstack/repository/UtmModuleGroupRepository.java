@@ -30,4 +30,6 @@ public interface UtmModuleGroupRepository extends JpaRepository<UtmModuleGroup, 
     void deleteAllByModuleId(Long moduleId);
 
     void deleteAllByCollector(String id);
+
+    UtmModuleGroup findByGroupName(String name);
 }

@@ -62,8 +62,7 @@
 
 
 <ng-template #groupTemplate let-groups let-editable="editable">
-  <div class="utm-box mt-4 pt-3 pr-3 pl-3 pb-1 border-1 border-blue-800 position-relative w-100"
-       *ngFor="let group of groups">
+  <div *ngFor="let group of groups" class="utm-box mt-4 pt-3 pr-3 pl-3 pb-1 border-1 border-blue-800 position-relative w-100">
      <span class="p-1 utm-box-label">
            {{group.groupName}}
 
@@ -79,25 +78,25 @@
          </i>
        </span>
      </span>
-    <p class="mb-2 mt-2" *ngIf="group.groupDescription">{{group.groupDescription}}</p>
+      <p class="mb-2 mt-2" *ngIf="group.groupDescription">{{group.groupDescription}}</p>
     <div class="row mt-3">
-      <div class="col-md-12 col-sm-12" *ngFor="let integrationConfig of group.moduleGroupConfigurations"
-           [ngClass]="integrationConfig.confDataType === 'file' || integrationConfig.confDataType === 'list'  ?'col-lg-12 ':'col-lg-6'">
+
+      <div *ngFor="let integrationConfig of group.moduleGroupConfigurations" class="col-md-12 col-sm-12"
+           [ngClass]="integrationConfig.confDataType === 'file' || integrationConfig.confDataType === 'list'  ? 'col-lg-12' : 'col-lg-6'">
         <div class="form-group w-100 mb-4">
-          <label [for]="'sectionParam'+integrationConfig.id"
-                 class="pb-1 span-small-icon d-flex justify-content-between align-items-center">
-      <span>
-        <i [ngbTooltip]="'This param is required'"
-           [ngClass]="!checkConfigValue(integrationConfig.confValue)?'text-danger':'text-success'"
-           class="icon-circle2 mr-1"
-           placement="auto"></i>
-        {{integrationConfig.confName}}
-      </span>
+          <label [for]="'sectionParam'+integrationConfig.id" class="pb-1 span-small-icon d-flex justify-content-between align-items-center">
+          <span>
+            <i [ngbTooltip]="'This param is required'"
+               [ngClass]="!checkConfigValue(integrationConfig.confValue)?'text-danger':'text-success'"
+               class="icon-circle2 mr-1"
+               placement="auto"></i>
+                  {{integrationConfig.confName}}
+          </span>
             <span>
-          <i *ngIf="integrationConfig.confDescription"
-             [ngbTooltip]="integrationConfig.confDescription"
-             class="ml-2 text-primary icon-question3" placement="auto"></i>
-      </span>
+              <i *ngIf="integrationConfig.confDescription"
+                 [ngbTooltip]="integrationConfig.confDescription"
+                 class="ml-2 text-primary icon-question3" placement="auto"></i>
+            </span>
           </label>
 
           <ng-select *ngIf="integrationConfig.confDataType === 'select'"
@@ -114,16 +113,17 @@
               'is-valid': options.valid}">
           </ng-select>
 
-          <input (input)="addChange(integrationConfig)"
-                 *ngIf="integrationConfig.confDataType !== 'bool'
+          <input *ngIf="integrationConfig.confDataType !== 'bool'
                  && integrationConfig.confDataType !== 'list'
                  && integrationConfig.confDataType !== 'select'
                  && integrationConfig.confDataType !== 'file'"
+                (input)="addChange(integrationConfig)"
                  [(ngModel)]="integrationConfig.confValue"
                  [attr.autocomplete]="'disabled'"
                  [id]="'sectionParam'+integrationConfig.id"
                  [name]="integrationConfig.confName"
                  [type]="integrationConfig.confDataType"
+                 (ngModelChange)="integrationConfig.confOptions === 'unique' ? inputChange$.next({id: integrationConfig.groupId, value: $event}) : null"
                  class="form-control" [required]="integrationConfig.confRequired">
 
           <app-utm-toggle (toggleChange)="integrationConfig.confValue = $event.toString();addChange(integrationConfig)"
@@ -150,10 +150,20 @@
             class="text-danger">
             Param {{integrationConfig.confName}} is required
           </small>
+          <small
+            *ngIf="invalidDomainOrIp && integrationConfig.confKey === 'ipAddress' && configHasChanges(group.id)"
+            class="text-danger">
+            Parameter {{ integrationConfig.confName }} must be a valid IP address or domain.
+          </small>
+          <small
+            *ngIf="uniqueConfigNameConstrain && integrationConfig.confOptions === 'unique' && configHasChanges(group.id)"
+            class="text-danger">
+            Param {{integrationConfig.confName}} with a similar ID already exists.
+          </small>
         </div>
       </div>
     </div>
-    <div *ngIf="groupType === GroupTypeEnum.TENANT && pendingChangesForGroup(group) && changes && changes.keys.length > 0"
+    <div *ngIf="groupType === GroupTypeEnum.TENANT && pendingChangesForGroup(group) && changes && changes.keys.length > 0 && configHasChanges(group.id)"
          class="w-100 alert alert-info alert-styled-right mb-3">
        <span class="font-weight-semibold">
           Detect unsaved changes in configuration, do not forget save changes when you finish!
@@ -165,12 +175,12 @@
       <span>Required param configuration must be set to save this section</span>
     </div>
     <div *ngIf="groupType === GroupTypeEnum.TENANT" class="d-flex justify-content-end align-items-center mb-2">
-      <button class="btn utm-button utm-button-danger mr-3" (click)="cancelConfig(group)" *ngIf="changes.keys.length>0">
+      <button class="btn utm-button utm-button-danger mr-3" (click)="cancelConfig(group)" *ngIf="changes && changes.keys.length > 0 && configHasChanges(group.id)">
         Cancel changes
       </button>
       <button class="btn utm-button utm-button-primary" (click)="saveConfig(group)"
-              [disabled]="!tenantIsConfigValid(group) || (changes && changes.keys.length===0) || savingConfig">
-        <i class="icon-cog5 mr-1"></i>
+              [disabled]="!tenantIsConfigValid(group) || (changes && changes.keys.length===0 || !configHasChanges(group.id)) || savingConfig || uniqueConfigNameConstrain">
+        <i [ngClass]="savingConfig ? 'icon-spinner2 spinner':'icon-cog5 mr-1'"></i>
         Save configuration
       </button>
     </div>

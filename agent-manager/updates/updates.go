@@ -2,8 +2,9 @@ package updates
 
 import (
 	"crypto/tls"
-	"github.com/gin-contrib/gzip"
 	"net/http"
+
+	"github.com/gin-contrib/gzip"
 
 	"github.com/gin-gonic/gin"
 	"github.com/utmstack/UTMStack/agent-manager/config"
@@ -26,7 +27,7 @@ func ServeDependencies() {
 
 	r.NoRoute(notFound)
 
-	group := r.Group("/private", HTTPAuthInterceptor())
+	group := r.Group("/private")
 	group.StaticFS("/dependencies", http.Dir(config.UpdatesDependenciesFolder))
 
 	loadedCert, err := tls.LoadX509KeyPair(config.CertPath, config.CertKeyPath)
@@ -35,8 +36,15 @@ func ServeDependencies() {
 	}
 
 	tlsConfig := &tls.Config{
+		MinVersion:   tls.VersionTLS12,
 		Certificates: []tls.Certificate{loadedCert},
-		MinVersion:   tls.VersionTLS13,
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+		},
+
+		PreferServerCipherSuites: true,
 	}
 
 	server := &http.Server{

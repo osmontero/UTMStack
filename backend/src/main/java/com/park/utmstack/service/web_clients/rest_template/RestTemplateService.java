@@ -109,7 +109,7 @@ public class RestTemplateService {
         }
     }
 
-    public <T, U> ResponseEntity<U> post(String url, T body, Class<U> type) throws Exception {
+    public <T, U> ResponseEntity<U> post(String url, T body, Class<U> type, HttpHeaders headers) throws Exception {
         final String ctx = CLASSNAME + ".post";
         try {
             HttpEntity<T> requestEntity = new HttpEntity<>(body, headers);

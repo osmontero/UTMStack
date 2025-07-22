@@ -8,8 +8,11 @@ import com.park.utmstack.domain.logstash_filter.UtmLogstashFilter;
 import com.park.utmstack.repository.UtmModuleGroupRepository;
 import com.park.utmstack.repository.application_modules.UtmModuleRepository;
 import com.park.utmstack.service.UtmMenuService;
+import com.park.utmstack.event_processor.EventProcessorManagerService;
 import com.park.utmstack.service.index_pattern.UtmIndexPatternService;
 import com.park.utmstack.service.logstash_filter.UtmLogstashFilterService;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -26,6 +29,7 @@ import java.util.Optional;
  * Service Implementation for managing UtmModule.
  */
 @Service
+@RequiredArgsConstructor
 @Transactional
 public class UtmModuleService {
 
@@ -37,18 +41,8 @@ public class UtmModuleService {
     private final UtmIndexPatternService indexPatternService;
     private final UtmLogstashFilterService logstashFilterService;
     private final UtmModuleGroupRepository moduleGroupRepository;
+    private final EventProcessorManagerService eventProcessorManagerService;
 
-    public UtmModuleService(UtmModuleRepository moduleRepository,
-                            UtmMenuService menuService,
-                            UtmIndexPatternService indexPatternService,
-                            UtmLogstashFilterService logstashFilterService,
-                            UtmModuleGroupRepository moduleGroupRepository) {
-        this.moduleRepository = moduleRepository;
-        this.menuService = menuService;
-        this.indexPatternService = indexPatternService;
-        this.logstashFilterService = logstashFilterService;
-        this.moduleGroupRepository = moduleGroupRepository;
-    }
 
     /**
      * Activate or deactivate the module requested
@@ -77,6 +71,9 @@ public class UtmModuleService {
             enableDisableModuleMenus(nameShort, activationStatus);
             enableDisableModuleIndexPatterns(nameShort, activationStatus);
             enableDisableModuleFilter(nameShort, activationStatus);
+            UtmModule detached = SerializationUtils.clone(module);
+            eventProcessorManagerService.updateModule(detached);
+
             return module;
         } catch (Exception e) {
             throw new Exception(ctx + ": " + e.getMessage());

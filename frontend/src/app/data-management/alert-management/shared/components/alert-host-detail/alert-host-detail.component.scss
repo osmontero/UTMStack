@@ -1,15 +1,28 @@
+:host {
+  display: flex;
+  flex: 1 1 auto;
+}
+
+.container-alert-detail {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+}
+
 .alert-details {
-  align-items: center;
-}
+  display: flex;
+  gap: 0.5rem;
 
-.has-minimum-width {
-  min-width: 90px;
-}
+  .label {
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
-.min-height-host-detail {
-  min-height: 335px;
-}
-
-.utm-box {
-  z-index: 0 !important;
+  .value {
+    flex: 2 1 0;
+    min-width: 0;
+  }
 }

@@ -3,9 +3,10 @@ package server
 import (
 	"crypto/tls"
 	"encoding/json"
-	"github.com/threatwinds/go-sdk/catcher"
 	"net/http"
 	"time"
+
+	"github.com/threatwinds/go-sdk/catcher"
 
 	"github.com/gorilla/mux"
 	"github.com/utmstack/UTMStack/plugins/bitdefender/configuration"
@@ -82,16 +83,25 @@ func StartServer(cnf *types.ConfigurationSection, cert string, key string) {
 		_ = catcher.Error("failed to load certificates", err, nil)
 	}
 
+	tlsConfig := &tls.Config{
+		MinVersion:   tls.VersionTLS12,
+		Certificates: []tls.Certificate{loadedCerts},
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+		},
+
+		PreferServerCipherSuites: true,
+	}
+
 	server := &http.Server{
 		Addr:           ":" + configuration.BitdefenderGZPort,
 		Handler:        r,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
-		TLSConfig: &tls.Config{
-			Certificates: []tls.Certificate{loadedCerts},
-			MinVersion:   tls.VersionTLS13,
-		},
+		TLSConfig:      tlsConfig,
 	}
 
 	go func() {

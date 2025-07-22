@@ -1,20 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {WorkflowActionsService} from '../../services/workflow-actions.service';
+import {ActionTerminalComponent} from '../action-terminal/action-terminal.component';
 import {ActionSidebarService} from './action-sidebar.service';
-import {ActionTerminalComponent} from "../action-terminal/action-terminal.component";
-import {ModalService} from "../../../../core/modal/modal.service";
-import {NgbModal} from "@ng-bootstrap/ng-bootstrap";
 
 @Component({
   selector: 'app-action-sidebar',
   templateUrl: './action-sidebar.component.html',
   styleUrls: ['./action-sidebar.component.scss']
 })
-export class ActionSidebarComponent implements OnInit {
+export class ActionSidebarComponent implements OnInit, OnDestroy {
 
   request = {
     page: 0,
-    size: 25,
+    size: 5,
     'systemOwner.equals': true
   };
 
@@ -53,5 +52,16 @@ export class ActionSidebarComponent implements OnInit {
         }
       },
     );
+  }
+
+  onScroll() {
+    this.actionSidebarService.loadData({
+      ...this.request,
+      size: this.request.size + 10,
+    });
+  }
+
+  ngOnDestroy() {
+    this.actionSidebarService.reset();
   }
 }

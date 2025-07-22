@@ -92,6 +92,8 @@ public final class Constants {
     public static final String ENV_DB_PASS = "DB_PASS";
     public static final String ENV_DB_USER = "DB_USER";
     public static final String ENV_ENCRYPTION_KEY = "ENCRYPTION_KEY";
+    public static final String ENV_EVENT_PROCESSOR_HOST = "EVENT_PROCESSOR_HOST";
+    public static final String ENV_EVENT_PROCESSOR_PORT = "EVENT_PROCESSOR_PORT";
     public static final String ENV_GRPC_AGENT_MANAGER_HOST = "GRPC_AGENT_MANAGER_HOST";
     public static final String ENV_GRPC_AGENT_MANAGER_PORT = "GRPC_AGENT_MANAGER_PORT";
     public static final String ENV_INTERNAL_KEY = "INTERNAL_KEY";
@@ -111,6 +113,7 @@ public final class Constants {
 
     // GRPC
     public static final String AGENT_MANAGER_INTERNAL_KEY_HEADER = "internal-key";
+    public static final String EVENT_PROCESSOR_INTERNAL_KEY_HEADER = "internal-key";
     public static final String AGENT_HEADER = "Agent";
 
     /**
