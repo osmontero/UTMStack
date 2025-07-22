@@ -36,7 +36,7 @@ export class ActionSidebarService {
     );
 
   constructor(private incidentResponseActionTemplateService: IncidentResponseActionTemplateService,
-              private toastService: UtmToastService,) {}
+              private toastService: UtmToastService) {}
 
   loadData(request: any) {
     this.request.next(request);
