@@ -39,6 +39,6 @@ export class AgentSidebarComponent implements OnInit {
   }
 
   agentDetail(action: any) {
-
+    this.agentSidebarService.selectAgent(action);
   }
 }

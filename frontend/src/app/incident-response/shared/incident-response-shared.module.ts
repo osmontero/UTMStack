@@ -24,6 +24,8 @@ import {IrSummaryComponent} from './component/ir-summary/ir-summary.component';
 import {IraHistoryComponent} from './component/ira-history/ira-history.component';
 import {NewPlaybookComponent} from './component/new-playbook/new-playbook.component';
 import { AgentSidebarComponent } from './component/agent-sidebar/agent-sidebar.component';
+import { AgentInfoComponent } from './component/agent-info/agent-info.component';
+import { InteractiveConsoleComponent } from './component/interactive-console/interactive-console.component';
 
 @NgModule({
   declarations: [IrJobCreateComponent,
@@ -43,7 +45,9 @@ import { AgentSidebarComponent } from './component/agent-sidebar/agent-sidebar.c
     ActionTerminalComponent,
     ActionConditionalComponent,
     NewPlaybookComponent,
-    AgentSidebarComponent],
+    AgentSidebarComponent,
+    AgentInfoComponent,
+    InteractiveConsoleComponent],
 
   entryComponents: [
     IrJobCreateComponent,
@@ -68,7 +72,9 @@ import { AgentSidebarComponent } from './component/agent-sidebar/agent-sidebar.c
     ActionTerminalComponent,
     ActionConditionalComponent,
     NewPlaybookComponent,
-    AgentSidebarComponent
+    AgentSidebarComponent,
+    AgentInfoComponent,
+    InteractiveConsoleComponent
   ],
   imports: [
     CommonModule,

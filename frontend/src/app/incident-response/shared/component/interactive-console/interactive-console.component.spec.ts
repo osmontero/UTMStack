@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AgentSidebarComponent } from './agent-sidebar.component';
+import { InteractiveConsoleComponent } from './interactive-console.component';
 
-describe('AgentSidebarComponent', () => {
-  let component: AgentSidebarComponent;
-  let fixture: ComponentFixture<AgentSidebarComponent>;
+describe('InteractiveConsoleComponent', () => {
+  let component: InteractiveConsoleComponent;
+  let fixture: ComponentFixture<InteractiveConsoleComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ AgentSidebarComponent ]
+      declarations: [ InteractiveConsoleComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(AgentSidebarComponent);
+    fixture = TestBed.createComponent(InteractiveConsoleComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

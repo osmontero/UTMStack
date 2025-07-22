@@ -6,21 +6,20 @@
   <div class="interactive-console-layout">
 
     <app-agent-sidebar></app-agent-sidebar>
-    <section class="card agent-details">
-      <ng-container *ngIf="selectedAgent; else noSelection">
-       <!-- <app-agent-info [agent]="selectedAgent"></app-agent-info>
--->
+    <section *ngIf="agentSelected$ | async as agent; else noSelection" class="card agent-details">
+
+        <app-agent-info [agent]="agent"></app-agent-info>
         <div class="divider">Interactive Console</div>
 
-        <!--<app-interactive-console [agent]="selectedAgent"></app-interactive-console>-->
-      </ng-container>
+        <app-interactive-console [agent]="agent"></app-interactive-console>
 
-      <ng-template #noSelection>
-        <div class="empty-state">
-          <p>Selecciona un agente para iniciar la consola interactiva.</p>
-        </div>
-      </ng-template>
     </section>
+
+    <ng-template #noSelection>
+      <div class="empty-state">
+        <p>Selecciona un agente para iniciar la consola interactiva.</p>
+      </div>
+    </ng-template>
   </div>
 
 </div>
