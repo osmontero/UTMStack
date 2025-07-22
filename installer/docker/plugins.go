@@ -13,17 +13,18 @@ type PluginsConfig struct {
 }
 
 type PluginConfig struct {
-	Order        []string      `yaml:"order,omitempty"`
-	Port         int           `yaml:"port,omitempty"`
-	RulesFolder  string        `yaml:"rulesFolder,omitempty"`
-	GeoIPFolder  string        `yaml:"geoipFolder,omitempty"`
-	OpenSearch   string        `yaml:"opensearch,omitempty"`
-	PostgreSQL   PostgreConfig `yaml:"postgresql,omitempty"`
-	ServerName   string        `yaml:"serverName,omitempty"`
-	InternalKey  string        `yaml:"internalKey,omitempty"`
-	AgentManager string        `yaml:"agentManager,omitempty"`
-	Backend      string        `yaml:"backend,omitempty"`
-	CertsFolder  string        `yaml:"certsFolder,omitempty"`
+	Order         []string      `yaml:"order,omitempty"`
+	Port          int           `yaml:"port,omitempty"`
+	RulesFolder   string        `yaml:"rulesFolder,omitempty"`
+	GeoIPFolder   string        `yaml:"geoipFolder,omitempty"`
+	OpenSearch    string        `yaml:"opensearch,omitempty"`
+	PostgreSQL    PostgreConfig `yaml:"postgresql,omitempty"`
+	ServerName    string        `yaml:"serverName,omitempty"`
+	InternalKey   string        `yaml:"internalKey,omitempty"`
+	AgentManager  string        `yaml:"agentManager,omitempty"`
+	Backend       string        `yaml:"backend,omitempty"`
+	CertsFolder   string        `yaml:"certsFolder,omitempty"`
+	ModulesConfig string        `yaml:"modulesConfig,omitempty"`
 }
 
 type PostgreConfig struct {
@@ -75,11 +76,12 @@ func SetPluginsConfigs(conf *config.Config, stack *StackConfig) error {
 			Password: conf.Password,
 			Database: "utmstack",
 		},
-		ServerName:   conf.ServerName,
-		InternalKey:  conf.InternalKey,
-		AgentManager: "10.21.199.3:9000",
-		Backend:      "http://backend:8080",
-		CertsFolder:  "/cert",
+		ServerName:    conf.ServerName,
+		InternalKey:   conf.InternalKey,
+		AgentManager:  "10.21.199.3:9000",
+		Backend:       "http://backend:8080",
+		CertsFolder:   "/cert",
+		ModulesConfig: "event-processor-manager:9003",
 	}
 
 	openSearchPipeline := PluginsConfig{}

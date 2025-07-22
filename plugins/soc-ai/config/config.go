@@ -37,6 +37,7 @@ type Config struct {
 	Backend                   string
 	InternalKey               string
 	Opensearch                string
+	ModulesConfigHost         string
 	APIKey                    string
 	ChangeAlertStatus         bool
 	AutomaticIncidentCreation bool
@@ -64,14 +65,12 @@ func StartConfigurationSystem() {
 	config.Backend = pluginConfig.Get("backend").String()
 	config.InternalKey = pluginConfig.Get("internalKey").String()
 	config.Opensearch = pluginConfig.Get("opensearch").String()
+	config.ModulesConfigHost = pluginConfig.Get("modulesConfig").String()
 	configMutex.Unlock()
 
 	utils.Logger.Info("Starting gRPC configuration client...")
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	go ConnectAndStreamConfig("localhost:9003", config.InternalKey)
+	go ConnectAndStreamConfig(config.ModulesConfigHost, config.InternalKey)
 
 	ticker := time.NewTicker(5 * time.Second)
 	defer ticker.Stop()
@@ -91,84 +90,120 @@ func StartConfigurationSystem() {
 			} else {
 				utils.Logger.LogF(100, "No gRPC configuration available yet...")
 			}
-		case <-ctx.Done():
+		case <-configShutdown:
+			utils.Logger.Info("StartConfigurationSystem shutting down...")
 			return
 		}
 	}
 }
 
+var (
+	configShutdown = make(chan struct{})
+)
+
+func ShutdownConfigSystem() {
+	close(configShutdown)
+}
+
 func ConnectAndStreamConfig(serverAddress, internalKey string) {
 	for {
-		func() {
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
-			ctx = metadata.AppendToOutgoingContext(ctx, "internal-key", internalKey)
-			conn, err := grpc.NewClient(
-				serverAddress,
-				grpc.WithTransportCredentials(insecure.NewCredentials()),
-				grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(maxMessageSize)),
-			)
+		select {
+		case <-configShutdown:
+			utils.Logger.Info("ConnectAndStreamConfig shutting down...")
+			return
+		default:
+		}
 
+		connCtx, connCancel := context.WithCancel(context.Background())
+		connCtx = metadata.AppendToOutgoingContext(connCtx, "internal-key", internalKey)
+		conn, err := grpc.NewClient(
+			serverAddress,
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(maxMessageSize)),
+		)
+
+		if err != nil {
+			catcher.Error("Failed to connect to server", err, nil)
+			connCancel()
+			time.Sleep(reconnectDelay)
+			continue
+		}
+
+		state := conn.GetState()
+		if state == connectivity.Shutdown || state == connectivity.TransientFailure {
+			catcher.Error("Connection is in shutdown or transient failure state", nil, nil)
+			conn.Close()
+			connCancel()
+			time.Sleep(reconnectDelay)
+			continue
+		}
+
+		client := NewConfigServiceClient(conn)
+		stream, err := client.StreamConfig(connCtx)
+		if err != nil {
+			catcher.Error("Failed to create stream", err, nil)
+			conn.Close()
+			connCancel()
+			time.Sleep(reconnectDelay)
+			continue
+		}
+
+		err = stream.Send(&BiDirectionalMessage{
+			Payload: &BiDirectionalMessage_PluginInit{
+				PluginInit: &PluginInit{Type: PluginType_SOC_AI},
+			},
+		})
+		if err != nil {
+			catcher.Error("Failed to send PluginInit", err, nil)
+			conn.Close()
+			connCancel()
+			time.Sleep(reconnectDelay)
+			continue
+		}
+
+		for {
+			select {
+			case <-configShutdown:
+				conn.Close()
+				connCancel()
+				return
+			default:
+			}
+
+			in, err := stream.Recv()
 			if err != nil {
-				catcher.Error("Failed to connect to server", err, nil)
-				return
-			}
-
-			state := conn.GetState()
-			if state == connectivity.Shutdown || state == connectivity.TransientFailure {
-				catcher.Error("Connection is in shutdown or transient failure state", nil, nil)
-				return
-			}
-
-			client := NewConfigServiceClient(conn)
-			stream, err := client.StreamConfig(ctx)
-			if err != nil {
-				catcher.Error("Failed to create stream", err, nil)
-				return
-			}
-
-			err = stream.Send(&BiDirectionalMessage{
-				Payload: &BiDirectionalMessage_PluginInit{
-					PluginInit: &PluginInit{Type: PluginType_SOC_AI},
-				},
-			})
-			if err != nil {
-				catcher.Error("Failed to send PluginInit", err, nil)
-				return
-			}
-
-			for {
-				in, err := stream.Recv()
-				if err != nil {
-					if strings.Contains(err.Error(), "EOF") {
-						catcher.Info("Stream closed by server, reconnecting...", nil)
-						conn.Close()
-						time.Sleep(reconnectDelay)
-						break
-					}
-					st, ok := status.FromError(err)
-					if ok && (st.Code() == codes.Unavailable || st.Code() == codes.Canceled) {
-						catcher.Error("Stream error: "+st.Message(), err, nil)
-						conn.Close()
-						time.Sleep(reconnectDelay)
-						break
-					} else {
-						catcher.Error("Stream receive error", err, nil)
-						time.Sleep(reconnectDelay)
-						continue
-					}
+				if strings.Contains(err.Error(), "EOF") {
+					catcher.Info("Stream closed by server, reconnecting...", nil)
+					conn.Close()
+					connCancel()
+					time.Sleep(reconnectDelay)
+					break
 				}
-
-				switch message := in.Payload.(type) {
-				case *BiDirectionalMessage_Config:
-					log.Printf("Received configuration update: %v", message.Config)
-					grpcMutex.Lock()
-					grpcConfig = message.Config
-					grpcMutex.Unlock()
+				st, ok := status.FromError(err)
+				if ok && (st.Code() == codes.Unavailable || st.Code() == codes.Canceled) {
+					catcher.Error("Stream error: "+st.Message(), err, nil)
+					conn.Close()
+					connCancel()
+					time.Sleep(reconnectDelay)
+					break
+				} else {
+					catcher.Error("Stream receive error", err, nil)
+					time.Sleep(reconnectDelay)
+					continue
 				}
 			}
-		}()
 
+			switch message := in.Payload.(type) {
+			case *BiDirectionalMessage_Config:
+				log.Printf("Received configuration update: %v", message.Config)
+				grpcMutex.Lock()
+				grpcConfig = message.Config
+				grpcMutex.Unlock()
+			}
+		}
+
+		conn.Close()
+		connCancel()
 		time.Sleep(reconnectDelay)
 	}
 }
