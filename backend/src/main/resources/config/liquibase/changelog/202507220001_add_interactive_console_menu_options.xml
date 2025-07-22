@@ -10,7 +10,7 @@
         <![CDATA[
 
             INSERT INTO utm_menu (id, name, url, parent_id, type, dashboard_id,position, menu_active, menu_action, menu_icon, module_name_short)
-            VALUES ( 405, 'Interactive Console', 'soar/interactive-console', 400, 2, null, 1, true, true, null, null);
+            VALUES ( 405, 'Interactive Console', 'soar/interactive-console', 400, 1, null, 2, true, true, null, null);
 
             INSERT INTO public.utm_menu_authority (menu_id, authority_name) VALUES (405, 'ROLE_ADMIN');
             INSERT INTO public.utm_menu_authority (menu_id, authority_name) VALUES (405, 'ROLE_USER');
