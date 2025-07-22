@@ -1,0 +1,26 @@
+<div class="console-container px-3 pt-2">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h5 class="card-title label-header mb-0 text-uppercase label-header">Interactive Console</h5>
+  </div>
+
+  <div class="interactive-console-layout">
+
+    <app-agent-sidebar></app-agent-sidebar>
+    <section class="card agent-details">
+      <ng-container *ngIf="selectedAgent; else noSelection">
+       <!-- <app-agent-info [agent]="selectedAgent"></app-agent-info>
+-->
+        <div class="divider">Interactive Console</div>
+
+        <!--<app-interactive-console [agent]="selectedAgent"></app-interactive-console>-->
+      </ng-container>
+
+      <ng-template #noSelection>
+        <div class="empty-state">
+          <p>Selecciona un agente para iniciar la consola interactiva.</p>
+        </div>
+      </ng-template>
+    </section>
+  </div>
+
+</div>
