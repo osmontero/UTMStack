@@ -1,8 +1,8 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
+import {filter} from 'rxjs/operators';
 import {NetScanType} from '../../assets-discover/shared/types/net-scan.type';
 import {AgentSidebarService} from '../shared/component/agent-sidebar/agent-sidebar.service';
-import {filter} from "rxjs/operators";
 
 @Component({
   selector: 'app-console-interactive',
