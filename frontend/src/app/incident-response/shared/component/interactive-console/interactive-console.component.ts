@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {NetScanType} from '../../../../assets-discover/shared/types/net-scan.type';
+import {AgentType} from '../../../../shared/types/agent/agent.type';
 
 @Component({
   selector: 'app-interactive-console',
@@ -8,7 +8,7 @@ import {NetScanType} from '../../../../assets-discover/shared/types/net-scan.typ
 })
 export class InteractiveConsoleComponent implements OnInit {
 
-  @Input() agent: NetScanType;
+  @Input() agent: AgentType;
 
   constructor() { }
 

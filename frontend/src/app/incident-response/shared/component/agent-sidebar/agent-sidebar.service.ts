@@ -14,7 +14,7 @@ export class AgentSidebarService {
 
   private request = new BehaviorSubject<any>(null);
   private loading = new BehaviorSubject<boolean>(false);
-  private selectedAgent = new BehaviorSubject<NetScanType>(null);
+  private selectedAgent = new BehaviorSubject<AgentType>(null);
 
   request$ = this.request.asObservable();
   loading$ = this.loading.asObservable();
@@ -43,7 +43,7 @@ export class AgentSidebarService {
     this.request.next(request);
   }
 
-  selectAgent(agent: NetScanType) {
+  selectAgent(agent: AgentType) {
     this.selectedAgent.next(agent);
   }
 

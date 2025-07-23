@@ -1,3 +1,2 @@
-<p>
-  interactive-console works!
-</p>
+<app-utm-agent-console *ngIf="agent" [template]="'on-demand'" [websocketCommand]="{}"
+                       [hostname]="agent.hostname"></app-utm-agent-console>

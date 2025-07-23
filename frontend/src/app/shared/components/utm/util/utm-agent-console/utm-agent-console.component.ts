@@ -12,7 +12,6 @@ import {UtmAgentManagerService} from '../../../../services/agent/utm-agent-manag
 import {AgentStatusEnum, AgentType} from '../../../../types/agent/agent.type';
 import {IncidentCommandType} from '../../../../types/incident/incident-command.type';
 import {replaceBreakLine} from '../../../../util/string-util';
-import {INCIDENT_AUTOMATION_ALERT_FIELDS} from "../../../../constants/alert/alert-field.constant";
 
 @Component({
   selector: 'app-utm-agent-console',
@@ -22,6 +21,7 @@ import {INCIDENT_AUTOMATION_ALERT_FIELDS} from "../../../../constants/alert/aler
 export class UtmAgentConsoleComponent implements OnInit, OnDestroy {
   @Input() hostname: string;
   @Input() websocketCommand: IncidentCommandType;
+  @Input() template: 'on-demand' | 'default' = 'default';
   @Output() close = new EventEmitter<boolean>();
   @ViewChild('contentWrapper', {read: ElementRef}) contentWrapper!: ElementRef;
   @ViewChild('commandInput') commandInput!: ElementRef;

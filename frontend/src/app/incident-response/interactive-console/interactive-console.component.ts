@@ -1,7 +1,7 @@
 import {Component, Input, OnInit} from '@angular/core';
 import {Observable} from 'rxjs';
 import {filter} from 'rxjs/operators';
-import {NetScanType} from '../../assets-discover/shared/types/net-scan.type';
+import {AgentType} from '../../shared/types/agent/agent.type';
 import {AgentSidebarService} from '../shared/component/agent-sidebar/agent-sidebar.service';
 
 @Component({
@@ -11,7 +11,7 @@ import {AgentSidebarService} from '../shared/component/agent-sidebar/agent-sideb
 })
 export class InteractiveConsoleComponent implements OnInit {
 
-  agentSelected$: Observable<NetScanType>;
+  agentSelected$: Observable<AgentType>;
 
   constructor(private agentSidebarService: AgentSidebarService) { }
 
