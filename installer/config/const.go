@@ -5,18 +5,9 @@ import (
 	"time"
 )
 
-const INSTALLER_VERSION = "v11.0.0-alpha.1"
-const REPLACE = "0aXq879sPfvy2Zrc"
-const PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxoZ5m/bsj4NOlSblXPg3
-eGbx2nCg5jMoVsCevxX64+MkOpwHBNiA0VPCZfOrdv2atWbOnJ7KfmZJWWZFSlTf
-tJ6VA0jaODnSlQeoTn/XIMKkfyzxKgLN+miG89M4ysidZgHPYlwz8+R1gIPouxYa
-BUQ8mUgRrkW3JCpYoGvf6k0Od9k8NXdR52rFf0Ryl6oGwedOWh/tiYE0he0pWkB7
-zPAveFqvxJnte4aN1Xjv2Qp1OmQVvc37RMZsh8oNpfYTMxrGFWZpBmF61NLXOYjn
-YtvKtxUQPR/TOf9p55H9cFeRf2LzSAM4L3NQ3Xdss6eWndjywL5Giqd2gtrD/1Tt
-+wIDAQAB
------END PUBLIC KEY-----
-`
+const INSTALLER_VERSION = ""
+const REPLACE = ""
+const PUBLIC_KEY = ``
 
 const (
 	RegisterInstanceEndpoint   = "/api/v1/instances/register"
