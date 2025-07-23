@@ -136,7 +136,7 @@ export class AddRuleComponent implements OnInit, OnDestroy {
       confidentiality: [rule ? rule.confidentiality : 0, [Validators.required, Validators.min(0), Validators.max(3)]],
       integrity: [rule ? rule.integrity : 0, [Validators.required, Validators.min(0), Validators.max(3)]],
       availability: [rule ? rule.availability : 0, [Validators.required, Validators.min(0), Validators.max(3)]],
-      category: [rule ? rule.category : '', [Validators.required, minWordsValidator(2, 3)]],
+      category: [rule ? rule.category : '', [Validators.required, minWordsValidator(1, 3)]],
       technique: [rule ? rule.technique : '', [Validators.required, minWordsValidator(2, 3)]],
       description: [rule ? rule.description : '', [Validators.required, minWordsValidator(2, 3)]],
       definition: [rule ? rule.definition : '', [Validators.required, minWordsValidator(2, 3)]],
