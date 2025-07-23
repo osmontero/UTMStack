@@ -1,5 +1,5 @@
 import {Component, Input, OnInit} from '@angular/core';
-import {NetScanType} from '../../../../assets-discover/shared/types/net-scan.type';
+import {AgentStatusEnum, AgentType} from '../../../../shared/types/agent/agent.type';
 
 @Component({
   selector: 'app-agent-info',
@@ -7,23 +7,35 @@ import {NetScanType} from '../../../../assets-discover/shared/types/net-scan.typ
   styleUrls: ['./agent-info.component.css']
 })
 export class AgentInfoComponent implements OnInit {
-  @Input() agent: NetScanType;
+  @Input() agent: AgentType;
 
   constructor() { }
 
   ngOnInit() {
   }
 
-  statusClass(status: string): string {
+  statusClass(status: AgentStatusEnum): string {
     switch (status) {
-      case 'CHECK':
-        return 'badge badge-warning';
-      case 'OK':
-        return 'badge badge-success';
-      case 'DOWN':
-        return 'badge badge-danger';
+      case AgentStatusEnum.ONLINE:
+        return 'badge bg-success';
+      case AgentStatusEnum.OFFLINE:
+        return 'badge bg-secondary';
       default:
-        return 'badge badge-secondary';
+        return 'badge bg-warning';
     }
   }
+
+  platformIcon(platform: string): string {
+    switch ((platform || '').toLowerCase()) {
+      case 'windows': return 'icon-windows';
+      case 'linux': return 'icon-linux';
+      case 'darwin': return 'icon-apple'; // macOS
+      default: return 'icon-server';
+    }
+  }
+
+  platformLabel(platform: string): string {
+    return platform === 'darwin' ? 'macOS' : (platform || 'Unknown');
+  }
+
 }

@@ -2,9 +2,10 @@ import {HttpResponse} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, of} from 'rxjs';
 import {catchError, filter, finalize, map, switchMap, tap} from 'rxjs/operators';
-import {UtmNetScanService} from '../../../../assets-discover/shared/services/utm-net-scan.service';
 import {NetScanType} from '../../../../assets-discover/shared/types/net-scan.type';
 import {UtmToastService} from '../../../../shared/alert/utm-toast.service';
+import {UtmAgentManagerService} from '../../../../shared/services/agent/utm-agent-manager.service';
+import {AgentType} from '../../../../shared/types/agent/agent.type';
 
 @Injectable({
   providedIn: 'root'
@@ -23,19 +24,19 @@ export class AgentSidebarService {
     .pipe(
       filter(request => !!request),
       tap(() => this.loading.next(true)),
-      switchMap((request) => this.utmNetScanService.query(request)
+      switchMap((request) => this.utmAgentManagerService.getAgents(request)
         .pipe(
-          map((response: HttpResponse<NetScanType[]>) => response.body),
+          map((response: HttpResponse<AgentType[]>) => response.body),
           catchError(() => {
             this.toastService.showError('Error', 'Failed to load agents');
-            return of([]);
+            return of([] as AgentType[]);
           }),
           finalize(() => this.loading.next(false))
         )
       ),
     );
 
-  constructor(private utmNetScanService: UtmNetScanService,
+  constructor(private utmAgentManagerService: UtmAgentManagerService,
               private toastService: UtmToastService) {}
 
   loadData(request: any) {

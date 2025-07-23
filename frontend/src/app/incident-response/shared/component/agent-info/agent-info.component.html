@@ -1,60 +1,61 @@
 <div class="agent-info">
   <div class="d-flex justify-content-between align-items-center flex-wrap pb-2 border-bottom">
     <div>
-      <h5 class="mb-0 text-uppercase">{{ agent.assetName }}</h5>
-      <small class="text-muted">{{ agent.assetOsPlatform }}</small>
+      <h5 class="mb-0 text-uppercase">{{ agent.hostname }}</h5>
+      <small class="text-muted">{{ agent.platform }}</small>
     </div>
     <div class="d-flex flex-column align-items-end mt-2 mt-md-0">
-      <span class="badge" [ngClass]="agent.assetAlive ? 'bg-success' : 'bg-danger'">
-        {{ agent.assetAlive ? 'Online' : 'Offline' }}
-      </span>
+      <span class="badge" [ngClass]="statusClass(agent.status)">{{ agent.status }}</span>
     </div>
   </div>
 
   <div class="agent-technical">
 
     <dl class="technical-list">
-      <div *ngIf="agent.assetIp">
+      <div *ngIf="agent.ip">
         <dt>IP Address</dt>
-        <dd>{{ agent.assetIp }}</dd>
+        <dd>{{ agent.ip }}</dd>
       </div>
 
-      <div *ngIf="agent.assetOs">
+      <div *ngIf="agent.version">
         <dt>Operating System</dt>
-        <dd>{{ agent.assetOs }}</dd>
+        <dd>{{ agent.version }}</dd>
       </div>
 
-      <div *ngIf="agent.assetOsMajorVersion || agent.assetOsMinorVersion">
+      <div *ngIf="agent.osMajorVersion || agent.osMinorVersion">
         <dt>OS Version</dt>
         <dd>
-          {{ agent.assetOsMajorVersion || '—' }}{{ agent.assetOsMinorVersion !== null ? '.' + agent.assetOsMinorVersion : '' }}
+          {{ agent.osMajorVersion || '—' }}{{ agent.osMinorVersion !== null ? '.' + agent.osMinorVersion : '' }}
         </dd>
       </div>
 
-      <div *ngIf="agent.registeredMode">
-        <dt>Registration Mode</dt>
-        <dd>{{ agent.registeredMode }}</dd>
+      <div *ngIf="agent.platform">
+        <dt>Platform</dt>
+        <dd class="d-flex align-items-center gap-3">
+
+          <div *ngIf="agent.platform" class="d-flex align-items-center gap-1 ">
+            <i [ngClass]="platformIcon(agent.platform)" class="fs-6 mr-1" aria-hidden="true"></i>
+            {{ platformLabel(agent.platform) | titlecase }}
+          </div>
+
+        </dd>
       </div>
 
-      <div *ngIf="agent.assetStatus">
-        <dt>Status</dt>
-        <dd><span class="badge" [ngClass]="statusClass(agent.assetStatus)">{{ agent.assetStatus }}</span></dd>
+      <div *ngIf="agent.lastSeen">
+        <dt>Last Seen</dt>
+        <dd>{{ agent.lastSeen | date:'medium' }}</dd>
       </div>
 
-      <div *ngIf="agent.agent">
-        <dt>Agent Runtime</dt>
-        <dd><span class="badge bg-success">Active</span></dd>
+      <div *ngIf="agent.aliases">
+        <dt>Aliases</dt>
+        <dd class="d-flex flex-wrap gap-2">
+          <span *ngFor="let alias of agent.aliases.split(',')" class="badge border-blue-800 border-1 mr-1 mb-1 p-1 text-blue-800">
+            {{ alias.trim() }}
+          </span>
+        </dd>
       </div>
 
-      <div *ngIf="agent.discoveredAt">
-        <dt>Discovered</dt>
-        <dd>{{ agent.discoveredAt | date:'medium' }}</dd>
-      </div>
 
-      <div *ngIf="agent.modifiedAt">
-        <dt>Last Modified</dt>
-        <dd>{{ agent.modifiedAt | date:'medium' }}</dd>
-      </div>
     </dl>
   </div>
 

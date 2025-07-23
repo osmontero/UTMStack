@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {AgentSidebarService} from './agent-sidebar.service';
+import {AgentStatusEnum} from "../../../../shared/types/agent/agent.type";
 
 @Component({
   selector: 'app-agent-sidebar',
@@ -11,8 +12,8 @@ export class AgentSidebarComponent implements OnInit {
   request = {
     page: 0,
     size: 5,
-    agent: true
   };
+  AgentStatusEnum = AgentStatusEnum;
 
   constructor(public agentSidebarService: AgentSidebarService) { }
 
@@ -40,5 +41,18 @@ export class AgentSidebarComponent implements OnInit {
 
   agentDetail(action: any) {
     this.agentSidebarService.selectAgent(action);
+  }
+
+  platformIcon(platform: string): string {
+    switch ((platform || '').toLowerCase()) {
+      case 'windows': return 'icon-windows';
+      case 'linux': return 'icon-linux';
+      case 'darwin': return 'icon-apple'; // macOS
+      default: return 'icon-server';
+    }
+  }
+
+  platformLabel(platform: string): string {
+    return platform === 'darwin' ? 'macOS' : (platform || 'Unknown');
   }
 }
