@@ -6,6 +6,7 @@ import {IncidentResponseAutomationComponent} from './incident-response-automatio
 import {IncidentResponseViewComponent} from './incident-response-view/incident-response-view.component';
 import {PlaybookBuilderComponent} from './playbook-builder/playbook-builder.component';
 import {PlaybooksComponent} from './playbooks/playbooks.component';
+import {InteractiveConsoleComponent} from "./interactive-console/interactive-console.component";
 
 const routes: Routes = [
   {path: '', redirectTo: 'flows', pathMatch: 'full'},
@@ -30,6 +31,12 @@ const routes: Routes = [
   {
     path: 'flows',
     component: PlaybooksComponent,
+    canActivate: [UserRouteAccessService],
+    data: {authorities: [ADMIN_ROLE]}
+  },
+  {
+    path: 'interactive-console',
+    component: InteractiveConsoleComponent,
     canActivate: [UserRouteAccessService],
     data: {authorities: [ADMIN_ROLE]}
   },

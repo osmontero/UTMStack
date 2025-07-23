@@ -3,6 +3,7 @@ import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {WorkflowActionsService} from '../../services/workflow-actions.service';
 import {ActionTerminalComponent} from '../action-terminal/action-terminal.component';
 import {ActionSidebarService} from './action-sidebar.service';
+import {last} from "rxjs/operators";
 
 @Component({
   selector: 'app-action-sidebar',
@@ -61,7 +62,13 @@ export class ActionSidebarComponent implements OnInit, OnDestroy {
     });
   }
 
+  trackByFn(index: number, item: any) {
+    return item.id || index;
+  }
+
   ngOnDestroy() {
     this.actionSidebarService.reset();
   }
+
+  protected readonly last = last;
 }

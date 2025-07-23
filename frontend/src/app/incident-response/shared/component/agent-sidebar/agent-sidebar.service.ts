@@ -7,11 +7,13 @@ import {
   IncidentResponseActionTemplate,
   IncidentResponseActionTemplateService
 } from '../../services/incident-response-action-template.service';
+import {UtmNetScanService} from "../../../../assets-discover/shared/services/utm-net-scan.service";
+import {NetScanType} from "../../../../assets-discover/shared/types/net-scan.type";
 
 @Injectable({
   providedIn: 'root'
 })
-export class ActionSidebarService {
+export class AgentSidebarService {
 
   private request = new BehaviorSubject<any>(null);
   private loading = new BehaviorSubject<boolean>(false);
@@ -19,15 +21,15 @@ export class ActionSidebarService {
   request$ = this.request.asObservable();
   loading$ = this.loading.asObservable();
 
-  actionTemplates$ = this.request$
+  agents$ = this.request$
     .pipe(
       filter(request => !!request),
       tap(() => this.loading.next(true)),
-      switchMap((request) => this.incidentResponseActionTemplateService.query(request)
+      switchMap((request) => this.utmNetScanService.query(request)
         .pipe(
-          map((response: HttpResponse<IncidentResponseActionTemplate[]>) => response.body),
+          map((response: HttpResponse<NetScanType[]>) => response.body),
           catchError(() => {
-            this.toastService.showError('Error', 'Failed to load action templates');
+            this.toastService.showError('Error', 'Failed to load agents');
             return of([]);
           }),
           finalize(() => this.loading.next(false))
@@ -35,7 +37,7 @@ export class ActionSidebarService {
       ),
     );
 
-  constructor(private incidentResponseActionTemplateService: IncidentResponseActionTemplateService,
+  constructor(private utmNetScanService: UtmNetScanService,
               private toastService: UtmToastService) {}
 
   loadData(request: any) {

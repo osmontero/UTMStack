@@ -12,8 +12,9 @@ import {
 import {IncidentResponseCommandComponent} from './incident-response-command/incident-response-command.component';
 import {IncidentResponseRoutingModule} from './incident-response-routing.module';
 import {IncidentResponseViewComponent} from './incident-response-view/incident-response-view.component';
+import { InteractiveConsoleComponent } from './interactive-console/interactive-console.component';
 import { PlaybookBuilderComponent } from './playbook-builder/playbook-builder.component';
-import {PlaybooksComponent} from "./playbooks/playbooks.component";
+import {PlaybooksComponent} from './playbooks/playbooks.component';
 import {IncidentResponseSharedModule} from './shared/incident-response-shared.module';
 
 @NgModule({
@@ -22,7 +23,8 @@ import {IncidentResponseSharedModule} from './shared/incident-response-shared.mo
       IncidentResponseViewComponent, IncidentResponseCommandComponent,
       IncidentResponseAutomationComponent,
       PlaybookBuilderComponent,
-      PlaybooksComponent
+      PlaybooksComponent,
+      InteractiveConsoleComponent
     ],
   imports:
     [

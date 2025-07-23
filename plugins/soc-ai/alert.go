@@ -1,8 +1,6 @@
 package main
 
 import (
-	"regexp"
-
 	"github.com/threatwinds/go-sdk/plugins"
 	"github.com/utmstack/UTMStack/plugins/soc-ai/config"
 	"github.com/utmstack/UTMStack/plugins/soc-ai/schema"
@@ -40,7 +38,7 @@ func cleanAlerts(alert schema.AlertFields) schema.AlertFields {
 					original := v.StringValue
 					cleaned := original
 					for _, pattern := range config.SensitivePatterns {
-						re := regexp.MustCompile(pattern.Regexp)
+						re := pattern.GetRegexp()
 						cleaned = re.ReplaceAllString(cleaned, pattern.FakeValue)
 					}
 					if cleaned != original {

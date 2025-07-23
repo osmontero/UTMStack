@@ -19,10 +19,12 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 100px;
   }
 
   .value {
     flex: 2 1 0;
     min-width: 0;
+    word-break: break-all;
   }
 }
