@@ -14,4 +14,16 @@ export class AgentInfoComponent implements OnInit {
   ngOnInit() {
   }
 
+  statusClass(status: string): string {
+    switch (status) {
+      case 'CHECK':
+        return 'badge badge-warning';
+      case 'OK':
+        return 'badge badge-success';
+      case 'DOWN':
+        return 'badge badge-danger';
+      default:
+        return 'badge badge-secondary';
+    }
+  }
 }

@@ -1,3 +1,61 @@
-<p>
-  agent-info works!
-</p>
+<div class="agent-info">
+  <div class="d-flex justify-content-between align-items-center flex-wrap pb-2 border-bottom">
+    <div>
+      <h5 class="mb-0 text-uppercase">{{ agent.assetName }}</h5>
+      <small class="text-muted">{{ agent.assetOsPlatform }}</small>
+    </div>
+    <div class="d-flex flex-column align-items-end mt-2 mt-md-0">
+      <span class="badge" [ngClass]="agent.assetAlive ? 'bg-success' : 'bg-danger'">
+        {{ agent.assetAlive ? 'Online' : 'Offline' }}
+      </span>
+    </div>
+  </div>
+
+  <div class="agent-technical">
+
+    <dl class="technical-list">
+      <div *ngIf="agent.assetIp">
+        <dt>IP Address</dt>
+        <dd>{{ agent.assetIp }}</dd>
+      </div>
+
+      <div *ngIf="agent.assetOs">
+        <dt>Operating System</dt>
+        <dd>{{ agent.assetOs }}</dd>
+      </div>
+
+      <div *ngIf="agent.assetOsMajorVersion || agent.assetOsMinorVersion">
+        <dt>OS Version</dt>
+        <dd>
+          {{ agent.assetOsMajorVersion || '—' }}{{ agent.assetOsMinorVersion !== null ? '.' + agent.assetOsMinorVersion : '' }}
+        </dd>
+      </div>
+
+      <div *ngIf="agent.registeredMode">
+        <dt>Registration Mode</dt>
+        <dd>{{ agent.registeredMode }}</dd>
+      </div>
+
+      <div *ngIf="agent.assetStatus">
+        <dt>Status</dt>
+        <dd><span class="badge" [ngClass]="statusClass(agent.assetStatus)">{{ agent.assetStatus }}</span></dd>
+      </div>
+
+      <div *ngIf="agent.agent">
+        <dt>Agent Runtime</dt>
+        <dd><span class="badge bg-success">Active</span></dd>
+      </div>
+
+      <div *ngIf="agent.discoveredAt">
+        <dt>Discovered</dt>
+        <dd>{{ agent.discoveredAt | date:'medium' }}</dd>
+      </div>
+
+      <div *ngIf="agent.modifiedAt">
+        <dt>Last Modified</dt>
+        <dd>{{ agent.modifiedAt | date:'medium' }}</dd>
+      </div>
+    </dl>
+  </div>
+
+</div>
