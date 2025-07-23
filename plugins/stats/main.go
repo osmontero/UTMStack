@@ -252,7 +252,7 @@ func sendStatistic(t string) {
 }
 
 func saveToOpenSearch[Data any](data Data) {
-	// Retry logic for indexing document
+	// Retry logic for indexing a document
 	maxRetries := 3
 	retryDelay := 2 * time.Second
 
