@@ -99,6 +99,7 @@ func (c *UpdaterClient) CheckUpdate() error {
 			newUpdate["version"] = update.Version.Version
 			newUpdate["edition"] = update.Instance.Edition
 			newUpdate["changelog"] = update.Version.Changelog
+			newUpdate["id"] = update.ID
 			updates = append(updates, newUpdate)
 		}
 	} else {
@@ -110,6 +111,7 @@ func (c *UpdaterClient) CheckUpdate() error {
 		newUpdate["version"] = v
 		newUpdate["edition"] = "enterprise"
 		newUpdate["changelog"] = "No changelog available for offline version"
+		newUpdate["id"] = "offline"
 		updates = append(updates, newUpdate)
 	}
 
@@ -123,6 +125,12 @@ func (c *UpdaterClient) CheckUpdate() error {
 			err := c.UpdateToNewVersion(update["version"], update["edition"], update["changelog"])
 			if err != nil {
 				return fmt.Errorf("error updating to new version: %v", err)
+			}
+			if update["id"] != "offline" {
+				err = c.MarkUpdateSent(update["id"])
+				if err != nil {
+					return fmt.Errorf("error marking update as sent: %v", err)
+				}
 			}
 		}
 	}
@@ -152,6 +160,21 @@ func (c *UpdaterClient) UpdateToNewVersion(version, edition, changelog string) e
 		config.Logger().ErrorF("error cleaning up Docker system after update: %v", err)
 	}
 
+	return nil
+}
+
+func (c *UpdaterClient) MarkUpdateSent(updateId string) error {
+	url := fmt.Sprintf("%s%s?id=%s", c.Config.Server, config.SetUpdateSentEndpoint, updateId)
+	_, status, err := utils.DoReq[any](
+		url,
+		nil,
+		http.MethodPost,
+		map[string]string{"id": c.Config.InstanceID, "key": c.Config.InstanceKey},
+		nil,
+	)
+	if err != nil || status != http.StatusOK {
+		return fmt.Errorf("error marking update as sent: status: %d, error: %v", status, err)
+	}
 	return nil
 }
 
