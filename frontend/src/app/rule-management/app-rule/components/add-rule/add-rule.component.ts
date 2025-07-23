@@ -145,10 +145,24 @@ export class AddRuleComponent implements OnInit, OnDestroy {
       afterEvents: this.fb.array(
         rule && rule.afterEvents && rule.afterEvents.length
           ? rule.afterEvents.map(event => this.buildSearchRequest(event))
-          : [this.afterEventService.buildEmptySearchRequest()]
+          : []
       )
     });
     // this.savedVariables = rule ? rule.definition.ruleVariables : [];
+    const afterEventsArray = this.ruleForm.get('afterEvents') as FormArray;
+
+    afterEventsArray.controls.forEach((group: AbstractControl, i: number) => {
+      console.log(`AfterEvent #${i} válido:`, group.valid);
+
+      const fg = group as FormGroup;
+      Object.entries(fg.controls).forEach(([key, control]) => {
+        if (control.invalid) {
+          console.log(`❌ Campo "${key}" inválido:`, control.errors);
+        }
+      });
+    });
+
+
   }
 
 
