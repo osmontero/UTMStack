@@ -4,7 +4,7 @@ import {AgentStatusEnum, AgentType} from '../../../../shared/types/agent/agent.t
 @Component({
   selector: 'app-agent-info',
   templateUrl: './agent-info.component.html',
-  styleUrls: ['./agent-info.component.css']
+  styleUrls: ['./agent-info.component.scss']
 })
 export class AgentInfoComponent implements OnInit {
   @Input() agent: AgentType;
