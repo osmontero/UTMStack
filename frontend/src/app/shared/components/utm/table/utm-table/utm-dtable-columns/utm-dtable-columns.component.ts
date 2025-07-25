@@ -46,6 +46,14 @@ export class UtmDtableColumnsComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    this.fields = this.fields.reduce((acc: UtmFieldType[], field: UtmFieldType) => {
+      if (field.fields && field.fields.length > 0) {
+        return acc.concat(field.fields);
+      } else {
+        acc.push(field);
+        return acc;
+      }
+    }, []);
     this.loadInactiveFields();
     this.loadActiveFields();
   }
@@ -89,14 +97,12 @@ export class UtmDtableColumnsComponent implements OnInit, OnChanges {
   }
 
   setVisibleItem(item: UtmFieldType) {
-    item.visible = true;
-    if (item.fields) {
-     item.fields = item.fields.map( i => ({
-        ...i,
-        visible: true
-      }));
-    }
-    console.log('visibleItem', item);
+    this.fields.forEach((field: UtmFieldType) => {
+      if (field.field === item.field) {
+        field.visible = true;
+      }
+    });
+    this.loadActiveFields();
     this.loadInactiveFields();
   }
 
@@ -113,14 +119,14 @@ export class UtmDtableColumnsComponent implements OnInit, OnChanges {
   }
 
   loadInactiveFields() {
-    this.inactiveFields = this.fields.filter(f => !f.visible || (f.fields && f.fields.some(child => !child.visible)))
+    this.inactiveFields = this.fields.filter(f => !f.visible)
       .map(f => this.mapFieldsToItem(f));
 
     return this.inactiveFields;
   }
 
   loadActiveFields(){
-    this.activeFields = this.fields.filter(f => f.visible || (f.fields && f.fields.some(child => child.visible)))
+    this.activeFields = this.fields.filter(f => f.visible)
      .map(f => this.mapFieldsToItem(f));
     return this.activeFields;
   }

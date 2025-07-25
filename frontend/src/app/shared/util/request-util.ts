@@ -16,7 +16,7 @@ export const createRequestOption = (req?: any): HttpParams => {
   if (req) {
     Object.keys(req).forEach(key => {
       const value = req[key];
-      if (!!value) {
+      if (value !== undefined && value !== null) {
         if (key === 'sort' && Array.isArray(value)) {
           value.forEach((val: string) => {
             options = options.append('sort', val);
