@@ -107,7 +107,7 @@
         </ng-container>
         <ng-container *ngIf="authorize">
           <ng-container
-            *ngIf="!connectionError && agent.status === agentStatusEnum.ONLINE;else missingAgent">
+            *ngIf="!connectionError && agent && agent.status === agentStatusEnum.ONLINE;else missingAgent">
             <div class="terminal f-flex flex-column" #contentWrapper>
             <span class="font-size-lg mb-3">
               <i class="icon-keyboard"></i> Press <b>TAB</b> to use automation variables in the command

@@ -1,4 +1,14 @@
-import {Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output, SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import {UUID} from 'angular2-uuid';
 import {LocalStorageService, SessionStorageService} from 'ngx-webstorage';
 import * as SockJS from 'sockjs-client';
@@ -18,7 +28,7 @@ import {replaceBreakLine} from '../../../../util/string-util';
   templateUrl: './utm-agent-console.component.html',
   styleUrls: ['./utm-agent-console.component.scss']
 })
-export class UtmAgentConsoleComponent implements OnInit, OnDestroy {
+export class UtmAgentConsoleComponent implements OnInit, OnChanges, OnDestroy {
   @Input() hostname: string;
   @Input() websocketCommand: IncidentCommandType;
   @Input() template: 'on-demand' | 'default' = 'default';
@@ -55,8 +65,16 @@ export class UtmAgentConsoleComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    this.agent = null;
     this.consoleSignal = `➜#`;
     this.websocketCommand.command = '';
+    this.authorize = false;
+    this.token = null;
+    this.command = null;
+    this.pass = '';
   }
 
   startConnection() {
