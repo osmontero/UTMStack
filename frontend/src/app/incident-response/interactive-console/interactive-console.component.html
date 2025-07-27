@@ -10,13 +10,9 @@
 
     <section *ngIf="agentSelected$ | async as agent; else noSelection" class="card agent-details flex-grow-1 p-3 border-0 shadow-sm">
 
-      <app-agent-info [agent]="agent"></app-agent-info>
+      <app-agent-info class="border-bottom" [agent]="agent"></app-agent-info>
 
-      <div class="divider text-uppercase text-muted small border-top pt-2 mt-4 mb-2">
-        Interactive Console
-      </div>
-
-      <app-interactive-console [agent]="agent"></app-interactive-console>
+      <app-interactive-console></app-interactive-console>
 
     </section>
 

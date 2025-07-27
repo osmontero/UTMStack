@@ -26,6 +26,7 @@
                  {{ 'Password: ' }}
                 </span>
               <input type="password"
+                    [autofocus]="true"
                      [(ngModel)]="pass"
                      (keyup.enter)="checkPassword()" class="command ml-2"
                      placeholder="Enter your Panel password">
