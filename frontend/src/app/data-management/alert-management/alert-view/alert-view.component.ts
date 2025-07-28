@@ -319,8 +319,9 @@ export class AlertViewComponent implements OnInit, OnDestroy {
       (res: HttpResponse<any>) => {
         this.totalItems = Number(res.headers.get('X-Total-Count'));
         this.alerts = res.body;
-        /*this.alerts = alerts.filter(alert => !alert.parentId);
-        this.totalItems = this.alerts.length;*/
+       /* this.alerts = this.alerts.filter(alert => alert.hasOwnProperty('parentId'));
+        this.totalItems = this.alerts.length;
+        console.log(this.alerts);*/
         this.loading = false;
         this.refreshingAlert = false;
       },

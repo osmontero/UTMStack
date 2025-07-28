@@ -1,3 +1,4 @@
+import { ElasticDataTypesEnum } from '../../enums/elastic-data-types.enum';
 import {UtmFieldType} from '../../types/table/utm-field.type';
 import {
   ALERT_CASE_ID_FIELD,
@@ -14,7 +15,6 @@ import {
   ALERT_TAGS_FIELD,
   ALERT_TIMESTAMP_FIELD
 } from './alert-field.constant';
-import { ElasticDataTypesEnum } from '../../enums/elastic-data-types.enum';
 
 // TARGET
 export const ALERT_TARGET_IP_FIELD = 'target.ip';
