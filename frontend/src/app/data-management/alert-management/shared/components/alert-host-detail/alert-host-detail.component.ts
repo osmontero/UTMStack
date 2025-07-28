@@ -29,6 +29,10 @@ export class AlertHostDetailComponent implements OnInit {
     return this.alertFieldService.findField(ALERT_FIELDS, name);
   }
 
+  isEmpty(): boolean {
+    return !this.alert || !this.alert[this.type] || Object.keys(this.alert[this.type]).length === 0;
+  }
+
   getFields(obj: any, prefix = ''): { id: string; fieldType: UtmFieldType }[] {
     let fields: { id: string, fieldType: UtmFieldType}[] = [];
 
