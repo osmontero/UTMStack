@@ -6,7 +6,7 @@ import com.park.utmstack.domain.application_modules.enums.ModuleName;
 import com.park.utmstack.domain.application_modules.factory.IModule;
 import com.park.utmstack.domain.application_modules.types.ModuleConfigurationKey;
 import com.park.utmstack.domain.application_modules.types.ModuleRequirement;
-import com.park.utmstack.domain.application_modules.validators.UtmStackConfigValidator;
+import com.park.utmstack.domain.application_modules.validators.UtmModuleConfigValidator;
 import com.park.utmstack.service.application_modules.UtmModuleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -22,7 +22,7 @@ public class ModuleSocAi implements IModule {
     private static final String CLASSNAME = "ModuleSocAi";
 
     private final UtmModuleService moduleService;
-    private final UtmStackConfigValidator utmStackConfigValidator;
+    private final UtmModuleConfigValidator utmStackConfigValidator;
 
     @Override
     public UtmModule getDetails(Long serverId) throws Exception {

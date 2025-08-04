@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class UtmStackConfigValidator {
+public class UtmModuleConfigValidator {
 
     private final UtmModuleGroupConfigurationRepository moduleGroupConfigurationRepository;
     private final UtmStackConnectionService utmStackConnectionService;
