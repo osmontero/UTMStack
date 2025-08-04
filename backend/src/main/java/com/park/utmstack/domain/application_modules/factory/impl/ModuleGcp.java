@@ -1,11 +1,14 @@
 package com.park.utmstack.domain.application_modules.factory.impl;
 
 import com.park.utmstack.domain.application_modules.UtmModule;
+import com.park.utmstack.domain.application_modules.UtmModuleGroupConfiguration;
 import com.park.utmstack.domain.application_modules.enums.ModuleName;
 import com.park.utmstack.domain.application_modules.factory.IModule;
 import com.park.utmstack.domain.application_modules.types.ModuleConfigurationKey;
 import com.park.utmstack.domain.application_modules.types.ModuleRequirement;
+import com.park.utmstack.domain.application_modules.validators.UtmModuleConfigValidator;
 import com.park.utmstack.service.application_modules.UtmModuleService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -13,14 +16,13 @@ import java.util.Collections;
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class ModuleGcp implements IModule {
     private static final String CLASSNAME = "ModuleGcp";
 
     private final UtmModuleService moduleService;
+    private final UtmModuleConfigValidator utmStackConfigValidator;
 
-    public ModuleGcp(UtmModuleService moduleService) {
-        this.moduleService = moduleService;
-    }
 
     @Override
     public UtmModule getDetails(Long serverId) throws Exception {
@@ -82,5 +84,9 @@ public class ModuleGcp implements IModule {
             .build());
 
         return keys;
+    }
+
+    public boolean validateConfiguration(UtmModule module, List<UtmModuleGroupConfiguration> configuration) throws Exception {
+        return utmStackConfigValidator.validate(module, configuration);
     }
 }
