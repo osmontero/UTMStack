@@ -18,7 +18,7 @@ func ValidateGcpConfig(config *config.ModuleGroup) error {
 	}
 
 	for _, cnf := range config.ModuleGroupConfigurations {
-		switch cnf.ConfName {
+		switch cnf.ConfKey {
 		case "jsonKey":
 			jsonKey = cnf.ConfValue
 		case "projectId":

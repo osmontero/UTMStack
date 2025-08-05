@@ -1,38 +1,43 @@
 package validations
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"time"
 
-	"github.com/threatwinds/go-sdk/catcher"
-	"github.com/threatwinds/go-sdk/utils"
 	"github.com/utmstack/UTMStack/plugins/modules-config/config"
 )
 
 const (
-	sophosAuthURL = "https://id.sophos.com/api/v2/oauth2/token"
+	sophosAuthURL   = "https://id.sophos.com/api/v2/oauth2/token"
+	sophosWhoamiURL = "https://api.central.sophos.com/whoami/v1"
 )
 
 func ValidateSophosConfig(config *config.ModuleGroup) error {
 	var clientID, clientSecret string
+
 	if config == nil {
-		return catcher.Error("Sophos configuration is nil", nil, nil)
+		return fmt.Errorf("Sophos configuration is nil")
 	}
 
 	for _, cnf := range config.ModuleGroupConfigurations {
-		switch cnf.ConfName {
-		case "Client Id":
+		switch cnf.ConfKey {
+		case "sophos_client_id":
 			clientID = cnf.ConfValue
-		case "Client Secret":
+		case "sophos_x_api_key":
 			clientSecret = cnf.ConfValue
 		}
 	}
 
 	if clientID == "" {
-		return catcher.Error("Client ID is required in Sophos configuration", nil, nil)
+		return fmt.Errorf("Client ID is required in Sophos configuration")
 	}
 	if clientSecret == "" {
-		return catcher.Error("Client Secret is required in Sophos configuration", nil, nil)
+		return fmt.Errorf("Client Secret is required in Sophos configuration")
 	}
 
 	data := url.Values{}
@@ -41,30 +46,64 @@ func ValidateSophosConfig(config *config.ModuleGroup) error {
 	data.Set("client_secret", clientSecret)
 	data.Set("scope", "token")
 
-	headers := map[string]string{
-		"Content-Type": "application/x-www-form-urlencoded",
-	}
-
-	response, status, err := utils.DoReq[map[string]any](sophosAuthURL, []byte(data.Encode()), http.MethodPost, headers)
+	req, err := http.NewRequest(http.MethodPost, sophosAuthURL, bytes.NewBufferString(data.Encode()))
 	if err != nil {
-		return catcher.Error("error validating Sophos credentials", err, map[string]any{
-			"status": status,
-		})
+		return fmt.Errorf("failed to create request: %w", err)
 	}
 
-	if status != http.StatusOK {
-		return catcher.Error("Sophos authentication failed", nil, map[string]any{
-			"status":   status,
-			"response": response,
-		})
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("Sophos authentication request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read response: %w", err)
+	}
+
+	var response map[string]interface{}
+	if err := json.Unmarshal(body, &response); err != nil {
+		return fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		if errorCode, hasError := response["errorCode"]; hasError {
+			message := ""
+			if msg, ok := response["message"].(string); ok {
+				message = msg
+			}
+			if errorCode == "oauth.invalid_client_secret" {
+				return fmt.Errorf("Sophos authentication failed: Invalid Client Secret")
+			}
+			if errorCode == "oauth.invalid_client_id" {
+				return fmt.Errorf("Sophos authentication failed: Invalid Client ID")
+			}
+			return fmt.Errorf("Sophos authentication failed: %v - %s", errorCode, message)
+		}
+		if errorCode, hasError := response["error"]; hasError {
+			errorDesc := ""
+			if desc, ok := response["error_description"].(string); ok {
+				errorDesc = desc
+			}
+			return fmt.Errorf("Sophos authentication failed: %v - %s", errorCode, errorDesc)
+		}
+		return fmt.Errorf("Sophos authentication failed with status %d", resp.StatusCode)
 	}
 
 	accessToken, ok := response["access_token"].(string)
 	if !ok || accessToken == "" {
-		return catcher.Error("Sophos credentials are invalid - no access token received", nil, map[string]any{
-			"response": response,
-			"status":   status,
-		})
+		var fields []string
+		for k := range response {
+			fields = append(fields, k)
+		}
+		return fmt.Errorf("Sophos authentication failed: no access token received. Response fields: %v", fields)
 	}
 
 	return nil

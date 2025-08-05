@@ -18,12 +18,12 @@ func ValidateAwsConfig(config *config.ModuleGroup) error {
 	}
 
 	for _, cnf := range config.ModuleGroupConfigurations {
-		switch cnf.ConfName {
-		case "Default Region":
+		switch cnf.ConfKey {
+		case "aws_default_region":
 			regionName = cnf.ConfValue
-		case "Access Key":
+		case "aws_access_key_id":
 			accessKey = cnf.ConfValue
-		case "Secret Key":
+		case "aws_secret_access_key":
 			secretAccessKey = cnf.ConfValue
 		}
 	}

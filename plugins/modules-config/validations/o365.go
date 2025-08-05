@@ -36,12 +36,12 @@ func ValidateO365Config(config *config.ModuleGroup) error {
 	}
 
 	for _, cnf := range config.ModuleGroupConfigurations {
-		switch cnf.ConfName {
-		case "Client ID":
+		switch cnf.ConfKey {
+		case "office365_client_id":
 			clientId = cnf.ConfValue
-		case "Client Secret":
+		case "office365_client_secret":
 			clientSecret = cnf.ConfValue
-		case "Tenant ID":
+		case "office365_tenant_id":
 			tenantId = cnf.ConfValue
 		}
 	}

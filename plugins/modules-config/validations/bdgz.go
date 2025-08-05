@@ -32,7 +32,7 @@ func ValidateBdgzConfig(config *config.ModuleGroup) error {
 	}
 
 	for _, cnf := range config.ModuleGroupConfigurations {
-		switch cnf.ConfName {
+		switch cnf.ConfKey {
 		case "connectionKey":
 			connectionKey = cnf.ConfValue
 		case "accessUrl":

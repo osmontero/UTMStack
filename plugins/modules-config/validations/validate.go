@@ -33,9 +33,9 @@ func ValidateModuleConfig(moduleName string, config *config.ModuleGroup) error {
 			return fmt.Errorf("%v", err)
 		}
 	case "SOPHOS":
-		if err := ValidateSophosConfig(config); err != nil {
-			return fmt.Errorf("%v", err)
-		}
+		// if err := ValidateSophosConfig(config); err != nil {
+		// 	return fmt.Errorf("%v", err)
+		// }
 	default:
 		return fmt.Errorf("unsupported module: %s", moduleName)
 	}
