@@ -110,11 +110,17 @@ export class AddAfterEventComponent implements OnInit {
     );
   }
 
-  onFieldChange($event: any, index: number) {
-    const fieldName = $event.name || '';
+  getOperators(field: string) {
+    const fieldName = field || '';
     const hasKeyword = fieldName.includes('.keyword');
 
-    this.operators = hasKeyword ? this.allOperators.keyword : this.allOperators.text;
+    return hasKeyword ? this.allOperators.keyword : this.allOperators.text;
+  }
+
+  onFieldChange($event: any, index: number) {
+    const fieldName = $event.name || '';
+
+    this.operators = this.getOperators(fieldName);
 
     const control = this.with.at(index);
     control.get('operator').reset();
