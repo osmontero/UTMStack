@@ -202,7 +202,9 @@ public class UtmDataInputStatusService {
 
                     UtmDataInputStatus dataInputStatus = existingOpt
                             .map(existing -> {
-                                existing.setTimestamp(timestamp);
+                                if(timestamp != existing.getTimestamp()) {
+                                    existing.setTimestamp(timestamp);
+                                }
                                 return existing;
                             })
                             .orElseGet(() -> UtmDataInputStatus.builder()

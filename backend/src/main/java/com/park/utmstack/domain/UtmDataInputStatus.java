@@ -9,6 +9,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -64,8 +65,8 @@ public class UtmDataInputStatus implements Serializable {
      */
     public Boolean isDown() {
         if (Objects.isNull(timestamp) || Objects.isNull(median))
-            return null;
-        long currentTimeInSeconds = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
-        return (currentTimeInSeconds - timestamp) > (median * 6);
+            return false;
+        long now = Instant.now().getEpochSecond();
+        return (now - timestamp) > (median * 1.5);
     }
 }
