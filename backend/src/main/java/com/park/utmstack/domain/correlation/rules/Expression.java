@@ -5,6 +5,6 @@ import lombok.Data;
 @Data
 public class Expression {
     private String field;
-    private Operator operator;
+    private String operator;
     private Object value;
 }
