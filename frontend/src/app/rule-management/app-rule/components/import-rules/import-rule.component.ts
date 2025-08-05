@@ -128,6 +128,7 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
                 integrity: file.impact.integrity || 0,
                 availability: file.impact.availability || 0,
                 definition: file.where || '',
+                afterEvents: file.afterEvents || [],
                 dataTypes: filteredDataTypes.filter(dt => !!dt)
               }))
             )
@@ -135,7 +136,7 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
         ).subscribe(updatedFiles => {
           this.rules = updatedFiles.map(file => ({
             ...file,
-            dataTypes: file.dataTypes.length > 0 ? file.dataTypes : []
+            dataTypes: file.dataTypes.length > 0 ? file.dataTypes : [],
           }));
 
           this.rules = this.rules.map(rule => {

@@ -14,7 +14,6 @@ export class ImportRuleService {
   }
 
   isValidRule(obj: Rule): obj is Rule {
-     console.log('Valid');
      if (!obj || typeof obj !== 'object') { return false; }
 
      const requiredProps: (keyof Rule)[] = [
@@ -26,7 +25,7 @@ export class ImportRuleService {
      if (!requiredProps.every(prop => prop in obj)) { return false; }
 
      if (
-      !Array.isArray(obj.dataTypes) ||
+       (!Array.isArray(obj.dataTypes) || obj.dataTypes.length === 0) ||
       typeof obj.name !== 'string' ||
       typeof obj.confidentiality !== 'number' ||
       typeof obj.integrity !== 'number' ||
