@@ -10,8 +10,13 @@ service ConfigService {
 
 enum PluginType {
     UNKNOWN = 0;
-    SOPHOS = 1;
-    SOC_AI = 2;
+    AWS_IAM_USER = 1;
+    AZURE = 2;
+    BITDEFENDER = 3;
+    GCP = 4;
+    O365 = 5;
+    SOC_AI = 6;
+    SOPHOS = 7;
 }
 
 message BiDirectionalMessage {

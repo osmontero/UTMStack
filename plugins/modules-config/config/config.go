@@ -114,10 +114,20 @@ func (s *ConfigServer) NotifyUpdate(moduleName string, section *ConfigurationSec
 	pluginType := PluginType_UNKNOWN
 
 	switch moduleName {
-	case "SOPHOS":
-		pluginType = PluginType_SOPHOS
+	case "AWS_IAM_USER":
+		pluginType = PluginType_AWS_IAM_USER
+	case "AZURE":
+		pluginType = PluginType_AZURE
+	case "BITDEFENDER":
+		pluginType = PluginType_BITDEFENDER
+	case "GCP":
+		pluginType = PluginType_GCP
+	case "O365":
+		pluginType = PluginType_O365
 	case "SOC_AI":
 		pluginType = PluginType_SOC_AI
+	case "SOPHOS":
+		pluginType = PluginType_SOPHOS
 	default:
 		_ = catcher.Error("unknown module name", fmt.Errorf("module: %s", moduleName), nil)
 		return
@@ -148,8 +158,13 @@ func (s *ConfigServer) NotifyUpdate(moduleName string, section *ConfigurationSec
 
 func (s *ConfigServer) SyncConfigs(backend string, internalKey string) {
 	var AllModules = map[string]PluginType{
-		"SOPHOS": PluginType_SOPHOS,
-		"SOC_AI": PluginType_SOC_AI,
+		"AWS_IAM_USER": PluginType_AWS_IAM_USER,
+		"AZURE":        PluginType_AZURE,
+		"BITDEFENDER":  PluginType_BITDEFENDER,
+		"GCP":          PluginType_GCP,
+		"O365":         PluginType_O365,
+		"SOC_AI":       PluginType_SOC_AI,
+		"SOPHOS":       PluginType_SOPHOS,
 	}
 
 	for name, t := range AllModules {

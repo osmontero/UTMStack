@@ -20,9 +20,6 @@ jobs:
           if ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/release/v10') }}; then
             echo "DEV environment"
             echo "tag=v10-dev" >> $GITHUB_OUTPUT
-          elif ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'v10' && startsWith(github.event.pull_request.head.ref, 'release/v10') }}; then
-            echo "QA environment"
-            echo "tag=v10-qa" >> $GITHUB_OUTPUT
           elif ${{ github.event_name == 'push' && github.ref == 'refs/heads/v10' }}; then
             echo "RC environment"
             echo "tag=v10-rc" >> $GITHUB_OUTPUT
@@ -65,7 +62,7 @@ jobs:
     name: Build Agent-Manager Image & Agent & Dependencies
     needs: [validations,setup_deployment]
     if: ${{ needs.setup_deployment.outputs.tag != '' }}
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out code into the right branch
         uses: actions/checkout@v4
@@ -88,51 +85,55 @@ jobs:
           GOOS=windows GOARCH=amd64 go build -o utmstack_agent_service.exe -v .
           GOOS=windows GOARCH=arm64 go build -o utmstack_agent_service_arm64.exe -v .
 
-          echo "Signing Windows Agent..."
-          FILES_TO_SIGN=("utmstack_agent_service.exe" "utmstack_agent_service_arm64.exe")
-          for file in "${FILES_TO_SIGN[@]}"; do
-            echo "Uploading $file for signing..."
-            RESPONSE=$(curl -sS -f -X POST http://customermanager.utmstack.com:8081/api/v1/upload \
-              -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
-              -F "file=@$file")
+          if [[ {{ needs.setup_deployment.outputs.tag }} != "v10-dev" ]]; then
+            echo "Signing Windows Agent..."
+            FILES_TO_SIGN=("utmstack_agent_service.exe" "utmstack_agent_service_arm64.exe")
+            for file in "${FILES_TO_SIGN[@]}"; do
+              echo "Uploading $file for signing..."
+              RESPONSE=$(curl -sS -f -X POST http://customermanager.utmstack.com:8081/api/v1/upload \
+                -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+                -F "file=@$file")
 
-            FILE_ID=$(echo "$RESPONSE" | jq -r '.file_id')
+              FILE_ID=$(echo "$RESPONSE" | jq -r '.file_id')
 
-            if [[ -z "$FILE_ID" || "$FILE_ID" == "null" ]]; then
-              echo "❌ Failed to upload $file for signing."
-              exit 1
-            fi
-
-            echo "Uploaded $file with file_id: $FILE_ID"
-            echo "Waiting for signing to complete..."
-
-            while true; do
-              STATUS=$(curl -sS -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
-                http://customermanager.utmstack.com:8081/api/v1/status/$FILE_ID | jq -r '.status')
-
-              if [[ "$STATUS" == "ready" ]]; then
-                echo "✅ $file has been signed."
-                break
-              elif [[ "$STATUS" == "signing" ]]; then
-                echo "⏳ Still signing $file... waiting 5s"
-                sleep 5
-              else
-                echo "❌ Unexpected status: $STATUS"
+              if [[ -z "$FILE_ID" || "$FILE_ID" == "null" ]]; then
+                echo "❌ Failed to upload $file for signing."
                 exit 1
               fi
+
+              echo "Uploaded $file with file_id: $FILE_ID"
+              echo "Waiting for signing to complete..."
+
+              while true; do
+                STATUS=$(curl -sS -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+                  http://customermanager.utmstack.com:8081/api/v1/status/$FILE_ID | jq -r '.status')
+
+                if [[ "$STATUS" == "ready" ]]; then
+                  echo "✅ $file has been signed."
+                  break
+                elif [[ "$STATUS" == "signing" ]]; then
+                  echo "⏳ Still signing $file... waiting 5s"
+                  sleep 5
+                else
+                  echo "❌ Unexpected status: $STATUS"
+                  exit 1
+                fi
+              done
+
+              echo "Downloading signed $file..."
+              curl -sS -f -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+                -o "$file" \
+                http://customermanager.utmstack.com:8081/api/v1/download/$FILE_ID
+
+              echo "Marking $file as finished..."
+              curl -sS -X POST -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
+                http://customermanager.utmstack.com:8081/api/v1/finish/$FILE_ID > /dev/null || true
             done
 
-            echo "Downloading signed $file..."
-            curl -sS -f -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
-              -o "$file" \
-              http://customermanager.utmstack.com:8081/api/v1/download/$FILE_ID
-
-            echo "Marking $file as finished..."
-            curl -sS -X POST -H "Authorization: Bearer ${{ secrets.SIGNER_TOKEN }}" \
-              http://customermanager.utmstack.com:8081/api/v1/finish/$FILE_ID > /dev/null || true
-          done
-
-          echo "✅ All agents signed successfully."
+            echo "✅ All agents signed successfully."
+          else
+            echo "Skipping signing for Alpha environment."
+          fi
         
       - name: Prepare dependencies for Agent Manager Image
         run: |
@@ -185,36 +186,6 @@ jobs:
     needs: [build_agent, runner_release, setup_deployment]
     if: ${{ needs.setup_deployment.outputs.tag == 'v10-dev' }}
     runs-on: utmstack-v10-dev
-    steps:
-      - name: Check out code into the right branch
-        uses: actions/checkout@v4
-
-      - name: Set up Go 1.x
-        uses: actions/setup-go@v5
-        with:
-          go-version: ^1.20
-        id: go
-
-      - name: Build
-        working-directory: ./installer
-        env:
-          GOOS: linux
-          GOARCH: amd64
-        run: |
-          go build -o installer -v .
-          mv installer /home/utmstack/installer
-          chmod +x /home/utmstack/installer
-
-      - name: Run
-        working-directory: /home/utmstack
-        run: |
-          sudo ./installer
-
-  deploy_qa:
-    name: Deploy to v10-qa environment 
-    needs: [build_agent, runner_release, setup_deployment]
-    if: ${{ needs.setup_deployment.outputs.tag == 'v10-qa' }}
-    runs-on: utmstack-v10-qa
     steps:
       - name: Check out code into the right branch
         uses: actions/checkout@v4
