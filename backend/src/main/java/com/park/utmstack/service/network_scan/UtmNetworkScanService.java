@@ -288,11 +288,6 @@ public class UtmNetworkScanService {
     private Page<UtmNetworkScan> filter(NetworkScanFilter f, Pageable p) throws Exception {
         final String ctx = CLASSNAME + ".filter";
         try {
-            Page<UtmNetworkScan> page = networkScanRepository.searchByFilters(
-                f.getAssetIpMacName() == null ? null : "%" + f.getAssetIpMacName() + "%",
-                f.getOs(), f.getAlias(), f.getType(), f.getAlive(), f.getStatus(),
-                f.getProbe(), f.getOpenPorts(), f.getDiscoveredInitDate(),
-                f.getDiscoveredEndDate(), f.getGroups(), f.getRegisteredMode(), f.getAgent(), f.getOsPlatform(), f.getDataTypes(), p);
 
             /*if (page.getTotalPages() > 0) {
                 List<UtmDataInputStatus> utmDataInputStatuses = utmDataInputStatusRepository.findAll().stream().sorted(Comparator.comparing(UtmDataInputStatus::getSource)).collect(Collectors.toList());
@@ -302,7 +297,11 @@ public class UtmNetworkScanService {
                         inputStatus.getSource().equalsIgnoreCase(m.getAssetIp())).collect(Collectors.toList())));
             }*/
 
-            return page;
+            return networkScanRepository.searchByFilters(
+                f.getAssetIpMacName() == null ? null : "%" + f.getAssetIpMacName() + "%",
+                f.getOs(), f.getAlias(), f.getType(), f.getAlive(), f.getStatus(),
+                f.getProbe(), f.getOpenPorts(), f.getDiscoveredInitDate(),
+                f.getDiscoveredEndDate(), f.getGroups(), f.getRegisteredMode(), f.getAgent(), f.getOsPlatform(), f.getDataTypes(), p);
         } catch (InvalidDataAccessResourceUsageException e) {
             String msg = ctx + ": " + e.getMostSpecificCause().getMessage().replaceAll("\n", "");
             throw new Exception(msg);

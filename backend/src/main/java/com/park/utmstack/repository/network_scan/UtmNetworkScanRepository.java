@@ -23,7 +23,7 @@ import java.util.Optional;
 @Repository
 public interface UtmNetworkScanRepository extends JpaRepository<UtmNetworkScan, Long>, JpaSpecificationExecutor<UtmNetworkScan> {
 
-    @Query(value = "SELECT DISTINCT ns FROM UtmNetworkScan ns " +
+/*    @Query(value = "SELECT DISTINCT ns FROM UtmNetworkScan ns " +
             "LEFT JOIN ns.dataInputIpList dti " +
             "LEFT JOIN ns.dataInputSourceList dts " +
             "WHERE" +
@@ -40,7 +40,26 @@ public interface UtmNetworkScanRepository extends JpaRepository<UtmNetworkScan, 
         "AND ((:assetOsPlatform) IS NULL OR ns.assetOsPlatform IN :assetOsPlatform) " +
         "AND ((cast(:initDate as timestamp) is null) or (cast(:endDate as timestamp) is null) or (ns.discoveredAt BETWEEN :initDate AND :endDate)) " +
         "AND ((:dataTypes) IS NULL OR dti.dataType IN (:dataTypes) OR dts.dataType IN (:dataTypes))" +
-        "AND ((:ports) IS NULL OR ns.id IN (SELECT DISTINCT ins.id FROM UtmNetworkScan ins INNER JOIN UtmPorts p ON ins.id = p.scanId WHERE p.port IN :ports))")
+        "AND ((:ports) IS NULL OR ns.id IN (SELECT DISTINCT ins.id FROM UtmNetworkScan ins INNER JOIN UtmPorts p ON ins.id = p.scanId WHERE p.port IN :ports))")*/
+@Query("SELECT DISTINCT ns FROM UtmNetworkScan ns " +
+        "WHERE (:assetIpMacName IS NULL OR (ns.assetIp LIKE :assetIpMacName OR lower(ns.assetMac) LIKE lower(:assetIpMacName) OR lower(ns.assetName) LIKE lower(:assetIpMacName))) " +
+        "AND (:assetOs IS NULL OR ns.assetOs IN :assetOs) " +
+        "AND (:assetType IS NULL OR ns.assetTypeId IN (SELECT types.id FROM UtmAssetTypes types WHERE types.typeName IN :assetType)) " +
+        "AND (:groups IS NULL OR ns.groupId IN (SELECT group.id FROM UtmAssetGroup group WHERE group.groupName IN :groups)) " +
+        "AND (:assetAlive IS NULL OR ns.assetAlive IN :assetAlive) " +
+        "AND (:assetStatus IS NULL OR ns.assetStatus IN :assetStatus) " +
+        "AND (:registeredMode IS NULL OR ns.registeredMode = :registeredMode) " +
+        "AND (:assetAlias IS NULL OR ns.assetAlias IN :assetAlias) " +
+        "AND (:serverName IS NULL OR ns.serverName IN :serverName) " +
+        "AND (:isAgent IS NULL OR ns.isAgent IN :isAgent) " +
+        "AND (:assetOsPlatform IS NULL OR ns.assetOsPlatform IN :assetOsPlatform) " +
+        "AND ((cast(:initDate as timestamp) is null) or (cast(:endDate as timestamp) is null) or (ns.discoveredAt BETWEEN :initDate AND :endDate)) " +
+        "AND (:dataTypes IS NULL OR EXISTS (" +
+        "   SELECT ip FROM ns.dataInputIpList ip WHERE ip.dataType IN :dataTypes) " +
+        "   OR EXISTS (" +
+        "   SELECT src FROM ns.dataInputSourceList src WHERE src.dataType IN :dataTypes)) " +
+        "AND (:ports IS NULL OR ns.id IN (" +
+        "   SELECT p.scanId FROM UtmPorts p WHERE p.port IN :ports))")
     @QueryHints(@QueryHint(name = org.hibernate.jpa.QueryHints.HINT_PASS_DISTINCT_THROUGH, value = "false"))
     Page<UtmNetworkScan> searchByFilters(@Param("assetIpMacName") String assetIpMacName,
                                          @Param("assetOs") List<String> assetOs,
