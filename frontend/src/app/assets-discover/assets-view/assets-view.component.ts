@@ -1,5 +1,5 @@
 import {HttpResponse} from '@angular/common/http';
-import {AfterViewInit, ChangeDetectionStrategy, Component, OnDestroy, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnDestroy, OnInit} from '@angular/core';
 import {Router} from '@angular/router';
 import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
 import {ResizeEvent} from 'angular-resizable-element';
@@ -42,7 +42,7 @@ import {SourceDataTypeConfigComponent} from '../source-data-type-config/source-d
   styleUrls: ['./assets-view.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class AssetsViewComponent implements OnInit, AfterViewInit, OnDestroy {
+export class AssetsViewComponent implements OnInit, OnDestroy {
   assets$: Observable<NetScanType[]>;
   assets: NetScanType[];
   // defaultTime: ElasticFilterDefaultTime = new ElasticFilterDefaultTime('now-30d', 'now');
@@ -98,7 +98,7 @@ export class AssetsViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     this.setInitialWidth();
-    this.starInterval();
+
     this.accountService.identity().then(account => {
       this.reasonRun = {
         command: '',
@@ -130,10 +130,9 @@ export class AssetsViewComponent implements OnInit, AfterViewInit, OnDestroy {
           });
         })
       );
-  }
 
-  ngAfterViewInit() {
-    this.getAssets();
+    this.utmNetScanService.notifyRefresh(true);
+    this.starInterval();
   }
 
   setInitialWidth() {
@@ -145,10 +144,6 @@ export class AssetsViewComponent implements OnInit, AfterViewInit, OnDestroy {
   loadPage(page: number) {
     this.page = page - 1;
     this.requestParam.page = page;
-    this.getAssets();
-  }
-
-  getAssets() {
     this.utmNetScanService.notifyRefresh(true);
   }
 
@@ -163,13 +158,13 @@ export class AssetsViewComponent implements OnInit, AfterViewInit, OnDestroy {
   onItemsPerPageChange($event: number) {
     this.itemsPerPage = $event;
     this.requestParam.size = $event;
-    this.getAssets();
+    this.utmNetScanService.notifyRefresh(true);
   }
 
   onTimeFilterChange($event: TimeFilterType) {
     this.requestParam.discoveredInitDate = $event.timeFrom;
     this.requestParam.discoveredEndDate = $event.timeTo;
-    this.getAssets();
+    this.utmNetScanService.notifyRefresh(true);
   }
 
   onResize($event: ResizeEvent) {
@@ -186,7 +181,7 @@ export class AssetsViewComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onSortBy($event: SortEvent) {
     this.requestParam.sort = $event.column + ',' + $event.direction;
-    this.getAssets();
+    this.utmNetScanService.notifyRefresh(true);
   }
 
   toggleCheck() {
@@ -230,7 +225,7 @@ export class AssetsViewComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }
     this.assetFiltersBehavior.$assetFilter.next(this.requestParam);
-    this.getAssets();
+    this.utmNetScanService.notifyRefresh(true);
   }
 
   onFilterChange($event: { prop: AssetFieldFilterEnum, values: any }) {
@@ -268,13 +263,13 @@ export class AssetsViewComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.assetFiltersBehavior.$assetAppliedFilter.next(this.requestParam);
     this.assetFiltersBehavior.$assetFilter.next(this.requestParam);
-    this.getAssets();
+    this.utmNetScanService.notifyRefresh(true);
   }
 
   onSearch($event: string) {
     this.requestParam.assetIpMacName = $event;
     this.requestParam.page = 0;
-    this.getAssets();
+    this.utmNetScanService.notifyRefresh(true);
   }
 
   deleteAsset(event: Event, asset: NetScanType) {
@@ -293,7 +288,7 @@ export class AssetsViewComponent implements OnInit, AfterViewInit, OnDestroy {
   delete(asset: NetScanType) {
     this.utmNetScanService.deleteCustomAsset(asset.id).subscribe(() => {
       this.utmToastService.showSuccessBottom('Asset deleted successfully');
-      this.getAssets();
+      this.utmNetScanService.notifyRefresh(true);
     }, () => {
       this.utmToastService.showError('Error deleting asset',
         'Error while trying to delete asset, please try again');
@@ -305,7 +300,7 @@ export class AssetsViewComponent implements OnInit, AfterViewInit, OnDestroy {
     event.stopPropagation();
     this.deleting.push(dat.id);
     this.dataSourceInputService.delete(dat.id).subscribe(() => {
-      this.getAssets();
+      this.utmNetScanService.notifyRefresh(true);
       const indexDelete = this.deleting.indexOf(dat.id);
       if (indexDelete !== -1) {
         this.deleting.splice(indexDelete, 1);
@@ -382,7 +377,7 @@ export class AssetsViewComponent implements OnInit, AfterViewInit, OnDestroy {
   showDataTypeModal() {
     const modalSource = this.modalService.open(SourceDataTypeConfigComponent, {centered: true, size: 'lg'});
     modalSource.componentInstance.refreshDataInput.subscribe(() => {
-      this.getAssets();
+      this.utmNetScanService.notifyRefresh(true);
     });
   }
 
@@ -407,8 +402,8 @@ export class AssetsViewComponent implements OnInit, AfterViewInit, OnDestroy {
   starInterval() {
     if (!this.interval) {
       this.interval = setInterval(() => {
-        this.getAssets();
-      }, 10000);
+        this.utmNetScanService.notifyRefresh(true);
+      }, 30000);
     }
   }
 

@@ -1,19 +1,21 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {NetScanType} from '../../../../../assets-discover/shared/types/net-scan.type';
 import {UtmAgentManagerService} from '../../../../services/agent/utm-agent-manager.service';
 import {AgentStatusEnum, AgentType} from '../../../../types/agent/agent.type';
 import {IncidentCommandType} from '../../../../types/incident/incident-command.type';
+import {Observable, of} from "rxjs";
+import {catchError, map} from "rxjs/operators";
 
 @Component({
   selector: 'app-utm-agent-connect',
   templateUrl: './utm-agent-connect.component.html',
   styleUrls: ['./utm-agent-connect.component.css']
 })
-export class UtmAgentConnectComponent implements OnInit {
+export class UtmAgentConnectComponent implements OnInit, OnChanges {
   @Input() hostname: string;
   @Input() asset: NetScanType;
   @Input() websocketCommand: IncidentCommandType;
-  agent: AgentType;
+  agent$: Observable<AgentType>;
   connectToAgent = false;
   hasNoReason = false;
 
@@ -22,22 +24,26 @@ export class UtmAgentConnectComponent implements OnInit {
 
   ngOnInit() {
     this.hasNoReason = this.websocketCommand.reason === '' || !this.websocketCommand.reason;
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
     if (this.hostname) {
-      this.agentManagerService.getAgent(this.hostname).subscribe(response => {
-        this.agent = response.body;
-      },
-      error => this.assetTypeToAgentType());
+    this.agent$ =  this.agentManagerService.getAgent(this.hostname)
+      .pipe(
+        map(response => response.body),
+        catchError(() => this.assetTypeToAgentType() )
+      );
     }
   }
 
   onAgentSelect($event: AgentType) {
     this.websocketCommand.reason = '';
     this.hasNoReason = true;
-    this.agent = $event;
+    this.agent$ = of($event);
   }
 
   assetTypeToAgentType() {
-    this.agent = {
+    return of({
       ip: this.asset.assetIp,
       hostname: this.asset.assetName,
       os: this.asset.assetOs,
@@ -52,6 +58,6 @@ export class UtmAgentConnectComponent implements OnInit {
       osMinorVersion: this.asset.assetOs,
       aliases: '',
       addresses: ''
-    };
+    });
   }
 }

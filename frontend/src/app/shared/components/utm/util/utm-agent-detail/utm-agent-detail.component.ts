@@ -25,6 +25,7 @@ export class UtmAgentDetailComponent implements OnInit {
   }
 
   ngOnInit() {
+    console.log(this.agent);
     this.agentIp = this.agent.ip;
     this.ips = this.agent.addresses !== '' ? this.agent.addresses.split(',') : [];
     this.macs = this.agent.mac !== '' ? this.agent.mac.split(',') : [];
