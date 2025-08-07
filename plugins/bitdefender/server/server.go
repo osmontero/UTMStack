@@ -9,15 +9,21 @@ import (
 	"github.com/threatwinds/go-sdk/catcher"
 
 	"github.com/gorilla/mux"
-	"github.com/utmstack/UTMStack/plugins/bitdefender/configuration"
+	"github.com/utmstack/UTMStack/plugins/bitdefender/config"
 	"github.com/utmstack/UTMStack/plugins/bitdefender/schema"
 	"github.com/utmstack/UTMStack/plugins/bitdefender/utils"
-	"github.com/utmstack/config-client-go/types"
 )
 
-func GetLogs(config *types.ConfigurationSection) http.HandlerFunc {
+func GetLogs() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if config.ModuleActive {
+		conf := config.GetConfig()
+		if conf == nil {
+			_ = catcher.Error("configuration not found", nil, nil)
+			http.Error(w, "Configuration not found", http.StatusInternalServerError)
+			return
+		}
+
+		if conf.ModuleActive {
 			if r.Header.Get("authorization") == "" {
 				message := "401 Missing Authorization Header"
 				_ = catcher.Error("missing authorization header", nil, map[string]any{})
@@ -31,8 +37,9 @@ func GetLogs(config *types.ConfigurationSection) http.HandlerFunc {
 			}
 
 			var isAuth bool
-			for _, groupConf := range config.ConfigurationGroups {
-				if utils.GenerateAuthCode(groupConf.Configurations[0].ConfValue) == r.Header.Get("authorization") {
+			for _, groupConf := range conf.ModuleGroups {
+				moduleConfig := config.GetBDGZModuleConfig(groupConf)
+				if utils.GenerateAuthCode(moduleConfig.ConnectionKey) == r.Header.Get("authorization") {
 					isAuth = true
 				}
 			}
@@ -56,7 +63,7 @@ func GetLogs(config *types.ConfigurationSection) http.HandlerFunc {
 			}
 
 			events := newBody.Events
-			CreateMessage(config, events)
+			CreateMessage(conf, events)
 
 			j, _ := json.Marshal("HTTP 200 OK")
 			w.WriteHeader(http.StatusOK)
@@ -70,17 +77,18 @@ func GetLogs(config *types.ConfigurationSection) http.HandlerFunc {
 	}
 }
 
-func StartServer(cnf *types.ConfigurationSection, cert string, key string) {
+func StartServer() {
 	r := mux.NewRouter().StrictSlash(false)
-	r.HandleFunc("/api", GetLogs(cnf)).Methods("POST")
+	r.HandleFunc("/api", GetLogs()).Methods("POST")
 	r.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("Server is up and running"))
 	}).Methods("GET")
 
-	loadedCerts, err := tls.LoadX509KeyPair(cert, key)
+	loadedCerts, err := loadCerts()
 	if err != nil {
-		_ = catcher.Error("failed to load certificates", err, nil)
+		_ = catcher.Error("error loading certificates", err, nil)
+		return
 	}
 
 	tlsConfig := &tls.Config{
@@ -96,7 +104,7 @@ func StartServer(cnf *types.ConfigurationSection, cert string, key string) {
 	}
 
 	server := &http.Server{
-		Addr:           ":" + configuration.BitdefenderGZPort,
+		Addr:           ":" + config.BitdefenderGZPort,
 		Handler:        r,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
@@ -110,7 +118,6 @@ func StartServer(cnf *types.ConfigurationSection, cert string, key string) {
 
 		for retry := 0; retry < maxRetries; retry++ {
 			err := server.ListenAndServeTLS("", "")
-			// If the server exits without error, it was likely closed properly
 			if err == nil {
 				return
 			}
@@ -122,10 +129,8 @@ func StartServer(cnf *types.ConfigurationSection, cert string, key string) {
 
 			if retry < maxRetries-1 {
 				time.Sleep(retryDelay)
-				// Increase delay for next retry
 				retryDelay *= 2
 			} else {
-				// If all retries failed, log the error
 				_ = catcher.Error("all retries failed when creating server", err, nil)
 			}
 		}

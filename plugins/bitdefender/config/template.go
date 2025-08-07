@@ -1,9 +1,8 @@
-package configuration
+package config
 
 import (
 	"github.com/utmstack/UTMStack/plugins/bitdefender/schema"
 	"github.com/utmstack/UTMStack/plugins/bitdefender/utils"
-	"github.com/utmstack/config-client-go/types"
 )
 
 var defaultSubscribeToEventTypes = []byte(`{
@@ -36,14 +35,14 @@ var defaultSubscribeToEventTypes = []byte(`{
 	"uninstall" : false
 }`)
 
-func getTemplateSetPush(config types.ModuleGroup) schema.TemplateConfigSetPush {
+func getTemplateSetPush(config BDGZModuleConfig) schema.TemplateConfigSetPush {
 	byteTemplate := schema.TemplateConfigSetPush{
 		Params: schema.Params{
 			Status:      1,
 			ServiceType: "cef",
 			ServiceSettings: schema.ServiceSettings{
-				Url:                        "https://" + config.Configurations[2].ConfValue + ":" + BitdefenderGZPort + "/api",
-				Authorization:              utils.GenerateAuthCode(config.Configurations[0].ConfValue),
+				Url:                        "https://" + config.MasterIp + ":" + BitdefenderGZPort + "/api",
+				Authorization:              utils.GenerateAuthCode(config.ConnectionKey),
 				RequireValidSslCertificate: false,
 			},
 			SubscribeToEventTypes: defaultSubscribeToEventTypes,

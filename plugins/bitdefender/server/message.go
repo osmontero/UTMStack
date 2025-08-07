@@ -1,23 +1,22 @@
 package server
 
 import (
-	"github.com/threatwinds/go-sdk/catcher"
-	"github.com/threatwinds/go-sdk/plugins"
 	"regexp"
-	"strings"
 	"time"
 
+	"github.com/threatwinds/go-sdk/catcher"
+	"github.com/threatwinds/go-sdk/plugins"
+
 	"github.com/google/uuid"
-	"github.com/utmstack/UTMStack/plugins/bitdefender/configuration"
-	"github.com/utmstack/UTMStack/plugins/bitdefender/processor"
-	"github.com/utmstack/config-client-go/types"
+	"github.com/utmstack/UTMStack/plugins/bitdefender/config"
 )
 
-func CreateMessage(config *types.ConfigurationSection, events []string) {
+func CreateMessage(cnf *config.ConfigurationSection, events []string) {
 	for _, syslogMessage := range events {
-		for _, cnf := range config.ConfigurationGroups {
-			companiesIDs := strings.Split(cnf.Configurations[3].ConfValue, ",")
-			for _, compID := range companiesIDs {
+		for _, cnf := range cnf.ModuleGroups {
+			moduleConfig := config.GetBDGZModuleConfig(cnf)
+
+			for _, compID := range moduleConfig.CompaniesIDs {
 				pattern := "BitdefenderGZCompanyId=" + compID
 				match, err := regexp.MatchString(pattern, syslogMessage)
 				if err != nil {
@@ -29,14 +28,15 @@ func CreateMessage(config *types.ConfigurationSection, events []string) {
 					continue
 				}
 
-				processor.LogsChan <- &plugins.Log{
+				plugins.EnqueueLog(&plugins.Log{
 					Id:         uuid.New().String(),
-					TenantId:   configuration.DefaultTenant,
+					TenantId:   config.DefaultTenant,
 					DataType:   "antivirus-bitdefender-gz",
 					DataSource: cnf.GroupName,
 					Timestamp:  time.Now().UTC().Format(time.RFC3339Nano),
 					Raw:        syslogMessage,
-				}
+				})
+
 				break
 			}
 		}
