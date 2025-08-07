@@ -18,9 +18,7 @@ import (
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
 
-	utmconf "github.com/utmstack/config-client-go"
-	"github.com/utmstack/config-client-go/enum"
-	"github.com/utmstack/config-client-go/types"
+	"github.com/utmstack/UTMStack/plugins/azure/config"
 )
 
 const (
@@ -34,6 +32,8 @@ func main() {
 	if mode != "manager" {
 		return
 	}
+
+	go config.StartConfigurationSystem()
 
 	for t := 0; t < 2*runtime.NumCPU(); t++ {
 		go func() {
@@ -50,24 +50,15 @@ func main() {
 			_ = catcher.Error("External connection failure detected: %v", err, nil)
 		}
 
-		utmConfig := plugins.PluginCfg("com.utmstack", false)
-		internalKey := utmConfig.Get("internalKey").String()
-		backendUrl := utmConfig.Get("backend").String()
-		if internalKey == "" || backendUrl == "" {
-			continue
-		}
-
-		client := utmconf.NewUTMClient(internalKey, backendUrl)
-		moduleConfig, err := client.GetUTMConfig(enum.AZURE)
-		if err == nil && moduleConfig.ModuleActive {
+		moduleConfig := config.GetConfig()
+		if moduleConfig.ModuleActive {
 			var wg sync.WaitGroup
-			wg.Add(len(moduleConfig.ConfigurationGroups))
-
-			for _, grp := range moduleConfig.ConfigurationGroups {
-				go func(group types.ModuleGroup) {
+			wg.Add(len(moduleConfig.ModuleGroups))
+			for _, grp := range moduleConfig.ModuleGroups {
+				go func(group *config.ModuleGroup) {
 					defer wg.Done()
 					var invalid bool
-					for _, cnf := range group.Configurations {
+					for _, cnf := range group.ModuleGroupConfigurations {
 						if strings.TrimSpace(cnf.ConfValue) == "" {
 							invalid = true
 							break
@@ -85,7 +76,7 @@ func main() {
 	}
 }
 
-func pull(group types.ModuleGroup) {
+func pull(group *config.ModuleGroup) {
 	agent := getAzureProcessor(group)
 
 	if agent.EventHubConnection == "" || agent.ConsumerGroup == "" ||
@@ -250,10 +241,10 @@ type AzureConfig struct {
 	StorageConnection  string
 }
 
-func getAzureProcessor(group types.ModuleGroup) AzureConfig {
+func getAzureProcessor(group *config.ModuleGroup) AzureConfig {
 	azurePro := AzureConfig{}
 	azurePro.GroupName = group.GroupName
-	for _, cnf := range group.Configurations {
+	for _, cnf := range group.ModuleGroupConfigurations {
 		switch cnf.ConfKey {
 		case "eventHubConnection":
 			azurePro.EventHubConnection = cnf.ConfValue
