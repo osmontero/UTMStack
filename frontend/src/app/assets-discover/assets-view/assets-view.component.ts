@@ -407,6 +407,10 @@ export class AssetsViewComponent implements OnInit, OnDestroy {
     }
   }
 
+  getAssets(){
+    this.utmNetScanService.notifyRefresh(true);
+  }
+
   ngOnDestroy(): void {
     this.stopInterval(true);
     this.assetFiltersBehavior.$assetFilter.next(null);

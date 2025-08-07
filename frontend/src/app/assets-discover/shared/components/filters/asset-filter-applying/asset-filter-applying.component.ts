@@ -94,6 +94,8 @@ export class AssetFilterApplyingComponent implements OnInit {
         return AssetFieldFilterEnum.TYPE;
       case AssetMapFilterFieldEnum.PROBE:
         return AssetFieldFilterEnum.PROBE;
+      case AssetMapFilterFieldEnum.GROUP:
+        return AssetFieldFilterEnum.GROUP;
     }
   }
 
