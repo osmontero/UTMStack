@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -33,8 +34,12 @@ func sendRequestToOpenAI(alert *schema.AlertFields) error {
 		return fmt.Errorf("error marshalling alert: %v", err)
 	}
 
+	model := config.GetConfig().Model
+	if os.Getenv("LOCAL_MODEL") != "" {
+		model = os.Getenv("LOCAL_MODEL")
+	}
 	req := schema.GPTRequest{
-		Model: config.GetConfig().Model,
+		Model: model,
 		Messages: []schema.GPTMessage{
 			{
 				Role:    "system",
@@ -54,14 +59,23 @@ func sendRequestToOpenAI(alert *schema.AlertFields) error {
 		return fmt.Errorf("error marshalling request: %v", err)
 	}
 
+	key := config.GetConfig().APIKey
+	if os.Getenv("LOCAL_MODEL_API_KEY") != "" {
+		key = os.Getenv("LOCAL_MODEL_API_KEY")
+	}
 	headers := map[string]string{
-		"Authorization": "Bearer " + config.GetConfig().APIKey,
+		"Authorization": "Bearer " + key,
 		"Content-Type":  "application/json",
+	}
+
+	url := config.GPT_API_ENDPOINT
+	if os.Getenv("LOCAL_MODEL_URL") != "" {
+		url = os.Getenv("LOCAL_MODEL_URL")
 	}
 
 	var lastErr error
 	for attempt := 1; attempt <= maxRetries; attempt++ {
-		response, status, err := utils.DoParseReq[schema.GPTResponse](config.GPT_API_ENDPOINT, requestJson, "POST", headers, config.HTTP_GPT_TIMEOUT)
+		response, status, err := utils.DoParseReq[schema.GPTResponse](url, requestJson, "POST", headers, config.HTTP_GPT_TIMEOUT)
 		if err == nil && len(response.Choices) > 0 {
 			err = processOpenAIResponse(alert, response.Choices[0].Message.Content)
 			if err != nil {
