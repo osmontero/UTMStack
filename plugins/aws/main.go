@@ -11,16 +11,14 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/cloudwatchlogs"
 
 	"github.com/google/uuid"
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
-	utmconf "github.com/utmstack/config-client-go"
-	"github.com/utmstack/config-client-go/enum"
-	"github.com/utmstack/config-client-go/types"
+	"github.com/utmstack/UTMStack/plugins/aws/config"
 )
 
 const (
@@ -34,6 +32,8 @@ func main() {
 	if mode != "manager" {
 		return
 	}
+
+	go config.StartConfigurationSystem()
 
 	for t := 0; t < 2*runtime.NumCPU(); t++ {
 		go func() {
@@ -54,24 +54,15 @@ func main() {
 			_ = catcher.Error("External connection failure detected: %v", err, nil)
 		}
 
-		utmConfig := plugins.PluginCfg("com.utmstack", false)
-		internalKey := utmConfig.Get("internalKey").String()
-		backendUrl := utmConfig.Get("backend").String()
-		if internalKey == "" || backendUrl == "" {
-			continue
-		}
-
-		client := utmconf.NewUTMClient(internalKey, backendUrl)
-		moduleConfig, err := client.GetUTMConfig(enum.AWS_IAM_USER)
-		if err == nil && moduleConfig.ModuleActive {
+		moduleConfig := config.GetConfig()
+		if moduleConfig.ModuleActive {
 			var wg sync.WaitGroup
-			wg.Add(len(moduleConfig.ConfigurationGroups))
-
-			for _, grp := range moduleConfig.ConfigurationGroups {
-				go func(group types.ModuleGroup) {
+			wg.Add(len(moduleConfig.ModuleGroups))
+			for _, grp := range moduleConfig.ModuleGroups {
+				go func(group *config.ModuleGroup) {
 					defer wg.Done()
 					var invalid bool
-					for _, c := range group.Configurations {
+					for _, c := range group.ModuleGroupConfigurations {
 						if strings.TrimSpace(c.ConfValue) == "" {
 							invalid = true
 							break
@@ -90,7 +81,7 @@ func main() {
 	}
 }
 
-func pull(startTime time.Time, endTime time.Time, group types.ModuleGroup) {
+func pull(startTime time.Time, endTime time.Time, group *config.ModuleGroup) {
 	agent := getAWSProcessor(group)
 
 	logs, err := agent.getLogs(startTime, endTime)
@@ -121,15 +112,15 @@ type AWSProcessor struct {
 	SecretAccessKey string
 }
 
-func getAWSProcessor(group types.ModuleGroup) AWSProcessor {
+func getAWSProcessor(group *config.ModuleGroup) AWSProcessor {
 	awsPro := AWSProcessor{}
-	for _, cnf := range group.Configurations {
-		switch cnf.ConfName {
-		case "Default Region":
+	for _, cnf := range group.ModuleGroupConfigurations {
+		switch cnf.ConfKey {
+		case "aws_default_region":
 			awsPro.RegionName = cnf.ConfValue
-		case "Access Key":
+		case "aws_access_key_id":
 			awsPro.AccessKey = cnf.ConfValue
-		case "Secret Key":
+		case "aws_secret_access_key":
 			awsPro.SecretAccessKey = cnf.ConfValue
 		}
 	}
@@ -145,9 +136,9 @@ func (p *AWSProcessor) createAWSSession() (aws.Config, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
-	cfg, err := config.LoadDefaultConfig(ctx,
-		config.WithRegion(p.RegionName),
-		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(p.AccessKey, p.SecretAccessKey, "")),
+	cfg, err := awsConfig.LoadDefaultConfig(ctx,
+		awsConfig.WithRegion(p.RegionName),
+		awsConfig.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(p.AccessKey, p.SecretAccessKey, "")),
 	)
 	if err != nil {
 		return aws.Config{}, catcher.Error("cannot create AWS session", err, nil)
