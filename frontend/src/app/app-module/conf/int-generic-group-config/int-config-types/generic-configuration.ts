@@ -23,6 +23,9 @@ export class GenericConfiguration extends IntegrationConfig {
                   if (config.confOptions) {
                     config.confOptions = this.tryParseJSON(config.confOptions);
                   }
+                  if (config.confVisibility) {
+                    config.confVisibility = this.tryParseJSON(config.confVisibility);
+                  }
                 });
                 return group;
               });

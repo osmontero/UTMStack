@@ -397,4 +397,16 @@ export class IntGenericGroupConfigComponent implements OnInit, OnChanges, OnDest
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+  isVisible(integrationConfig: UtmModuleGroupConfType): boolean {
+
+    if (!integrationConfig.confVisibility) {
+      return true;
+    }
+
+    const group = this.groups.find(g => g.id === integrationConfig.groupId);
+
+    return group.moduleGroupConfigurations.some(c => c.confKey === integrationConfig.confVisibility.dependsOn
+      && integrationConfig.confVisibility.values.includes(c.confValue));
+  }
 }

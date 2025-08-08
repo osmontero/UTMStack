@@ -6,6 +6,7 @@ export class UtmModuleGroupConfType {
   confRequired: true;
   confValue: string;
   confOptions: string;
+  confVisibility: any;
   groupId: number;
   id: number;
 }

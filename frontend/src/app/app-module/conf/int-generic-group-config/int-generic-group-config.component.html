@@ -80,88 +80,89 @@
      </span>
       <p class="mb-2 mt-2" *ngIf="group.groupDescription">{{group.groupDescription}}</p>
     <div class="row mt-3">
-
-      <div *ngFor="let integrationConfig of group.moduleGroupConfigurations" class="col-md-12 col-sm-12"
-           [ngClass]="integrationConfig.confDataType === 'file' || integrationConfig.confDataType === 'list'  ? 'col-lg-12' : 'col-lg-6'">
-        <div class="form-group w-100 mb-4">
-          <label [for]="'sectionParam'+integrationConfig.id" class="pb-1 span-small-icon d-flex justify-content-between align-items-center">
+      <ng-container *ngFor="let integrationConfig of group.moduleGroupConfigurations">
+        <div *ngIf="isVisible(integrationConfig)" class="col-md-12 col-sm-12"
+             [ngClass]="integrationConfig.confDataType === 'file' || integrationConfig.confDataType === 'list'  ? 'col-lg-12' : 'col-lg-6'">
+          <div class="form-group w-100 mb-4">
+            <label [for]="'sectionParam'+integrationConfig.id" class="pb-1 span-small-icon d-flex justify-content-between align-items-center">
           <span>
             <i [ngbTooltip]="'This param is required'"
                [ngClass]="!checkConfigValue(integrationConfig.confValue)?'text-danger':'text-success'"
                class="icon-circle2 mr-1"
                placement="auto"></i>
-                  {{integrationConfig.confName}}
+            {{integrationConfig.confName}}
           </span>
-            <span>
+              <span>
               <i *ngIf="integrationConfig.confDescription"
                  [ngbTooltip]="integrationConfig.confDescription"
                  class="ml-2 text-primary icon-question3" placement="auto"></i>
             </span>
-          </label>
+            </label>
 
-          <ng-select *ngIf="integrationConfig.confDataType === 'select'"
-                     #options="ngModel"
-                     [items]="integrationConfig.confOptions"
-                     bindLabel="label"
-                     bindValue="value"
-                     [searchable]="true"
-                     [multiple]="false"
-                     [clearable]="false"
-                     [virtualScroll]="true"
-                     [(ngModel)]="integrationConfig.confValue"
-                     [ngClass]="{'is-invalid': options.invalid,
+            <ng-select *ngIf="integrationConfig.confDataType === 'select'"
+                       #options="ngModel"
+                       [items]="integrationConfig.confOptions"
+                       bindLabel="label"
+                       bindValue="value"
+                       [searchable]="true"
+                       [multiple]="false"
+                       [clearable]="false"
+                       [virtualScroll]="true"
+                       [(ngModel)]="integrationConfig.confValue"
+                       [ngClass]="{'is-invalid': options.invalid,
               'is-valid': options.valid}">
-          </ng-select>
+            </ng-select>
 
-          <input *ngIf="integrationConfig.confDataType !== 'bool'
+            <input *ngIf="integrationConfig.confDataType !== 'bool'
                  && integrationConfig.confDataType !== 'list'
                  && integrationConfig.confDataType !== 'select'
                  && integrationConfig.confDataType !== 'file'"
-                (input)="addChange(integrationConfig)"
-                 [(ngModel)]="integrationConfig.confValue"
-                 [attr.autocomplete]="'disabled'"
-                 [id]="'sectionParam'+integrationConfig.id"
-                 [name]="integrationConfig.confName"
-                 [type]="integrationConfig.confDataType"
-                 (ngModelChange)="integrationConfig.confOptions === 'unique' ? inputChange$.next({id: integrationConfig.groupId, value: $event}) : null"
-                 class="form-control" [required]="integrationConfig.confRequired">
+                   (input)="addChange(integrationConfig)"
+                   [(ngModel)]="integrationConfig.confValue"
+                   [attr.autocomplete]="'disabled'"
+                   [id]="'sectionParam'+integrationConfig.id"
+                   [name]="integrationConfig.confName"
+                   [type]="integrationConfig.confDataType"
+                   (ngModelChange)="integrationConfig.confOptions === 'unique' ? inputChange$.next({id: integrationConfig.groupId, value: $event}) : null"
+                   class="form-control" [required]="integrationConfig.confRequired">
 
-          <app-utm-toggle (toggleChange)="integrationConfig.confValue = $event.toString();addChange(integrationConfig)"
-                          *ngIf="integrationConfig.confDataType === 'bool'"
-                          [active]="integrationConfig.confValue === 'true'"
-                          [label]="'Enable/Disable param configuration'"></app-utm-toggle>
+            <app-utm-toggle (toggleChange)="integrationConfig.confValue = $event.toString();addChange(integrationConfig)"
+                            *ngIf="integrationConfig.confDataType === 'bool'"
+                            [active]="integrationConfig.confValue === 'true'"
+                            [label]="'Enable/Disable param configuration'"></app-utm-toggle>
 
-          <textarea (input)="addChange(integrationConfig)"
-                    *ngIf="integrationConfig.confDataType === 'list'"
-                    [(ngModel)]="integrationConfig.confValue"
-                    [id]="'sectionParam'+integrationConfig.id"
-                    [required]="integrationConfig.confRequired"
-                    class="form-control"
-                    rows="4"></textarea>
+            <textarea (input)="addChange(integrationConfig)"
+                      *ngIf="integrationConfig.confDataType === 'list'"
+                      [(ngModel)]="integrationConfig.confValue"
+                      [id]="'sectionParam'+integrationConfig.id"
+                      [required]="integrationConfig.confRequired"
+                      class="form-control"
+                      rows="4"></textarea>
 
-          <app-utm-file-upload
-            *ngIf="integrationConfig.confDataType === 'file'"
-            (fileEmit)="onFileUpload($event,group,integrationConfig)"
-            [acceptTypes]="'.json'" msg="Google Service account key">
-          </app-utm-file-upload>
+            <app-utm-file-upload
+              *ngIf="integrationConfig.confDataType === 'file'"
+              (fileEmit)="onFileUpload($event,group,integrationConfig)"
+              [acceptTypes]="'.json'" msg="Google Service account key">
+            </app-utm-file-upload>
 
-          <small
-            *ngIf="integrationConfig.confValue === '' || integrationConfig.confValue === null || integrationConfig.confValue=== undefined"
-            class="text-danger">
-            Param {{integrationConfig.confName}} is required
-          </small>
-          <small
-            *ngIf="invalidDomainOrIp && integrationConfig.confKey === 'ipAddress' && configHasChanges(group.id)"
-            class="text-danger">
-            Parameter {{ integrationConfig.confName }} must be a valid IP address or domain.
-          </small>
-          <small
-            *ngIf="uniqueConfigNameConstrain && integrationConfig.confOptions === 'unique' && configHasChanges(group.id)"
-            class="text-danger">
-            Param {{integrationConfig.confName}} with a similar ID already exists.
-          </small>
+            <small
+              *ngIf="integrationConfig.confValue === '' || integrationConfig.confValue === null || integrationConfig.confValue=== undefined"
+              class="text-danger">
+              Param {{integrationConfig.confName}} is required
+            </small>
+            <small
+              *ngIf="invalidDomainOrIp && integrationConfig.confKey === 'ipAddress' && configHasChanges(group.id)"
+              class="text-danger">
+              Parameter {{ integrationConfig.confName }} must be a valid IP address or domain.
+            </small>
+            <small
+              *ngIf="uniqueConfigNameConstrain && integrationConfig.confOptions === 'unique' && configHasChanges(group.id)"
+              class="text-danger">
+              Param {{integrationConfig.confName}} with a similar ID already exists.
+            </small>
+          </div>
         </div>
-      </div>
+      </ng-container>
     </div>
     <div *ngIf="groupType === GroupTypeEnum.TENANT && pendingChangesForGroup(group) && changes && changes.keys.length > 0 && configHasChanges(group.id)"
          class="w-100 alert alert-info alert-styled-right mb-3">
