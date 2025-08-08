@@ -239,5 +239,7 @@
 
     <include file="/config/liquibase/changelog/202507220001_add_interactive_console_menu_options.xml" relativeToChangelogFile="false"/>
 
+    <include file="/config/liquibase/changelog/20250808001_add_options_module_group_conf_visibility.xml" relativeToChangelogFile="false"/>
+
 
 </databaseChangeLog>

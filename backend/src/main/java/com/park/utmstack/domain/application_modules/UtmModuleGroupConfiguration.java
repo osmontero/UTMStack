@@ -3,7 +3,9 @@ package com.park.utmstack.domain.application_modules;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.park.utmstack.domain.application_modules.types.ModuleConfigurationKey;
+import lombok.Data;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
@@ -13,8 +15,8 @@ import java.io.Serializable;
 /**
  * A UtmModuleGroupConfiguration.
  */
-@Setter
-@Getter
+@Data
+@NoArgsConstructor
 @Entity
 @Table(name = "utm_module_group_configuration")
 public class UtmModuleGroupConfiguration implements Serializable {
@@ -53,13 +55,13 @@ public class UtmModuleGroupConfiguration implements Serializable {
     @Column(name = "conf_options", nullable = false)
     private String confOptions;
 
+    @Column(name = "conf_visibility", nullable = false)
+    private String confVisibility;
+
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "group_id", insertable = false, updatable = false)
     private UtmModuleGroup moduleGroup;
-
-    public UtmModuleGroupConfiguration() {
-    }
 
     public UtmModuleGroupConfiguration(ModuleConfigurationKey key) {
         this.groupId = key.getGroupId();
@@ -69,6 +71,7 @@ public class UtmModuleGroupConfiguration implements Serializable {
         this.confDataType = key.getConfDataType();
         this.confRequired = key.getConfRequired();
         this.confOptions = key.getConfOptions();
+        this.confVisibility = key.getConfOptions();
     }
 
 }
