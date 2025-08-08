@@ -381,19 +381,19 @@ pipeline:
           params:
             key: severity
             value: 'high'
-          where: safe("log.level", "") && (log.level == "CRITICAL" || log.level == "FATAL" || log.level == "ERROR")
+          where: safe("log.level", "") in ["ERROR", "Error", "FATAL", "CRITICAL", "Critical"]
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where: safe("log.level", "") == "WARN"
+          where: safe("log.level", "") in ["WARN", "Warning"]
       - add:
           function: 'string'
           params:
             key: severity
             value: 'low'
-          where: safe("log.level", "") && (log.level == "INFO" || log.level == "DEBUG" || log.level == "TRACE")
+          where: safe("log.level", "") in ["Information", "Informational", "INFO", "DEBUG", "TRACE"]
 
       # Removing unused fields
       - delete:
