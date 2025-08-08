@@ -423,7 +423,6 @@ export class IntGenericGroupConfigComponent implements OnInit, OnChanges, OnDest
         }
     });
 
-    console.log(this.groups);
     this.addChange(integrationConfig);
   }
 
