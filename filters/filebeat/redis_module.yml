@@ -148,21 +148,21 @@ pipeline:
           params:
             key: severity
             value: 'low'
-          where: safe("log.severity", "") && (log.severity=="debug" || log.severity=="verbose")
+          where: safe("log.severity", "") in ["debug", "verbose"]
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where: safe("log.severity", "") && (log.severity=="notice" || log.severity=="warning")
+          where: safe("log.severity", "") in ["notice", "warning"]
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'high'
-          where: safe("log.severity", "") == "error"
+          where: safe("log.severity", "") in ["error"]
 
       # Parse beats field
       - rename:
