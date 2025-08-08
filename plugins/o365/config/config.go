@@ -96,7 +96,7 @@ func StartConfigurationSystem() {
 
 		err = stream.Send(&BiDirectionalMessage{
 			Payload: &BiDirectionalMessage_PluginInit{
-				PluginInit: &PluginInit{Type: PluginType_SOPHOS},
+				PluginInit: &PluginInit{Type: PluginType_O365},
 			},
 		})
 		if err != nil {

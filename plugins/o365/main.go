@@ -14,9 +14,7 @@ import (
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
 	"github.com/threatwinds/go-sdk/utils"
-	utmconf "github.com/utmstack/config-client-go"
-	"github.com/utmstack/config-client-go/enum"
-	"github.com/utmstack/config-client-go/types"
+	"github.com/utmstack/UTMStack/plugins/o365/config"
 )
 
 const (
@@ -52,6 +50,8 @@ func main() {
 		return
 	}
 
+	go config.StartConfigurationSystem()
+
 	for i := 0; i < 2*runtime.NumCPU(); i++ {
 		go plugins.SendLogsFromChannel()
 	}
@@ -69,24 +69,16 @@ func main() {
 			_ = catcher.Error("External connection failure detected: %v", err, nil)
 		}
 
-		utmConfig := plugins.PluginCfg("com.utmstack", false)
-		backend := utmConfig.Get("backend").String()
-		internalKey := utmConfig.Get("internalKey").String()
-		if backend == "" || internalKey == "" {
-			continue
-		}
-
-		client := utmconf.NewUTMClient(internalKey, backend)
-		moduleConfig, err := client.GetUTMConfig(enum.O365)
-		if err == nil && moduleConfig.ModuleActive {
+		moduleConfig := config.GetConfig()
+		if moduleConfig != nil && moduleConfig.ModuleActive {
 			var wg sync.WaitGroup
-			wg.Add(len(moduleConfig.ConfigurationGroups))
+			wg.Add(len(moduleConfig.ModuleGroups))
 
-			for _, grp := range moduleConfig.ConfigurationGroups {
-				go func(group types.ModuleGroup) {
+			for _, grp := range moduleConfig.ModuleGroups {
+				go func(group *config.ModuleGroup) {
 					defer wg.Done()
 					var invalid bool
-					for _, c := range group.Configurations {
+					for _, c := range group.ModuleGroupConfigurations {
 						if strings.TrimSpace(c.ConfValue) == "" {
 							invalid = true
 							break
@@ -106,7 +98,7 @@ func main() {
 	}
 }
 
-func pull(startTime time.Time, endTime time.Time, group types.ModuleGroup) {
+func pull(startTime time.Time, endTime time.Time, group *config.ModuleGroup) {
 	agent := GetOfficeProcessor(group)
 
 	err := agent.GetAuth()
@@ -169,15 +161,15 @@ type ContentList struct {
 
 type ContentDetailsResponse []map[string]any
 
-func GetOfficeProcessor(group types.ModuleGroup) OfficeProcessor {
+func GetOfficeProcessor(group *config.ModuleGroup) OfficeProcessor {
 	offProc := OfficeProcessor{}
-	for _, cnf := range group.Configurations {
-		switch cnf.ConfName {
-		case "Client ID":
+	for _, cnf := range group.ModuleGroupConfigurations {
+		switch cnf.ConfKey {
+		case "office365_client_id":
 			offProc.ClientId = cnf.ConfValue
-		case "Client Secret":
+		case "office365_client_secret":
 			offProc.ClientSecret = cnf.ConfValue
-		case "Tenant ID":
+		case "office365_tenant_id":
 			offProc.TenantId = cnf.ConfValue
 		}
 	}

@@ -51,7 +51,7 @@ func main() {
 		}
 
 		moduleConfig := config.GetConfig()
-		if moduleConfig.ModuleActive {
+		if moduleConfig != nil && moduleConfig.ModuleActive {
 			var wg sync.WaitGroup
 			wg.Add(len(moduleConfig.ModuleGroups))
 			for _, grp := range moduleConfig.ModuleGroups {

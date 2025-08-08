@@ -37,23 +37,11 @@ func main() {
 		return
 	}
 
+	go config.StartConfigurationSystem()
+
 	for t := 0; t < 2*runtime.NumCPU(); t++ {
 		go plugins.SendLogsFromChannel()
 	}
-
-	internalKey := ""
-	for {
-		utmConfig := plugins.PluginCfg("com.utmstack", false)
-		internalKey = utmConfig.Get("internalKey").String()
-		if internalKey == "" {
-			catcher.Info("Internal key is not set, waiting...", nil)
-			time.Sleep(10 * time.Second)
-			continue
-		}
-		break
-	}
-
-	go config.ConnectAndStreamConfig("localhost:9003", internalKey)
 
 	delay := 5 * time.Minute
 	ticker := time.NewTicker(delay)
@@ -69,12 +57,11 @@ func main() {
 			continue
 		}
 
-		cnf := config.GetConfig()
-		if cnf != nil && cnf.ModuleActive {
+		moduleConfig := config.GetConfig()
+		if moduleConfig != nil && moduleConfig.ModuleActive {
 			var wg sync.WaitGroup
-			wg.Add(len(cnf.ModuleGroups))
-
-			for _, grp := range cnf.ModuleGroups {
+			wg.Add(len(moduleConfig.ModuleGroups))
+			for _, grp := range moduleConfig.ModuleGroups {
 				go func(group *config.ModuleGroup) {
 					defer wg.Done()
 					var invalid bool
@@ -138,12 +125,12 @@ type SophosCentralProcessor struct {
 func getSophosCentralProcessor(group *config.ModuleGroup) SophosCentralProcessor {
 	sophosProcessor := SophosCentralProcessor{}
 
-	for _, conf := range group.ModuleGroupConfigurations {
-		switch conf.ConfName {
-		case "Client Id":
-			sophosProcessor.ClientID = conf.ConfValue
-		case "Client Secret":
-			sophosProcessor.ClientSecret = conf.ConfValue
+	for _, cnf := range group.ModuleGroupConfigurations {
+		switch cnf.ConfKey {
+		case "sophos_client_id":
+			sophosProcessor.ClientID = cnf.ConfValue
+		case "sophos_x_api_key":
+			sophosProcessor.ClientSecret = cnf.ConfValue
 		}
 	}
 	return sophosProcessor

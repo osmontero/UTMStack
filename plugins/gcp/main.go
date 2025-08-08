@@ -147,8 +147,7 @@ func (m *GroupModuleManager) SyncConfigs() {
 		}
 
 		moduleConfig := config.GetConfig()
-
-		if moduleConfig.ModuleActive {
+		if moduleConfig != nil && moduleConfig.ModuleActive {
 			for _, conf := range moduleConfig.ModuleGroups {
 				m.Groups[conf.Id] = getModuleConfig(conf)
 				group := m.Groups[conf.Id]
