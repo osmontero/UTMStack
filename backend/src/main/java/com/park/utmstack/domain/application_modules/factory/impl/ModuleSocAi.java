@@ -103,10 +103,6 @@ public class ModuleSocAi implements IModule {
     }
 
     public boolean validateConfiguration(UtmModule module, List<UtmModuleGroupConfiguration> configuration) throws Exception {
-
-        configuration = configuration.stream()
-                .filter(config -> config.getConfKey().equals("utmstack.socai.key"))
-                .collect(Collectors.toList());
         return utmStackConfigValidator.validate(module, configuration);
     }
 }
