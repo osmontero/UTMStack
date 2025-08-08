@@ -12,9 +12,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/threatwinds/go-sdk/catcher"
 	"github.com/threatwinds/go-sdk/plugins"
-	utmconf "github.com/utmstack/config-client-go"
-	"github.com/utmstack/config-client-go/enum"
-	"github.com/utmstack/config-client-go/types"
+	"github.com/utmstack/UTMStack/plugins/gcp/config"
 	"google.golang.org/api/option"
 )
 
@@ -35,6 +33,8 @@ func main() {
 	if mode != "worker" {
 		return
 	}
+
+	go config.StartConfigurationSystem()
 
 	for i := 0; i < 2*runtime.NumCPU(); i++ {
 		go plugins.SendLogsFromChannel()
@@ -109,111 +109,50 @@ func (g *GroupModule) PullLogs() {
 	}
 }
 
-func (g *GroupModule) VerifyCredentials() bool {
-	client, err := pubsub.NewClient(g.CTX, g.ProjectID, option.WithCredentialsJSON([]byte(g.JsonKey)))
-	if err != nil {
-		_ = catcher.Error("failed to create client", err, map[string]any{})
-		return false
+func getModuleConfig(newConf *config.ModuleGroup) GroupModule {
+	gcpModule := GroupModule{}
+	gcpModule.GroupName = newConf.GroupName
+	gcpModule.CTX, gcpModule.Cancel = context.WithCancel(context.Background())
+	for _, cnf := range newConf.ModuleGroupConfigurations {
+		switch cnf.ConfKey {
+		case "jsonKey":
+			gcpModule.JsonKey = cnf.ConfValue
+		case "projectId":
+			gcpModule.ProjectID = cnf.ConfValue
+		case "subscription":
+			gcpModule.SubscriptionID = cnf.ConfValue
+		}
 	}
-	defer func() { _ = client.Close() }()
-
-	sub := client.Subscription(g.SubscriptionID)
-	exist, err := sub.Exists(g.CTX)
-	if err != nil {
-		_ = catcher.Error("failed to verify subscription", err, map[string]any{})
-		return false
-	}
-	if !exist {
-		_ = catcher.Error("subscription does not exist", nil, map[string]any{})
-		return false
-	}
-	return true
-}
-
-func getModuleConfig(newConf types.ModuleGroup) GroupModule {
-	ctx, cancel := context.WithCancel(context.Background())
-	return GroupModule{
-		GroupName:      newConf.GroupName,
-		JsonKey:        newConf.Configurations[0].ConfValue,
-		ProjectID:      newConf.Configurations[1].ConfValue,
-		SubscriptionID: newConf.Configurations[2].ConfValue,
-		CTX:            ctx,
-		Cancel:         cancel,
-	}
-}
-
-func compareConfigs(saveConf GroupModule, newConf types.ModuleGroup) (isNecessaryVerify bool) {
-	if saveConf.JsonKey != newConf.Configurations[0].ConfValue ||
-		saveConf.ProjectID != newConf.Configurations[1].ConfValue ||
-		saveConf.SubscriptionID != newConf.Configurations[2].ConfValue {
-		return true
-	}
-	return false
+	return gcpModule
 }
 
 type GroupModuleManager struct {
-	Groups map[int]GroupModule
+	Groups map[int32]GroupModule
 }
 
 func startGroupModuleManager() {
 	manager := &GroupModuleManager{
-		Groups: make(map[int]GroupModule),
+		Groups: make(map[int32]GroupModule),
 	}
 	go manager.SyncConfigs()
 }
 
 func (m *GroupModuleManager) SyncConfigs() {
-	for {
+	ticker := time.NewTicker(delayCheckConfig)
+	defer ticker.Stop()
+
+	for range ticker.C {
 		if err := ConnectionChecker(CHECKCON); err != nil {
 			_ = catcher.Error("External connection failure detected: %v", err, nil)
 		}
 
-		utmConfig := plugins.PluginCfg("com.utmstack", false)
-		internalKey := utmConfig.Get("internalKey").String()
-		backendUrl := utmConfig.Get("backend").String()
-		if internalKey == "" || backendUrl == "" {
-			_ = catcher.Error("internalKey or backendUrl is empty", nil, map[string]any{})
-			time.Sleep(5 * time.Second)
-			continue
-		}
+		moduleConfig := config.GetConfig()
 
-		client := utmconf.NewUTMClient(internalKey, backendUrl)
-
-		time.Sleep(delayCheckConfig)
-
-		tempModuleConfig, err := client.GetUTMConfig(enum.GCP)
-		if err != nil {
-			if (err.Error() != "") && (err.Error() != " ") {
-				_ = catcher.Error("cannot get GCP configuration", err, map[string]any{})
-			}
-			continue
-		}
-		if tempModuleConfig.ModuleActive {
-			for _, newConf := range tempModuleConfig.ConfigurationGroups {
-				cnfChangedOrNew := false
-				if _, ok := m.Groups[newConf.ID]; !ok {
-					cnfChangedOrNew = true
-				} else {
-					cnfChangedOrNew = compareConfigs(m.Groups[newConf.ID], newConf)
-					if cnfChangedOrNew {
-						m.Groups[newConf.ID].Cancel()
-					}
-				}
-				if cnfChangedOrNew {
-					m.Groups[newConf.ID] = getModuleConfig(newConf)
-					group := m.Groups[newConf.ID]
-					isValid := group.VerifyCredentials()
-					if !isValid {
-						_ = plugins.EnqueueNotification(plugins.TopicIntegrationFailure, plugins.Message{
-							Id: uuid.NewString(),
-							Message: catcher.Error("invalid credentials ", nil, map[string]any{
-								"group": newConf.GroupName,
-							}).Error(),
-						})
-						continue
-					}
-					go group.PullLogs()
-				}
+		if moduleConfig.ModuleActive {
+			for _, conf := range moduleConfig.ModuleGroups {
+				m.Groups[conf.Id] = getModuleConfig(conf)
+				group := m.Groups[conf.Id]
+				go group.PullLogs()
 			}
 		} else {
 			for _, cnf := range m.Groups {
