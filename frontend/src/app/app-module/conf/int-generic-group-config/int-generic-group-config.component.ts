@@ -221,7 +221,7 @@ export class IntGenericGroupConfigComponent implements OnInit, OnChanges, OnDest
 
   tenantIsConfigValid(group: UtmModuleGroupType): boolean {
 
-    const required = group.moduleGroupConfigurations.filter(value => value.confRequired === true);
+    const required = group.moduleGroupConfigurations.filter(value => value.confRequired === true && this.isVisible(value));
     const valid = required.filter(value => value.confValue !== null && value.confValue);
 
     if (this.groupType === GroupTypeEnum.COLLECTOR) {
@@ -253,10 +253,18 @@ export class IntGenericGroupConfigComponent implements OnInit, OnChanges, OnDest
     const index = this.changes.keys
                             .findIndex(value =>
                               value.confName === integrationConfig.confName && value.groupId === integrationConfig.groupId);
+
+    const config = {
+      ...integrationConfig,
+      confOptions: integrationConfig.confOptions ? JSON.stringify(integrationConfig.confOptions) : integrationConfig.confOptions,
+      confVisibility: integrationConfig.confVisibility ? JSON.stringify(integrationConfig.confVisibility) :
+        integrationConfig.confVisibility,
+    };
+
     if (index === -1) {
-      this.changes.keys.push(integrationConfig);
+      this.changes.keys.push(config);
     } else {
-      this.changes.keys[index].confValue = integrationConfig.confValue;
+      this.changes.keys[index].confValue = config.confValue;
     }
     // this.configValidChange.emit(this.tenantGroupConfigValid());
   }
@@ -392,12 +400,6 @@ export class IntGenericGroupConfigComponent implements OnInit, OnChanges, OnDest
     return this.changes.keys.some(change => change.groupId === id);
   }
 
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
   isVisible(integrationConfig: UtmModuleGroupConfType): boolean {
 
     if (!integrationConfig.confVisibility) {
@@ -408,5 +410,25 @@ export class IntGenericGroupConfigComponent implements OnInit, OnChanges, OnDest
 
     return group.moduleGroupConfigurations.some(c => c.confKey === integrationConfig.confVisibility.dependsOn
       && integrationConfig.confVisibility.values.includes(c.confValue));
+  }
+
+  onChange($event: { value: string; }, integrationConfig: UtmModuleGroupConfType) {
+
+    const group = this.groups.find(g => g.id === integrationConfig.groupId);
+
+    group.moduleGroupConfigurations.map(g => {
+        if (g.confVisibility && g.confVisibility.dependsOn === integrationConfig.confKey
+          && $event.value !== g.confValue) {
+          g.confValue = null;
+        }
+    });
+
+    console.log(this.groups);
+    this.addChange(integrationConfig);
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
