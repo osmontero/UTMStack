@@ -5754,13 +5754,13 @@ pipeline:
           params:
             key: action
             value: 'Threat-detection add host to shun list'
-          where: (log.messageId==733102 || log.messageId==733103) && log.msg.contains("add")
+          where: (safe("log.messageId", 0.0)==double(733102) || log.messageId==double(733103)) && log.msg.contains("add")
       - add:
           function: 'string'
           params:
             key: action
             value: 'Threat-detection removes host to shun list'
-          where: (log.messageId==733102 || log.messageId==733103) && log.msg.contains("removes")
+          where: (safe("log.messageId", 0.0)==double(733102) || log.messageId==double(733103)) && log.msg.contains("removes")
       #......................................................................#
       # Decoding severity
       - add:
@@ -5768,7 +5768,7 @@ pipeline:
           params:
             key: severity
             value: 'high'
-          where: log.severity=="1" || log.severity=="2" || log.severity=="3"
+          where: safe("log.severity", "") in ["1", "2", "3"]
       - add:
           function: 'string'
           params:
@@ -5780,7 +5780,7 @@ pipeline:
           params:
             key: severity
             value: 'low'
-          where: log.severity=="5" || log.severity=="6" || log.severity=="7"
+          where: safe("log.severity", "") in ["5", "6", "7"]
       #......................................................................#
       # Adding common geolocation
       - dynamic:
