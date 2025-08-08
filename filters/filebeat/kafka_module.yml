@@ -142,14 +142,14 @@ pipeline:
           params:
             key: severity
             value: 'low'
-          where: safe("log.severity", "") && (log.severity=="INFO" || log.severity=="TRACE" || log.severity=="DEBUG")
+          where: safe("log.severity", "") in ["INFO", "TRACE", "DEBUG"]
 
       - add:
           function: 'string'
           params:
             key: severity
             value: 'medium'
-          where: safe("log.severity", "") && (log.severity=="WARNING" || log.severity=="WARN")
+          where: safe("log.severity", "") in ["WARNING", "WARN"]
 
       - add:
           function: 'string'
