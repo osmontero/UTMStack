@@ -26,12 +26,12 @@ export class AfterEventFormService {
     return this.fb.group({
       indexPattern: [event.indexPattern || '', Validators.required],
       with: this.fb.array(
-        event.with.length
+        event.with && event.with.length
           ? event.with.map(w => this.buildExpression(w))
           : []
       ),
       or: this.fb.array(
-        event.or.length
+        event.or && event.or.length
           ? event.or.map(subEvent => this.buildSearchRequest(subEvent))
           : []
       ),
