@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -13,11 +12,11 @@ import (
 	"github.com/utmstack/UTMStack/plugins/soc-ai/utils"
 )
 
-func sendRequestToOpenAI(alert *schema.AlertFields) error {
+func sendRequestToLLM(alert *schema.AlertFields) error {
 	const maxRetries = 3
 	const retryDelay = 2 * time.Second
 
-	content := config.GPT_INSTRUCTION
+	content := config.LLM_INSTRUCTION
 	if alert == nil {
 		return fmt.Errorf("sendRequestToOpenAI: alert is nil")
 	}
@@ -34,12 +33,8 @@ func sendRequestToOpenAI(alert *schema.AlertFields) error {
 		return fmt.Errorf("error marshalling alert: %v", err)
 	}
 
-	model := config.GetConfig().Model
-	if os.Getenv("LOCAL_MODEL") != "" {
-		model = os.Getenv("LOCAL_MODEL")
-	}
 	req := schema.GPTRequest{
-		Model: model,
+		Model: config.GetConfig().Model,
 		Messages: []schema.GPTMessage{
 			{
 				Role:    "system",
@@ -52,34 +47,25 @@ func sendRequestToOpenAI(alert *schema.AlertFields) error {
 		},
 	}
 
-	utils.Logger.LogF(100, "Sending request to OpenAI: %v", req)
+	utils.Logger.LogF(100, "Sending request to LLM: %v", req)
 
 	requestJson, err := json.Marshal(req)
 	if err != nil {
 		return fmt.Errorf("error marshalling request: %v", err)
 	}
 
-	key := config.GetConfig().APIKey
-	if os.Getenv("LOCAL_MODEL_API_KEY") != "" {
-		key = os.Getenv("LOCAL_MODEL_API_KEY")
-	}
 	headers := map[string]string{
-		"Authorization": "Bearer " + key,
+		"Authorization": "Bearer " + config.GetConfig().APIKey,
 		"Content-Type":  "application/json",
-	}
-
-	url := config.GPT_API_ENDPOINT
-	if os.Getenv("LOCAL_MODEL_URL") != "" {
-		url = os.Getenv("LOCAL_MODEL_URL")
 	}
 
 	var lastErr error
 	for attempt := 1; attempt <= maxRetries; attempt++ {
-		response, status, err := utils.DoParseReq[schema.GPTResponse](url, requestJson, "POST", headers, config.HTTP_GPT_TIMEOUT)
+		response, status, err := utils.DoParseReq[schema.GPTResponse](config.GetConfig().Url, requestJson, "POST", headers, config.HTTP_GPT_TIMEOUT)
 		if err == nil && len(response.Choices) > 0 {
-			err = processOpenAIResponse(alert, response.Choices[0].Message.Content)
+			err = processLLMResponse(alert, response.Choices[0].Message.Content)
 			if err != nil {
-				return fmt.Errorf("error processing GPT response: %v", err)
+				return fmt.Errorf("error processing LLM response: %v", err)
 			}
 			return nil
 		}
@@ -94,10 +80,10 @@ func sendRequestToOpenAI(alert *schema.AlertFields) error {
 		}
 	}
 
-	return fmt.Errorf("all attempts to call OpenAI failed: %v", lastErr)
+	return fmt.Errorf("all attempts to call LLM failed: %v", lastErr)
 }
 
-func processOpenAIResponse(alert *schema.AlertFields, response string) error {
+func processLLMResponse(alert *schema.AlertFields, response string) error {
 	response, err := clearJson(response)
 	if err != nil {
 		return fmt.Errorf("error clearing json: %v", err)

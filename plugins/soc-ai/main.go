@@ -152,16 +152,22 @@ func (p *socAiServer) Correlate(_ context.Context,
 	}()
 
 	// Check if the module is active before processing the alert
-	if !config.GetConfig().ModuleActive {
+	if config.GetConfig() == nil || !config.GetConfig().ModuleActive {
 		utils.Logger.LogF(100, "SOC-AI module is disabled, skipping alert: %s", alert.Id)
 		return &emptypb.Empty{}, nil
+	}
+	if config.GetConfig().Provider == "openai" {
+		if err := utils.ConnectionChecker(config.GPT_API_ENDPOINT); err != nil {
+			_ = catcher.Error("Failed to establish internet connection", err, nil)
+			return &emptypb.Empty{}, nil
+		}
 	}
 
 	fmt.Printf("Processing alert: %s\n", alert.Name)
 
 	alertFields := cleanAlerts(alertToAlertFields(alert))
 
-	err := sendRequestToOpenAI(&alertFields)
+	err := sendRequestToLLM(&alertFields)
 	if err != nil {
 		elastic.RegisterError(err.Error(), alertFields.ID)
 		return nil, err
