@@ -117,9 +117,14 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
           filesWithDataTypes.map(file =>
             forkJoin(
               file.dataTypes.map((dt: string) =>
-                this.dataTypeService.getAll({ search: dt }).pipe(
-                  map(res => res.body.length > 0 ? res.body[0] : null)
-                )
+                this.dataTypeService.getAll({ search: dt })
+                  .pipe(
+                      map(res => {
+                        const dataTypes =  res.body;
+
+                        return dataTypes.find(d => d.dataType === dt);
+                      })
+                  )
               )
             ).pipe(
               map(filteredDataTypes => ({
