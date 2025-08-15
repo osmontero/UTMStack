@@ -35,6 +35,7 @@ public final class Constants {
     public static final String PROP_DATE_SETTINGS_TIMEZONE = "utmstack.time.zone";
     public static final String PROP_NETWORK_SCAN_API_URL = "utmstack.networkScan.apiUrl";
     public static final String PROP_TFA_ENABLE = "utmstack.tfa.enable";
+    public static final String PROP_TFA_TYPE_EMAIL = "utmstack.tfa.method";
 
     // ----------------------------------------------------------------------------------
     // - Modules checks

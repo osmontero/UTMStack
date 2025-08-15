@@ -241,5 +241,9 @@
 
     <include file="/config/liquibase/changelog/20250808001_add_options_module_group_conf_visibility.xml" relativeToChangelogFile="false"/>
 
+    <include file="/config/liquibase/changelog/20250815001_update_tfa_section.xml" relativeToChangelogFile="false"/>
+
+    <include file="/config/liquibase/changelog/20250815002_update_tfa_config_parameter.xml" relativeToChangelogFile="false"/>
+
 
 </databaseChangeLog>
