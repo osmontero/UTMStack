@@ -67,19 +67,14 @@ type Expression struct {
 
 type ExpressionBackend struct {
 	Field    string      `yaml:"field"`
-	Operator Operator    `yaml:"operator"`
+	Operator string      `yaml:"operator"`
 	Value    interface{} `yaml:"value"`
-}
-
-type Operator struct {
-	Label string `yaml:"label"`
-	Value string `yaml:"value"`
 }
 
 func (b *ExpressionBackend) ToExpression() Expression {
 	return Expression{
 		Field:    b.Field,
-		Operator: b.Operator.Value,
+		Operator: b.Operator,
 		Value:    b.Value,
 	}
 }
