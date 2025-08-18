@@ -71,7 +71,6 @@ export class AppConfigComponent implements OnInit, OnDestroy {
   }
 
   getActiveSection() {
-    console.log('getActiveSection', this.versionType);
     let filteredSections = this.sections;
 
     if (this.versionType === VersionType.COMMUNITY) {
@@ -85,8 +84,6 @@ export class AppConfigComponent implements OnInit, OnDestroy {
         section => section.id !== ApplicationConfigSectionEnum.SYSTEM_LICENSE
       );
     }
-
-    console.log('getActiveSection', filteredSections);
 
     return filteredSections;
   }
