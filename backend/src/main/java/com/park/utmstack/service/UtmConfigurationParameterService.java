@@ -148,7 +148,7 @@ public class UtmConfigurationParameterService {
         }
     }
 
-    private void validateMailConfOnMFAActivation() throws UtmMailException {
+    public void validateMailConfOnMFAActivation() throws UtmMailException {
         final String ctx = CLASSNAME + ".validateMailConfOnMFAActivation";
         try {
             mailService.sendCheckEmail(List.of(userService.getCurrentUserLogin().getEmail()));
