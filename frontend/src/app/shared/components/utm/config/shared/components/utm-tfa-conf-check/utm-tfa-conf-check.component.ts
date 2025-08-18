@@ -1,9 +1,11 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
 import {AccountService} from '../../../../../../../core/auth/account.service';
+import {ModalService} from '../../../../../../../core/modal/modal.service';
 import {UtmToastService} from '../../../../../../alert/utm-toast.service';
-import {UtmConfigEmailCheckService} from '../../../../../../services/config/utm-config-email-check.service';
-import {TfaService} from '../../../../../../services/tfa/tfa.service';
+import {TfaInitResponse, TfaService} from '../../../../../../services/tfa/tfa.service';
 import {SectionConfigParamType} from '../../../../../../types/configuration/section-config-param.type';
+import {UtmTfaVerificationComponent} from '../../../../../utm-tfa-verification/utm-tfa-verification.component';
+import {DomSanitizer} from "@angular/platform-browser";
 
 @Component({
   selector: 'app-utm-tfa-conf-check',
@@ -18,10 +20,11 @@ export class UtmTfaConfCheckComponent implements OnInit {
   checking: any;
   email: string;
 
-  constructor(private utmConfigEmailCheckService: UtmConfigEmailCheckService,
-              private accountService: AccountService,
+  constructor(private accountService: AccountService,
               private utmToastService: UtmToastService,
-              private tfaService: TfaService) {
+              private tfaService: TfaService,
+              private modalService: ModalService,
+              private sanitizer: DomSanitizer) {
   }
 
   ngOnInit() {
@@ -33,9 +36,9 @@ export class UtmTfaConfCheckComponent implements OnInit {
     this.accountService.identity().then(account => {
       this.tfaService.initTfa({
         method: tfaMethod.confParamValue
-      }).subscribe(() => {
+      }).subscribe((response) => {
         this.checking = false;
-        this.isChecked.next(true);
+        this.openModal(response);
       }, (error) => {
         this.checking = false;
         if (error.status === 400) {
@@ -47,6 +50,19 @@ export class UtmTfaConfCheckComponent implements OnInit {
         }
         this.isChecked.next(false);
       });
+    });
+  }
+
+  openModal(response: TfaInitResponse) {
+    const modalSource = this.modalService.open(UtmTfaVerificationComponent, {centered: true});
+
+    modalSource.componentInstance.method = this.config.find(conf => conf.confParamShort === 'utmstack.tfa.method').confParamValue;
+    modalSource.componentInstance.qrCodeUrl = response.delivery.target ?
+      this.sanitizer.bypassSecurityTrustUrl(`data:image/png;base64,${response.delivery.target}`) : null;
+    modalSource.componentInstance.expiresInSeconds = response.expiresInSeconds;
+
+    modalSource.result.then(() => {
+      this.isChecked.next(true);
     });
   }
 }

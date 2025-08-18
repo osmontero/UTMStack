@@ -236,6 +236,7 @@ import {RelativeTimePipe} from "./pipes/relative-time.pipe";
 import {
   UtmTfaConfCheckComponent
 } from "./components/utm/config/shared/components/utm-tfa-conf-check/utm-tfa-conf-check.component";
+import { UtmTfaVerificationComponent } from './components/utm-tfa-verification/utm-tfa-verification.component';
 
 
 
@@ -393,7 +394,8 @@ import {
     UtmInstanceInfoComponent,
     UtmCpCronEditorComponent,
     RelativeTimePipe,
-    UtmTfaConfCheckComponent
+    UtmTfaConfCheckComponent,
+    UtmTfaVerificationComponent
   ],
   exports: [
     IndexPatternCreateComponent,
@@ -545,7 +547,8 @@ import {
     IrVariableCreateComponent,
     EmailSettingNotificactionComponent,
     ModalAddNoteComponent,
-    UtmInstanceInfoComponent],
+    UtmInstanceInfoComponent,
+    UtmTfaVerificationComponent],
   providers: [
     UtmToastService,
     MenuBehavior,

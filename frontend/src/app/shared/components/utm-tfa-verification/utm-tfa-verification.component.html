@@ -1,0 +1,39 @@
+<app-utm-modal-header name="Two-Factor Authentication" [type]="'normal'"></app-utm-modal-header>
+
+<div class="modal-container d-flex justify-content-center align-items-center w-100 h-100">
+  <div class="card shadow-sm">
+    <div class="modal-body text-center">
+      <app-countdown [duration]="expiresInSeconds" (intervalEnd)="onExpire()"></app-countdown>
+
+      <ng-container *ngIf="method === TfaMethod.TOTP">
+        <p class="text-muted mb-2">Scan this QR code with your authenticator app</p>
+        <img [src]="qrCodeUrl" alt="QR Code" class="qr-image mb-3" />
+      </ng-container>
+
+      <form (ngSubmit)="onSubmit()" #form="ngForm" novalidate>
+        <div class="form-group">
+          <label for="code">
+            {{ method === TfaMethod.EMAIL ? 'Enter the code sent to your email' : 'Enter the code from your authenticator app' }}
+          </label>
+          <input
+            id="code"
+            name="code"
+            type="text"
+            class="form-control"
+            [(ngModel)]="code"
+            required
+            minlength="6"
+            autocomplete="one-time-code"
+          />
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100" [disabled]="verifying || code.length < 6">
+          <i *ngIf="verifying" class="icon-spinner2 spinner"></i>
+          <span *ngIf="!verifying">Confirm</span>
+        </button>
+
+        <div *ngIf="isLoginFailed" class="alert alert-danger mt-3">{{ errorMessage }}</div>
+      </form>
+    </div>
+  </div>
+</div>
