@@ -4,10 +4,19 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.ToString;
+
+@Getter
+@Builder
+@ToString
 @AllArgsConstructor
-@NoArgsConstructor
 public class TfaVerifyResponse {
-    private Boolean status;
-    private String message;
+    private final boolean valid;
+    private final boolean expired;
+    private final long remainingSeconds;
+    private final String message;
 }
+
