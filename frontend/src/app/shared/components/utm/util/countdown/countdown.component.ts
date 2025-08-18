@@ -6,33 +6,37 @@ import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angula
   styleUrls: ['./countdown.component.css']
 })
 export class CountdownComponent implements OnInit, OnDestroy {
-  @Input() minute = 4;
-  @Input() sec = 59;
-  interval;
-  @Output() intervalEnd = new EventEmitter<boolean>();
+  @Input() duration = 300;
+  @Output() intervalEnd = new EventEmitter<void>();
 
-  constructor() {
+  remainingSeconds: number;
+  intervalId: any;
+
+  get minutes(): number {
+    return Math.floor(this.remainingSeconds / 60);
+  }
+
+  get seconds(): number {
+    return this.remainingSeconds % 60;
   }
 
   ngOnInit() {
-    this.count();
+    this.remainingSeconds = this.duration;
+    this.startCountdown();
+  }
+
+  startCountdown() {
+    this.intervalId = setInterval(() => {
+      if (this.remainingSeconds > 0) {
+        this.remainingSeconds--;
+      } else {
+        clearInterval(this.intervalId);
+        this.intervalEnd.emit();
+      }
+    }, 1000);
   }
 
   ngOnDestroy() {
-    clearInterval(this.interval);
-  }
-
-  count() {
-    this.interval = setInterval(() => {
-      this.sec--;
-      if (this.sec === 0) {
-        this.minute--;
-        this.sec = 60;
-        if (this.minute === 0) {
-          clearInterval(this.interval);
-          this.intervalEnd.emit(true);
-        }
-      }
-    }, 1000);
+    clearInterval(this.intervalId);
   }
 }
