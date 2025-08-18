@@ -108,7 +108,7 @@ import {AppConfigSectionsComponent} from './components/utm/config/app-config-sec
 import {
   AppModuleDisabledWarningComponent
 } from './components/utm/config/app-module-disabled-warning/app-module-disabled-warning.component';
-import {UtmEmailConfCheckComponent} from './components/utm/config/utm-email-conf-check/utm-email-conf-check.component';
+import {UtmEmailConfCheckComponent} from './components/utm/config/shared/components/utm-email-conf-check/utm-email-conf-check.component';
 import {
   ElasticMetricHealthComponent
 } from './components/utm/elastic/elastic-metric-health/elastic-metric-health.component';
@@ -233,6 +233,9 @@ import {UtmNotifier} from './websocket/utm-notifier';
 import {UtmInstanceInfoComponent} from "./components/getting-started/utm-instance-info/utm-instance-info.component";
 import {UtmCpCronEditorComponent} from "./components/utm-cp-cron-editor/utm-cp-cron-editor.component";
 import {RelativeTimePipe} from "./pipes/relative-time.pipe";
+import {
+  UtmTfaConfCheckComponent
+} from "./components/utm/config/shared/components/utm-tfa-conf-check/utm-tfa-conf-check.component";
 
 
 
@@ -389,7 +392,8 @@ import {RelativeTimePipe} from "./pipes/relative-time.pipe";
     FilterPipe,
     UtmInstanceInfoComponent,
     UtmCpCronEditorComponent,
-    RelativeTimePipe
+    RelativeTimePipe,
+    UtmTfaConfCheckComponent
   ],
   exports: [
     IndexPatternCreateComponent,
