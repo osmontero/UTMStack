@@ -4,7 +4,7 @@
 
 export const environment = {
   production: false,
-  // SERVER_API_URL: 'https://192.168.1.18/',
+  //SERVER_API_URL: 'https://192.168.1.18/',
   SERVER_API_URL: 'http://localhost:8080/',
   SERVER_API_CONTEXT: '',
   SESSION_AUTH_TOKEN: window.location.host.split(':')[0].toLocaleUpperCase(),
@@ -15,7 +15,7 @@ export const environment = {
 };
 
 /*
- * For easier debugging in development mode, you can import the following file
+ * For easier deb`ugging in development mode, you can import the following file
  * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.
  *
  * This import should be commented out in production mode because it will have a negative impact
