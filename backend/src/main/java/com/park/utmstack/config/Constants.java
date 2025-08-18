@@ -36,6 +36,8 @@ public final class Constants {
     public static final String PROP_NETWORK_SCAN_API_URL = "utmstack.networkScan.apiUrl";
     public static final String PROP_TFA_ENABLE = "utmstack.tfa.enable";
     public static final String PROP_TFA_TYPE_EMAIL = "utmstack.tfa.method";
+    public static final int EXPIRES_IN_SECONDS = 300; // 5 minutes
+    public static final String TFA_ISSUER = "UTMStack";
 
     // ----------------------------------------------------------------------------------
     // - Modules checks
