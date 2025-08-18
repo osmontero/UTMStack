@@ -15,10 +15,10 @@ export interface TfaInitRequest {
 export interface TfaInitResponse {
   method: string;
   delivery: {
-    qrBase64?: string;
+    target?: string;
     code?: string;
-    expiresInSeconds: number;
   };
+  expiresInSeconds: number;
 }
 
 export interface TfaVerifyRequest {
