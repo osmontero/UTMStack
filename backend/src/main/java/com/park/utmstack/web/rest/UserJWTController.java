@@ -14,7 +14,7 @@ import com.park.utmstack.service.MailService;
 import com.park.utmstack.service.UserService;
 import com.park.utmstack.service.application_events.ApplicationEventService;
 import com.park.utmstack.service.login_attempts.LoginAttemptService;
-import com.park.utmstack.service.tfa.TfaService;
+import com.park.utmstack.service.tfa.EmailTotpService;
 import com.park.utmstack.util.CipherUtil;
 import com.park.utmstack.util.UtilResponse;
 import com.park.utmstack.util.exceptions.InvalidConnectionKeyException;
@@ -54,7 +54,7 @@ public class UserJWTController {
     private final AuthenticationManager authenticationManager;
     private final ApplicationEventService applicationEventService;
     private final UserService userService;
-    private final TfaService tfaService;
+    private final EmailTotpService tfaService;
     private final MailService mailService;
     private final LoginAttemptService loginAttemptService;
     private final UtmFederationServiceClientRepository fsClientRepository;
@@ -64,7 +64,7 @@ public class UserJWTController {
                              AuthenticationManager authenticationManager,
                              ApplicationEventService applicationEventService,
                              UserService userService,
-                             TfaService tfaService,
+                             EmailTotpService tfaService,
                              MailService mailService,
                              LoginAttemptService loginAttemptService,
                              UtmFederationServiceClientRepository fsClientRepository,
