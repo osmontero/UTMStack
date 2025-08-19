@@ -42,6 +42,7 @@ export class AppConfigSectionsComponent implements OnInit, OnDestroy {
   timezones = TIMEZONES;
   dateFormats = DATE_FORMATS;
   isCheckedEmailConfig = false;
+  isCheckedTFAConfig = false;
   sectionType = ApplicationConfigSectionEnum;
   selectOptions: { [key: string]: SelectOption[] } = {};
   isLoading: { [key: string]: boolean } = {};
@@ -225,6 +226,11 @@ export class AppConfigSectionsComponent implements OnInit, OnDestroy {
 
   checkedEmailConfig(event: boolean) {
     this.isCheckedEmailConfig = event;
+  }
+
+  checkedTFAConfig(event: boolean) {
+    console.log('checkedEmailConfig', event);
+    this.isCheckedTFAConfig = event;
   }
 
   isPasswordSet() {
