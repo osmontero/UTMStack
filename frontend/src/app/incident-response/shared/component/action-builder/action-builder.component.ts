@@ -87,8 +87,11 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
   }
 
   onChangeExclude($event: any) {
-    const hostnames = $event.map(value => value.assetName);
-    this.group.get('excludedAgents').setValue(hostnames);
+    const agentType = this.group.get('agentType').value;
+    if (!agentType) {
+      const hostnames = $event.map((value: { assetName: any; }) => value.assetName);
+      this.group.get('excludedAgents').setValue(hostnames);
+    }
   }
 
   fetchAgents(platform: string) {
