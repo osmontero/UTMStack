@@ -1,14 +1,31 @@
 <app-utm-modal-header name="Two-Factor Authentication" [type]="'normal'"></app-utm-modal-header>
 
 <div class="modal-container d-flex justify-content-center align-items-center w-100 h-100">
-  <div class="card shadow-sm">
+  <div class="card border-0">
     <div class="modal-body text-center">
-      <app-countdown [duration]="expiresInSeconds" (intervalEnd)="onExpire()"></app-countdown>
-
       <ng-container *ngIf="method === TfaMethod.TOTP">
-        <p class="text-muted mb-2">Scan this QR code with your authenticator app</p>
-        <img [src]="qrCodeUrl" alt="QR Code" class="qr-image mb-3" />
+        <div style="max-width: 350px; margin: 0 auto;">
+          <p class="text-muted mb-2">
+            Use the
+            <a class="text-blue-700" href="https://support.google.com/accounts/answer/1066447?hl=en"
+               target="_blank"
+               rel="noopener noreferrer">
+              Google Authenticator
+            </a>
+            or
+            <a class="text-blue-700" href="https://www.microsoft.com/en-us/account/authenticator"
+               target="_blank"
+               rel="noopener noreferrer">
+              Microsoft Authenticator
+            </a>
+            app, then scan the QR code below. It will generate a 6-digit code for you to enter.
+          </p>
+        </div>
+
+        <img [src]="qrCodeUrl" alt="QR Code" class="qr-image" />
       </ng-container>
+
+      <app-countdown [duration]="expiresInSeconds" (intervalEnd)="onExpire()"></app-countdown>
 
       <form (ngSubmit)="onSubmit()" #form="ngForm" novalidate>
         <div class="form-group">
@@ -32,7 +49,7 @@
           <span *ngIf="!verifying">Confirm</span>
         </button>
 
-        <div *ngIf="isLoginFailed" class="alert alert-danger mt-3">{{ errorMessage }}</div>
+        <div *ngIf="errorMessage" class="alert alert-danger mt-3">{{ errorMessage }}</div>
       </form>
     </div>
   </div>

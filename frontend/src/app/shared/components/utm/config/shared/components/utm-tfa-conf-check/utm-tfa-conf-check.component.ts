@@ -1,11 +1,11 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {DomSanitizer} from '@angular/platform-browser';
 import {AccountService} from '../../../../../../../core/auth/account.service';
 import {ModalService} from '../../../../../../../core/modal/modal.service';
 import {UtmToastService} from '../../../../../../alert/utm-toast.service';
 import {TfaInitResponse, TfaService} from '../../../../../../services/tfa/tfa.service';
 import {SectionConfigParamType} from '../../../../../../types/configuration/section-config-param.type';
 import {UtmTfaVerificationComponent} from '../../../../../utm-tfa-verification/utm-tfa-verification.component';
-import {DomSanitizer} from "@angular/platform-browser";
 
 @Component({
   selector: 'app-utm-tfa-conf-check',
@@ -61,8 +61,11 @@ export class UtmTfaConfCheckComponent implements OnInit {
       this.sanitizer.bypassSecurityTrustUrl(`data:image/png;base64,${response.delivery.target}`) : null;
     modalSource.componentInstance.expiresInSeconds = response.expiresInSeconds;
 
-    modalSource.result.then(() => {
-      this.isChecked.next(true);
+    modalSource.result.then((result) => {
+      if (result) {
+        console.log('TFA verification successful');
+        this.isChecked.next(true);
+      }
     });
   }
 }

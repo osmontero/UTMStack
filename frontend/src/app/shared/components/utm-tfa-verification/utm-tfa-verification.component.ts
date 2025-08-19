@@ -1,5 +1,6 @@
 import {Component, Input} from '@angular/core';
-import {TfaMethod} from '../../services/tfa/tfa.service';
+import {NgbActiveModal} from "@ng-bootstrap/ng-bootstrap";
+import {TfaMethod, TfaService} from '../../services/tfa/tfa.service';
 
 @Component({
   selector: 'app-utm-tfa-verification',
@@ -16,18 +17,26 @@ export class UtmTfaVerificationComponent {
   verifying = false;
   isLoginFailed = false;
   errorMessage = '';
-  protected readonly TfaMethod = TfaMethod;
+  readonly TfaMethod = TfaMethod;
+
+  constructor(private tfaService: TfaService,
+              private activeModal: NgbActiveModal) {}
 
   onSubmit() {
     this.verifying = true;
-    setTimeout(() => {
+    this.tfaService.verifyTfa({
+      method: this.method,
+      code: this.code
+    }).subscribe(response => {
       this.verifying = false;
-      this.isLoginFailed = this.code !== '123456';
-      this.errorMessage = this.isLoginFailed ? 'Invalid code' : '';
-    }, 1000);
-  }
+      this.errorMessage = !response.valid ? 'Verification code is invalid' : response.expired ? 'Verification code has expired' : '';
+      if (response.valid) {
+        this.activeModal.close(true);
+      }
+    }, error => {
+      this.verifying = false;
+      this.errorMessage = 'An error occurred while verifying the code, please try again later';
+    });
 
-  onExpire() {
-    this.errorMessage = 'Verification expired. Please try again.';
   }
 }
