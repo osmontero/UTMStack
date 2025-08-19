@@ -280,7 +280,7 @@ pipeline:
       - cast:
           fields:
             - log.statusCode
-          to: float64
+          to: float
 
       - cast:
           fields:
@@ -349,7 +349,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: safe("statusCode", 0.0) >= double(200) && statusCode <= double(299) || (safe("statusCode", 0.0) >= double(300) && statusCode <= double(399) && safe("origin.bytesReceived", 0.0) > double(0))
+          where: safe("statusCode", 0.0) >= double(200) && safe("statusCode", 0.0) <= double(299) || (safe("statusCode", 0.0) >= double(300) && safe("statusCode", 0.0) <= double(399) && safe("origin.bytesReceived", 0.0) > double(0))
 
       # Adding severity based on log.severityLabel
       - add:

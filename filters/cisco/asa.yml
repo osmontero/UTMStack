@@ -314,14 +314,14 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: safe("actionResult", "") && (log.messageId==106102 || log.messageId==106103) && (actionResult == "Permitted" || actionResult == "permitted")
+          where: safe("actionResult", "") && (safe("log.messageId", 0.0) == double(106102) || safe("log.messageId", 0.0) == double(106103)) && (safe("actionResult", "") == "Permitted" || safe("actionResult", "") == "permitted")
       # Adding action result
       - add:
           function: 'string'
           params:
             key: actionResult
             value: 'denied'
-          where: safe("actionResult", "") && (log.messageId==106102 || log.messageId==106103) && (actionResult != "Permitted" && actionResult != "permitted")
+          where: safe("actionResult", "") && (safe("log.messageId", 0.0) == double(106102) || safe("log.messageId", 0.0) == double(106103)) && (safe("actionResult", "") != "Permitted" && safe("actionResult", "") != "permitted")
       #......................................................................#
       # ASA-4-109017
       - grok:
@@ -5754,13 +5754,13 @@ pipeline:
           params:
             key: action
             value: 'Threat-detection add host to shun list'
-          where: (safe("log.messageId", 0.0)==double(733102) || log.messageId==double(733103)) && log.msg.contains("add")
+          where: (safe("log.messageId", 0.0)==double(733102) || safe("log.messageId", 0.0)==double(733103)) && safe("log.msg", "").contains("add")
       - add:
           function: 'string'
           params:
             key: action
             value: 'Threat-detection removes host to shun list'
-          where: (safe("log.messageId", 0.0)==double(733102) || log.messageId==double(733103)) && log.msg.contains("removes")
+          where: (safe("log.messageId", 0.0)==double(733102) || safe("log.messageId", 0.0)==double(733103)) && safe("log.msg", "").contains("removes")
       #......................................................................#
       # Decoding severity
       - add:
