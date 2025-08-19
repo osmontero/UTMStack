@@ -19,7 +19,7 @@ import {
   ALERT_ADVERSARY_FIELD,
   ALERT_CASE_ID_FIELD,
   ALERT_FIELDS,
-  ALERT_INCIDENT_FLAG_FIELD,
+  ALERT_INCIDENT_FLAG_FIELD, ALERT_PARENT_ID,
   ALERT_STATUS_FIELD,
   ALERT_STATUS_FIELD_AUTO,
   ALERT_STATUS_LABEL_FIELD,
@@ -56,7 +56,6 @@ import {EventDataTypeEnum} from '../shared/enums/event-data-type.enum';
 import {AlertTagService} from '../shared/services/alert-tag.service';
 import {OPEN_ALERTS_KEY, OpenAlertsService} from '../shared/services/open-alerts.service';
 import {getCurrentAlertStatus, getStatusName} from '../shared/util/alert-util-function';
-import {alerts} from "../shared/data-mock";
 
 @Component({
   selector: 'app-alert-view',
@@ -315,13 +314,11 @@ export class AlertViewComponent implements OnInit, OnDestroy {
   getAlert(calledFrom?: string) {
     this.elasticDataService.search(this.page, this.itemsPerPage,
       100000000, this.dataNature,
-      sanitizeFilters(this.filters), this.sortBy).subscribe(
+      sanitizeFilters(this.filters), this.sortBy, ALERT_PARENT_ID).subscribe(
       (res: HttpResponse<any>) => {
         this.totalItems = Number(res.headers.get('X-Total-Count'));
         this.alerts = res.body;
-       /* this.alerts = this.alerts.filter(alert => alert.hasOwnProperty('parentId'));
         this.totalItems = this.alerts.length;
-        console.log(this.alerts);*/
         this.loading = false;
         this.refreshingAlert = false;
       },
@@ -572,7 +569,6 @@ export class AlertViewComponent implements OnInit, OnDestroy {
   }
 
   getAlertById(parentId: string) {
-    console.log(alerts.filter(alert => alert.parentId === parentId));
-    return alerts.filter(alert => alert.parentId === parentId);
+    return this.alerts.filter(alert => alert.parentId === parentId);
   }
 }

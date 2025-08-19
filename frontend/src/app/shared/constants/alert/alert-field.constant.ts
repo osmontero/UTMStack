@@ -31,6 +31,7 @@ export const ALERT_RELATED_RULES_FIELD = 'TagRulesApplied';
 export const ALERT_TARGET_FIELD = 'target';
 export const ALERT_ADVERSARY_FIELD = 'adversary';
 export const ALERT_TECHNIQUE_FIELD = 'technique';
+export const ALERT_PARENT_ID = 'parentId';
 
 // SOURCE
 export const ALERT_SOURCE_HOSTNAME_FIELD = 'source.host';
