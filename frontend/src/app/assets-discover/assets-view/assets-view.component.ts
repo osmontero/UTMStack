@@ -143,7 +143,7 @@ export class AssetsViewComponent implements OnInit, OnDestroy {
 
   loadPage(page: number) {
     this.page = page - 1;
-    this.requestParam.page = page;
+    this.requestParam.page = this.page;
     this.utmNetScanService.notifyRefresh(true);
   }
 
