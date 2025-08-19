@@ -53,20 +53,39 @@
             {{ group.get('agentType').value ? 'Default agent' : 'Exclude agents' }}
           </label>
 
+          <!-- Default agent select -->
           <ng-select
+            *ngIf="group.get('agentType')?.value"
             [clearable]="false"
             [items]="agents$ | async"
-            [placeholder]="group.get('agentType').value ? 'Select agent' : 'Select agents to exclude'"
+            placeholder="Select agent"
             [loading]="loadingAgents"
             [virtualScroll]="true"
-            [multiple]="!group.get('agentType').value"
+            [multiple]="false"
             [loadingText]="'Loading agents...'"
-            [formControlName]="group.get('agentType').value ? 'defaultAgent' : 'excludedAgents'"
+            formControlName="defaultAgent"
             [bindValue]="'assetName'"
             [bindLabel]="'assetName'"
-            [id]="group.get('agentType').value ? 'default' : 'exclude'"
-            (change)="!group.get('agentType').value && onChangeExclude($event)">
+            id="default">
           </ng-select>
+
+          <!-- Excluded agents select -->
+          <ng-select
+            *ngIf="!group.get('agentType')?.value"
+            [clearable]="false"
+            [items]="agents$ | async"
+            placeholder="Select agents to exclude"
+            [loading]="loadingAgents"
+            [virtualScroll]="true"
+            [multiple]="true"
+            [loadingText]="'Loading agents...'"
+            formControlName="excludedAgents"
+            [bindValue]="'assetName'"
+            [bindLabel]="'assetName'"
+            id="exclude"
+            (change)="onChangeExclude($event)">
+          </ng-select>
+
         </div>
       </div>
 
