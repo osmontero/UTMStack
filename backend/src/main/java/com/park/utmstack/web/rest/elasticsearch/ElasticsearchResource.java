@@ -5,6 +5,8 @@ import com.park.utmstack.domain.chart_builder.types.query.FilterType;
 import com.park.utmstack.domain.shared_types.CsvExportingParams;
 import com.park.utmstack.service.application_events.ApplicationEventService;
 import com.park.utmstack.service.elasticsearch.ElasticsearchService;
+import com.park.utmstack.service.elasticsearch.processor.SearchProcessorRegistry;
+import com.park.utmstack.service.elasticsearch.processor.SearchResultProcessor;
 import com.park.utmstack.util.UtilCsv;
 import com.park.utmstack.util.UtilPagination;
 import com.park.utmstack.util.UtilResponse;
@@ -14,6 +16,7 @@ import com.park.utmstack.util.exceptions.OpenSearchIndexNotFoundException;
 import com.park.utmstack.web.rest.util.HeaderUtil;
 import com.park.utmstack.web.rest.util.PaginationUtil;
 import com.utmstack.opensearch_connector.types.ElasticCluster;
+import lombok.RequiredArgsConstructor;
 import org.opensearch.client.opensearch.cat.indices.IndicesRecord;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.core.search.Hit;
@@ -39,6 +42,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/elasticsearch")
+@RequiredArgsConstructor
 public class ElasticsearchResource {
 
     private final Logger log = LoggerFactory.getLogger(ElasticsearchResource.class);
@@ -46,12 +50,9 @@ public class ElasticsearchResource {
 
     private final ElasticsearchService elasticsearchService;
     private final ApplicationEventService applicationEventService;
+    private final SearchProcessorRegistry searchProcessorRegistry;
 
-    public ElasticsearchResource(ElasticsearchService elasticsearchService,
-                                 ApplicationEventService applicationEventService) {
-        this.elasticsearchService = elasticsearchService;
-        this.applicationEventService = applicationEventService;
-    }
+
 
     @GetMapping("/property/values")
     public ResponseEntity<List<String>> getFieldValues(@RequestParam String keyword,
@@ -143,8 +144,9 @@ public class ElasticsearchResource {
     }
 
     @PostMapping("/search")
-    public ResponseEntity<List<Map>> search(@RequestBody(required = false) List<FilterType> filters,
+    public ResponseEntity<List<Map<String, Object>>> search(@RequestBody(required = false) List<FilterType> filters,
                                             @RequestParam Integer top, @RequestParam String indexPattern,
+                                            @RequestParam(required = false) String groupByField,
                                             Pageable pageable) {
         final String ctx = CLASSNAME + ".search";
         try {
@@ -158,8 +160,15 @@ public class ElasticsearchResource {
             HttpHeaders headers = UtilPagination.generatePaginationHttpHeaders(Math.min(hits.total().value(), top),
                     pageable.getPageNumber(), pageable.getPageSize(), "/api/elasticsearch/search");
 
-            return ResponseEntity.ok().headers(headers).body(hits.hits().stream()
-                    .map(Hit::source).collect(Collectors.toList()));
+
+            List<Map<String, Object>> flatResults = hits.hits().stream()
+                    .map(hit -> (Map<String, Object>)hit.source())
+                    .collect(Collectors.toList());
+
+            SearchResultProcessor processor = searchProcessorRegistry.resolve(groupByField);
+            List<Map<String, Object>> processed = processor.process(flatResults);
+
+            return ResponseEntity.ok().headers(headers).body(processed);
         } catch (Exception e) {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
