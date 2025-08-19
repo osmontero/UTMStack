@@ -235,7 +235,7 @@ pipeline:
             - fieldName: log.rest
               pattern: '{{.greedy}}'
           source: log.msg
-          where: safe("log.messageId", 0.0) == double(106102) || log.messageId==106103
+          where: safe("log.messageId", 0.0) == double(106102) || safe("log.messageId", 0.0)==double(106103)
       # Second variant
       - grok:
           patterns:
@@ -272,54 +272,54 @@ pipeline:
             - fieldName: log.rest
               pattern: '{{.greedy}}'
           source: log.msg
-          where: safe("log.messageId", 0.0) == double(106102) || log.messageId==106103
+          where: safe("log.messageId", 0.0) == double(106102) || safe("log.messageId", 0.0)==106103
       - trim:
           function: suffix
           substring: '/'
           fields:
             - log.srcInterface
             - log.dstInterface
-          where: safe("log.messageId", 0.0) == double(106102) || log.messageId==106103
+          where: safe("log.messageId", 0.0) == double(106102) || safe("log.messageId", 0.0)==106103
       - trim:
           function: prefix
           substring: ''''
           fields:
             - origin.user
-          where: safe("log.messageId", 0.0) == double(106102) || log.messageId==106103
+          where: safe("log.messageId", 0.0) == double(106102) || safe("log.messageId", 0.0)==106103
       - trim:
           function: suffix
           substring: ''''
           fields:
             - origin.user
-          where: safe("log.messageId", 0.0) == double(106102) || log.messageId==106103
+          where: safe("log.messageId", 0.0) == double(106102) || safe("log.messageId", 0.0)==106103
       - trim:
           function: prefix
           substring: '('
           fields:
             - origin.port
             - target.port
-          where: safe("log.messageId", 0.0) == double(106102) || log.messageId==106103
+          where: safe("log.messageId", 0.0) == double(106102) || safe("log.messageId", 0.0)==106103
       - trim:
           function: suffix
           substring: ')'
           fields:
             - origin.port
             - target.port
-          where: safe("log.messageId", 0.0) == double(106102) || log.messageId==106103
+          where: safe("log.messageId", 0.0) == double(106102) || safe("log.messageId", 0.0)==106103
       # Adding action result
       - add:
           function: 'string'
           params:
             key: actionResult
             value: 'accepted'
-          where: safe("actionResult", "") && (safe("log.messageId", 0.0)==106102 || log.messageId==106103) && (actionResult == "Permitted" || actionResult == "permitted")
+          where: safe("actionResult", "") && (safe("log.messageId", 0.0)==106102 || safe("log.messageId", 0.0)==106103) && (safe("actionResult", "") == "Permitted" || safe("actionResult", "") == "permitted")
       # Adding action result
       - add:
           function: 'string'
           params:
             key: actionResult
             value: 'denied'
-          where: safe("actionResult", "") && (safe("log.messageId", 0.0)==106102 || log.messageId==106103) && (actionResult != "Permitted" && actionResult != "permitted")
+          where: safe("actionResult", "") && (safe("log.messageId", 0.0)==106102 || safe("log.messageId", 0.0)==106103) && (safe("actionResult", "") != "Permitted" && safe("actionResult", "") != "permitted")
       #......................................................................#
       # FTD-6-109101
       - grok:
@@ -4375,7 +4375,7 @@ pipeline:
             - fieldName: action
               pattern: '{{.greedy}}'
           source: log.msg
-          where: safe("log.messageId", 0.0) == double(713252) || log.messageId==713253
+          where: safe("log.messageId", 0.0) == double(713252) || safe("log.messageId", 0.0)==double(713253)
       # Cleaning fields
       - trim:
           function: suffix
@@ -4384,19 +4384,19 @@ pipeline:
             - origin.group
             - origin.user
             - origin.ip
-          where: safe("log.messageId", 0.0) == double(713252) || log.messageId==713253
+          where: safe("log.messageId", 0.0) == double(713252) || safe("log.messageId", 0.0)==double(713253)
       - trim:
           function: prefix
           substring: ''''
           fields:
             - origin.user
-          where: safe("log.messageId", 0.0) == double(713252) || log.messageId==713253
+          where: safe("log.messageId", 0.0) == double(713252) || safe("log.messageId", 0.0)==double(713253)
       - trim:
           function: suffix
           substring: ''''
           fields:
             - origin.user
-          where: safe("log.messageId", 0.0) == double(713252) || log.messageId==713253
+          where: safe("log.messageId", 0.0) == double(713252) || safe("log.messageId", 0.0)==double(713253)
       # Adding action result
       - add:
           function: 'string'

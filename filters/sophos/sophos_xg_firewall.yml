@@ -680,7 +680,7 @@ pipeline:
             - log.statusCode
             - origin.bytesReceived
             - origin.bytesSent
-          to: float64
+          to: float
 
       # Renaming "log.statusCode" to "statusCode" to add it to the event structure
       - rename:
@@ -701,7 +701,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: safe("statusCode", 0.0) >= double(200) && statusCode <= double(299) || (safe("statusCode", 0.0) >= double(300) && statusCode <= double(399) && safe("origin.bytesReceived", 0.0) > double(0))
+          where: safe("statusCode", 0.0) >= double(200) && safe("statusCode", 0.0) <= double(299) || (safe("statusCode", 0.0) >= double(300) && safe("statusCode", 0.0) <= double(399) && safe("origin.bytesReceived", 0.0) > double(0))
 
       # Removing unused fields
       - delete:

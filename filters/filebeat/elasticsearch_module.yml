@@ -420,4 +420,4 @@ pipeline:
 
       # Droping unwanted logs
       - drop:
-          where: safe("log.eventDataset", "") && safe("log.component", "") && ( (log.eventDataset != "elasticsearch.server" && log.eventDataset != "elasticsearch.audit") || (log.eventDataset == "elasticsearch.server" && (log.component.matches("(A|a)udit")==false && log.component.matches("(S|s)(S|s)(L|l)")==false && log.component.matches("(S|s)ecurity")==false ) ) )
+          where: safe("log.eventDataset", "") && safe("log.component", "") && ( (safe("log.eventDataset", "") != "elasticsearch.server" && safe("log.eventDataset", "") != "elasticsearch.audit") || (safe("log.eventDataset", "") == "elasticsearch.server" && (safe("log.component", "").matches("(A|a)udit")==false && safe("log.component", "").matches("(S|s)(S|s)(L|l)")==false && safe("log.component", "").matches("(S|s)ecurity")==false ) ) )

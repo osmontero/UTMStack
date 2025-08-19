@@ -118,7 +118,7 @@ pipeline:
       - cast:
           fields:
             - log.statusCode
-          to: float64
+          to: float
 
       # Renaming "log.statusCode" to "statusCode" to add it to the event structure
       - rename:

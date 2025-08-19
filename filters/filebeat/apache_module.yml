@@ -196,7 +196,7 @@ pipeline:
           fields:
             - log.statusCode
             - origin.bytesReceived
-          to: float64
+          to: float
       - reformat:
           fields:
             - deviceTime
@@ -215,7 +215,7 @@ pipeline:
           params:
             key: actionResult
             value: 'accepted'
-          where: safe("log.statusCode", 0.0) >= double(200) && log.statusCode <= double(299) || (safe("log.statusCode", 0.0) >= double(300) && log.statusCode <= double(399) && safe("origin.bytesReceived", 0.0) > double(0))
+          where: safe("log.statusCode", 0.0) >= double(200) && safe("log.statusCode", 0.0) <= double(299) || (safe("log.statusCode", 0.0) >= double(300) && safe("log.statusCode", 0.0) <= double(399) && safe("origin.bytesReceived", 0.0) > double(0))
       # Removing unused fields
       - delete:
           fields:
