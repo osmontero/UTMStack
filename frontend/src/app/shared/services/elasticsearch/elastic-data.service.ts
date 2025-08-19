@@ -15,9 +15,14 @@ export class ElasticDataService {
   }
 
   search(page: number, size: number, top: number,
-         pattern: string, filters?: any, sortBy?: string): Observable<HttpResponse<any>> {
+         pattern: string, filters?: any, sortBy?: string, groupByField?: string): Observable<HttpResponse<any>> {
     const query = new QueryType();
     query.add('page', page).add('size', size).add('top', top).add('indexPattern', pattern);
+
+    if (groupByField) {
+      query.add('groupByField', groupByField);
+    }
+
     if (sortBy) {
       query.add('sort', sortBy);
     }

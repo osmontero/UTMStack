@@ -230,11 +230,10 @@
                       </ng-container>
                     </tr>
 
-                    <!-- Hijos -->
-                    <ng-container *ngIf="alert.expanded">
-                      <tr *ngFor="let child of getAlertById(alert.id)" class="bg-light">
+                    <ng-container *ngIf="alert.children.length > 0 && alert.expanded">
+                      <tr *ngFor="let child of alert.children" class="bg-light">
                         <td class="text-center">
-                          <!-- Espacio vacío o íconos secundarios -->
+
                         </td>
                         <ng-container *ngFor="let td of fields">
                           <td [ngClass]="{'min-width': td.field === ALERT_ADVERSARY_FIELD || td.field === ALERT_TARGET_FIELD}"
