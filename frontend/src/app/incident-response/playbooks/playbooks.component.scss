@@ -133,3 +133,8 @@
   max-width: 16px;
   height: 100%;
 }
+
+button[ngbDropdownToggle]:focus {
+  outline: none;
+  box-shadow: none;
+}
