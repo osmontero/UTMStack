@@ -389,6 +389,11 @@ pipeline:
           to: "[]string"
           fields:
             - log.origin.macs
+
+      - cast:
+          to: "int"
+          fields:
+            - log.eventCode
     
       - trim:
           function: prefix
