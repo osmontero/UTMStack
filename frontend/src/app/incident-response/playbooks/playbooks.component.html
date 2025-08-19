@@ -58,12 +58,12 @@
   <div class="d-flex flex-1 flex-column h-100 m-h-0">
     <div class="d-flex px-1 pt-3 h-100 m-h-0 justify-content-center playbooks-container">
       <div class="playbook-card" *ngFor="let item of playbookService.playbooks$ | async; trackBy: trackByFn">
-        <div [routerLink]="['/soar/create-flow']"
-             [queryParams]="{ id: item.id }" class="h-100 text-card-foreground shadow-sm transition-all d-flex flex-column rounded-lg border border-border bg-background p-3 cursor-pointer">
+        <div class="h-100 text-card-foreground shadow-sm transition-all d-flex flex-column rounded-lg border border-border bg-background p-3 cursor-pointer">
           <div class="card-header p-0 pb-1 d-flex align-items-center gap-3">
             <div [ngClass]="{'bg-primary': item.active, 'bg-secondary': !item.active}" class="icon-code d-flex justify-content-center  align-items-center">
             </div>
-            <div class="d-flex flex-grow-1 justify-content-between">
+            <div [routerLink]="['/soar/create-flow']"
+                 [queryParams]="{ id: item.id }" class="d-flex flex-grow-1 justify-content-between">
               <div class="d-flex flex-column">
                 <div class="text-sm font-semibold">{{ item.name }}</div>
                 <div class="truncate text-xs text-muted-foreground">{{ item.createdDate | relativeTime }}</div>
@@ -71,7 +71,7 @@
             </div>
             <div autoClose="outside" class="action-playbook list-icons-item dropdown cursor-pointer"
                  placement="bottom-right" ngbDropdown>
-              <button class="btn btn-link p-0" ngbDropdownToggle>
+              <button class="btn btn-link p-0 cursor-pointer" ngbDropdownToggle>
                 <i class="icon-menu"></i>
               </button>
               <div ngbDropdownMenu>
@@ -92,7 +92,8 @@
               </div>
             </div>
           </div>
-          <div class="flex-grow-1 overflow-hidden">
+          <div [routerLink]="['/soar/create-flow']"
+               [queryParams]="{ id: item.id }" class="flex-grow-1 overflow-hidden">
             <div
               class="text-sm"
               style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">

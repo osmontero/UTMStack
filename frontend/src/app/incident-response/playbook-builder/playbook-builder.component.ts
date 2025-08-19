@@ -178,8 +178,8 @@ export class PlaybookBuilderComponent implements OnInit, OnDestroy {
     const actionError = 'creating';
     this.incidentResponseRuleService.create(this.formRule.value)
       .subscribe(() => {
-            this.utmToastService.showSuccessBottom('Incident response automation ' + action + ' successfully');
-            this.router.navigate(['incident-response/playbooks']);
+            this.utmToastService.showSuccessBottom('Flow ' + action + ' successfully');
+            this.router.navigate(['soar/flows']);
     }, () => this.errorSaving(actionError));
   }
 
@@ -188,16 +188,16 @@ export class PlaybookBuilderComponent implements OnInit, OnDestroy {
     const actionError = 'editing';
     this.formRule.get('command').setValue(this.command);
     this.incidentResponseRuleService.update(this.formRule.value).subscribe(() => {
-      this.utmToastService.showSuccessBottom('Incident response automation ' + action + ' successfully');
-      this.router.navigate(['incident-response/playbooks']);
+      this.utmToastService.showSuccessBottom('Flow ' + action + ' successfully');
+      this.router.navigate(['soar/flows']);
     }, () => this.errorSaving(actionError));
   }
 
   errorSaving(action: string) {
     const ruleName: string = this.formRule.get('name').value;
     this.formRule.get('name').setValue(this.replacePrefixInName(ruleName));
-    this.utmToastService.showError('Error  ' + action + ' incident automation',
-      'An error has occur while trying to ' + action + ' an incident automation, please contact support team');
+    this.utmToastService.showError('Error  ' + action + ' flow',
+      'An error has occur while trying to ' + action + ' an flow, please contact support team');
   }
 
   ngOnDestroy(): void {
