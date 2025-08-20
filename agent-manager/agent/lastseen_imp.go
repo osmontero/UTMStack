@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
-	sync "sync"
+	"sync"
 	"time"
 
 	"github.com/utmstack/UTMStack/agent-manager/database"
@@ -76,30 +76,84 @@ func (s *LastSeenService) processPings() {
 			s.CacheCollectorLastSeenMutex.Unlock()
 		}
 	}
+
+	utils.ALogger.Info("processPings goroutine ended")
 }
 
 func (s *LastSeenService) flushLastSeenToDB() {
 	ticker := time.NewTicker(30 * time.Second)
 	for range ticker.C {
+
 		pings := []models.LastSeen{}
 
+		// Agent cache access
 		s.CacheAgentLastSeenMutex.Lock()
+		agentPings := make([]models.LastSeen, 0, len(s.CacheAgentLastSeen))
 		for _, lastSeen := range s.CacheAgentLastSeen {
-			pings = append(pings, lastSeen)
+			agentPings = append(agentPings, lastSeen)
 		}
 		s.CacheAgentLastSeenMutex.Unlock()
+		pings = append(pings, agentPings...)
 
+		// Collector cache access
 		s.CacheCollectorLastSeenMutex.Lock()
+		collectorPings := make([]models.LastSeen, 0, len(s.CacheCollectorLastSeen))
 		for _, lastSeen := range s.CacheCollectorLastSeen {
-			pings = append(pings, lastSeen)
+			collectorPings = append(collectorPings, lastSeen)
 		}
 		s.CacheCollectorLastSeenMutex.Unlock()
+		pings = append(pings, collectorPings...)
 
+		// Database operations
+		dbOpsCount := len(pings)
+		
+		if dbOpsCount == 0 {
+			continue
+		}
+
+		// Use parallel individual upserts for better performance
+		const maxWorkers = 10
+		workers := dbOpsCount
+		if workers > maxWorkers {
+			workers = maxWorkers
+		}
+
+		pingChan := make(chan models.LastSeen, dbOpsCount)
+		errorChan := make(chan error, dbOpsCount)
+		var wg sync.WaitGroup
+
+		// Start workers
+		for i := 0; i < workers; i++ {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for ping := range pingChan {
+					err := s.DBConnection.Upsert(&ping, "connector_id = ?", nil, ping.ConnectorID)
+					if err != nil {
+						utils.ALogger.ErrorF("failed to save LastSeen item for connector %d: %v", ping.ConnectorID, err)
+						select {
+						case errorChan <- err:
+						default:
+						}
+					}
+				}
+			}()
+		}
+
+		// Send pings to workers
 		for _, ping := range pings {
-			err := s.DBConnection.Upsert(&ping, "connector_id = ?", nil, ping.ConnectorID)
-			if err != nil {
-				utils.ALogger.ErrorF("failed to save LastSeen item: %v", err)
-			}
+			pingChan <- ping
+		}
+		close(pingChan)
+
+		// Wait for all workers to complete
+		wg.Wait()
+		close(errorChan)
+
+		// Count errors
+		totalErrors := 0
+		for range errorChan {
+			totalErrors++
 		}
 	}
 }
@@ -122,6 +176,7 @@ func (s *LastSeenService) Ping(stream PingService_PingServer) error {
 		if err != nil {
 			return status.Error(codes.Internal, err.Error())
 		}
+
 		LastSeenChannel <- models.LastSeen{
 			ConnectorID:   uint(idInt),
 			ConnectorType: typ,
