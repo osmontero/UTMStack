@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"net"
 	"os"
 	"time"
@@ -11,7 +10,6 @@ import (
 	"github.com/threatwinds/go-sdk/plugins"
 	twutil "github.com/threatwinds/go-sdk/utils"
 	"github.com/utmstack/UTMStack/plugins/soc-ai/config"
-	"github.com/utmstack/UTMStack/plugins/soc-ai/elastic"
 	"github.com/utmstack/UTMStack/plugins/soc-ai/utils"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -25,6 +23,9 @@ func main() {
 	utils.Logger.Info("Starting soc-ai plugin...")
 
 	go config.StartConfigurationSystem()
+
+	time.Sleep(2 * time.Second)
+	InitializeQueue()
 
 	// Retry logic for creating socket directory
 	maxRetries := 3
@@ -156,28 +157,11 @@ func (p *socAiServer) Correlate(_ context.Context,
 		utils.Logger.LogF(100, "SOC-AI module is disabled, skipping alert: %s", alert.Id)
 		return &emptypb.Empty{}, nil
 	}
-	if config.GetConfig().Provider == "openai" {
-		if err := utils.ConnectionChecker(config.GPT_API_ENDPOINT); err != nil {
-			_ = catcher.Error("Failed to establish internet connection", err, nil)
-			return &emptypb.Empty{}, nil
-		}
+
+	if !EnqueueAlert(alert) {
+		utils.Logger.LogF(300, "Alert %s was dropped due to full queue", alert.Id)
+		return &emptypb.Empty{}, nil
 	}
 
-	fmt.Printf("Processing alert: %s\n", alert.Name)
-
-	alertFields := cleanAlerts(alertToAlertFields(alert))
-
-	err := sendRequestToLLM(&alertFields)
-	if err != nil {
-		elastic.RegisterError(err.Error(), alertFields.ID)
-		return nil, err
-	}
-
-	err = processAlertToElastic(&alertFields)
-	if err != nil {
-		elastic.RegisterError(err.Error(), alertFields.ID)
-		return nil, err
-	}
-
-	return nil, nil
+	return &emptypb.Empty{}, nil
 }

@@ -9,7 +9,7 @@ import (
 
 func main() {
 	utils.InitLogger()
-	utils.ALogger.Info("Starting Agent Manager...")
+	utils.ALogger.Info("Starting Agent Manager v1.0.0 ...")
 
 	err := database.MigrateDatabase()
 	if err != nil {
