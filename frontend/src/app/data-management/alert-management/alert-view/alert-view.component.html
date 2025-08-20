@@ -172,7 +172,6 @@
               <tbody *ngIf="alerts && alerts.length > 0">
                 <ng-container *ngFor="let alert of alerts">
                   <!-- Fila principal (sin parentId) -->
-                  <ng-container *ngIf="!alert.parentId">
                     <tr class="cursor-pointer">
                       <td class="text-center">
                         <div class="d-flex justify-content-between align-items-center h-100 w-100 small-md-icon">
@@ -247,7 +246,6 @@
                       </tr>
                     </ng-container>
                   </ng-container>
-                </ng-container>
               </tbody>
 
 
