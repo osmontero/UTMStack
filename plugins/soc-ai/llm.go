@@ -80,6 +80,9 @@ func sendRequestToLLM(alert *schema.AlertFields) error {
 		}
 	}
 
+	utils.Logger.LogF(500, "LLM appears to be DOWN - all %d attempts failed for alert %s. Provider: %s, URL: %s, Last error: %v",
+		maxRetries, alert.ID, config.GetConfig().Provider, config.GetConfig().Url, lastErr)
+
 	return fmt.Errorf("all attempts to call LLM failed: %v", lastErr)
 }
 
