@@ -55,7 +55,7 @@ func InitCollectorService() {
 			CollectorConfigsCache:     make(map[uint][]*CollectorConfigGroup),
 			CacheCollectorKey:         make(map[uint]string),
 			CollectorPendigConfigChan: make(chan *CollectorConfig, 1000),
-			CollectorTypes:            []enum.UTMModule{enum.IBM_AS_400},
+			CollectorTypes:            []enum.UTMModule{},
 			DBConnection:              database.GetDB(),
 		}
 		collectors := []models.Collector{}
