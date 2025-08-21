@@ -75,6 +75,7 @@ var (
 	DataTypeAix                 DataType = "ibm-aix"
 	DataTypePfsense             DataType = "firewall-pfsense"
 	DataTypeFortiweb            DataType = "firewall-fortiweb"
+	DataTypeSuricata            DataType = "suricata"
 
 	ProtoPorts = map[DataType]ProtoPort{
 		DataTypeSyslog:         {UDP: "7014", TCP: "7014"},
@@ -92,6 +93,7 @@ var (
 		DataTypeAix:            {UDP: "7016", TCP: "7016"},
 		DataTypePfsense:        {UDP: "7017", TCP: "7017"},
 		DataTypeFortiweb:       {UDP: "7018", TCP: "7018"},
+		DataTypeSuricata:       {UDP: "7019", TCP: "7019"},
 		DataTypeNetflow:        {UDP: "2055", TCP: ""},
 	}
 
@@ -102,7 +104,7 @@ func ValidateModuleType(typ string) string {
 	switch DataType(typ) {
 	case DataTypeSyslog, DataTypeVmware, DataTypeEset, DataTypeKaspersky, DataTypeFortinet, DataTypePaloalto,
 		DataTypeMikrotik, DataTypeSophosXG, DataTypeSonicwall, DataTypeSentinelOne, DataTypeCiscoGeneric,
-		DataTypeDeceptivebytes, DataTypeAix, DataTypePfsense, DataTypeFortiweb:
+		DataTypeDeceptivebytes, DataTypeAix, DataTypePfsense, DataTypeFortiweb, DataTypeSuricata:
 		return "syslog"
 	case DataTypeNetflow:
 		return "netflow"
