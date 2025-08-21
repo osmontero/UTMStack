@@ -229,7 +229,6 @@ export class AppConfigSectionsComponent implements OnInit, OnDestroy {
   }
 
   checkedTFAConfig(event: boolean) {
-    console.log('checkedEmailConfig', event);
     this.isCheckedTFAConfig = event;
   }
 
@@ -306,10 +305,12 @@ export class AppConfigSectionsComponent implements OnInit, OnDestroy {
     }
   }
 
+  isEnabledTfa(): boolean {
+    return this.configs.some(conf => conf.confParamShort === 'utmstack.tfa.enable' && conf.confParamValue === 'true');
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
-
-  protected readonly VersionType = VersionType;
 }
