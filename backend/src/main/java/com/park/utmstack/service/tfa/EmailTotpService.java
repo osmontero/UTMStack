@@ -57,6 +57,8 @@ public class EmailTotpService {
             Assert.hasText(code, "Code value is missing");
 
             DefaultCodeVerifier verifier = new DefaultCodeVerifier(new DefaultCodeGenerator(), timeProvider);
+            verifier.setTimePeriod(EXPIRES_IN_SECONDS);
+            verifier.setAllowedTimePeriodDiscrepancy(1);
 
             return verifier.isValidCode(secret, code);
         } catch (Exception e) {

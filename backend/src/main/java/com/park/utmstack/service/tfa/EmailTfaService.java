@@ -24,9 +24,6 @@ public class EmailTfaService implements TfaMethodService {
     private final EmailTotpService tfaService;
     private final MailService mailService;
 
-    private static final int CODE_LENGTH = 6;
-    private static final long EXPIRES_IN_SECONDS = 300;
-
     @Override
     public TfaMethod getMethod() {
         return TfaMethod.EMAIL;
@@ -43,11 +40,11 @@ public class EmailTfaService implements TfaMethodService {
 
             long expiresAt = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(300);
             TfaSetupState state = new TfaSetupState(secret, expiresAt);
-            cache.storeState(user.getLogin(), TfaMethod.TOTP, state);
+            cache.storeState(user.getLogin(), TfaMethod.EMAIL, state);
 
             mailService.sendTfaVerificationCode(user, code);
 
-            Delivery delivery = new Delivery(TfaMethod.EMAIL, "Código enviado por correo.");
+            Delivery delivery = new Delivery(TfaMethod.EMAIL, "Code sent to email " + user.getEmail());
             return new TfaInitResponse("pending", delivery, 300);
         }
         catch (Exception e) {
