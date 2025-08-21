@@ -15,9 +15,9 @@ export class UtmTfaVerificationComponent {
 
   code = '';
   verifying = false;
-  isLoginFailed = false;
   errorMessage = '';
   readonly TfaMethod = TfaMethod;
+  codeVerified = false;
 
   constructor(private tfaService: TfaService,
               private activeModal: NgbActiveModal) {}
@@ -31,7 +31,7 @@ export class UtmTfaVerificationComponent {
       this.verifying = false;
       this.errorMessage = !response.valid ? 'Verification code is invalid' : response.expired ? 'Verification code has expired' : '';
       if (response.valid) {
-        this.activeModal.close(true);
+        this.showSuccessState();
       }
     }, error => {
       this.verifying = false;
@@ -40,7 +40,18 @@ export class UtmTfaVerificationComponent {
 
   }
 
-  onExpire() {
+  showSuccessState() {
+    this.codeVerified = true;
+  }
 
+  saveConfiguration() {
+    this.activeModal.close(true);
+  }
+
+  resendCode() {
+  }
+
+  onExpire() {
+    this.errorMessage = 'Verification code has expired. Please request a new code.';
   }
 }
