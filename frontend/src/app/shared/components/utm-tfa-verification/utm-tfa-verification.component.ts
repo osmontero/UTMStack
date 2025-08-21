@@ -39,4 +39,8 @@ export class UtmTfaVerificationComponent {
     });
 
   }
+
+  onExpire() {
+
+  }
 }

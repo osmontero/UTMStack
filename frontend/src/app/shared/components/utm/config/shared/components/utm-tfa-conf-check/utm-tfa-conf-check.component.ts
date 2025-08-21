@@ -54,7 +54,10 @@ export class UtmTfaConfCheckComponent implements OnInit {
   }
 
   openModal(response: TfaInitResponse) {
-    const modalSource = this.modalService.open(UtmTfaVerificationComponent, {centered: true});
+    const modalSource = this.modalService.open(UtmTfaVerificationComponent, {
+      centered: true,
+      size: 'sm'
+    });
 
     modalSource.componentInstance.method = this.config.find(conf => conf.confParamShort === 'utmstack.tfa.method').confParamValue;
     modalSource.componentInstance.qrCodeUrl = response.delivery.target ?

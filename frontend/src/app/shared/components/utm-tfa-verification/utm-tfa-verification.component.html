@@ -1,3 +1,4 @@
+<!--
 <app-utm-modal-header name="Two-Factor Authentication" [type]="'normal'"></app-utm-modal-header>
 
 <div class="modal-container d-flex justify-content-center align-items-center w-100 h-100">
@@ -51,6 +52,167 @@
 
         <div *ngIf="errorMessage" class="alert alert-danger mt-3">{{ errorMessage }}</div>
       </form>
+    </div>
+  </div>
+</div>
+-->
+
+<app-utm-modal-header name="Two-Factor Authentication" [type]="'normal'"></app-utm-modal-header>
+
+<div class="modal-container d-flex justify-content-center align-items-center w-100 h-100">
+  <div class="card border-0" style="max-width: 400px; box-shadow: unset;">
+    <div class="modal-body px-0">
+
+      <!-- TOTP Method with QR Code -->
+      <ng-container *ngIf="method === TfaMethod.TOTP">
+        <div class="text-center mb-4">
+          <div class="mb-3">
+            <p class="text-muted mb-3" style="font-size: 14px; line-height: 1.5;">
+              Use the
+              <a href="https://support.google.com/accounts/answer/1066447?hl=en"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 class="text-primary text-decoration-none fw-medium">
+                Google Authenticator
+              </a>
+              or
+              <a href="https://www.microsoft.com/en-us/account/authenticator"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 class="text-primary text-decoration-none fw-medium">
+                Microsoft Authenticator
+              </a>
+              app, then scan the QR code below. It will generate a 6-digit code for you to enter.
+            </p>
+          </div>
+
+          <!-- QR Code Container -->
+          <div class="qr-code-container bg-white p-2 rounded border d-inline-block">
+            <img [src]="qrCodeUrl"
+                 alt="QR Code"
+                 class="qr-image"
+                 style="max-width: 200px; height: auto;" />
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Email Method Info -->
+      <ng-container *ngIf="method === TfaMethod.EMAIL">
+        <div class="text-center mb-4">
+          <div class="w-100 alert alert-info alert-styled-right mb-3">
+            <span class="font-weight-semibold">
+              Check your email for the verification code
+            </span>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Countdown Timer -->
+      <div class="text-center mb-4">
+        <div class="timer-display d-inline-block px-4 py-2 rounded"
+             style="background-color: #f8f9fa; border: 1px solid #e9ecef; font-family: 'Courier New', monospace;">
+          <app-countdown
+            [duration]="expiresInSeconds"
+            (intervalEnd)="onExpire()"
+            class="fw-bold text-danger"
+            style="font-size: 28px;">
+          </app-countdown>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <form (ngSubmit)="onSubmit()" #form="ngForm" novalidate>
+        <div class="form-group mb-4">
+          <label for="code" class="form-label text-dark mb-3 d-block text-center">
+            {{ method === TfaMethod.EMAIL ? 'Enter the code sent to your email' : 'Enter the code from your authenticator app' }}
+          </label>
+
+          <div class="code-input-container">
+            <input
+              id="code"
+              name="code"
+              type="text"
+              class="form-control form-control-lg text-center"
+              [(ngModel)]="code"
+              required
+              minlength="6"
+              maxlength="6"
+              autocomplete="one-time-code"
+              placeholder="Enter code"
+              [class.is-valid]="code.length === 6 && form.valid"
+              [class.is-invalid]="form.submitted && (code.length < 6 || form.invalid)"
+              style="font-size: 18px; letter-spacing: 4px; font-family: 'Courier New', monospace; height: 56px!important;"
+            />
+          </div>
+
+          <!-- Help Text -->
+          <div class="text-center mt-2">
+            <small class="text-muted">
+              <ng-container *ngIf="method === TfaMethod.EMAIL">
+                Didn't receive the code?
+                <button type="button"
+                        class="btn btn-link p-0 text-primary fw-medium"
+                        style="font-size: 12px; text-decoration: none;"
+                        (click)="resendCode()">
+                  Resend Code
+                </button>
+              </ng-container>
+              <ng-container *ngIf="method === TfaMethod.TOTP">
+                Code expires in a few minutes
+              </ng-container>
+            </small>
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="d-grid gap-2 mb-3">
+          <!-- Primary Confirm Button -->
+          <button
+            type="submit"
+            class="btn utm-button utm-button-primary w-100"
+            [disabled]="verifying || code.length < 6"
+            style="height: 48px; border-radius: 8px; font-weight: 500;">
+
+            <ng-container *ngIf="verifying">
+              <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+              Verifying...
+            </ng-container>
+
+            <ng-container *ngIf="!verifying">
+              Confirm
+            </ng-container>
+          </button>
+
+        </div>
+
+        <!-- Error Alert -->
+        <div *ngIf="errorMessage"
+             class="alert alert-danger border-0"
+             style="background-color: #f8d7da; color: #721c24; border-radius: 8px; font-size: 14px;">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          {{ errorMessage }}
+        </div>
+
+        <!-- Success Message -->
+        <div *ngIf="successMessage"
+             class="alert alert-success border-0"
+             style="background-color: #d4edda; color: #155724; border-radius: 8px; font-size: 14px;">
+          <i class="fas fa-check-circle me-2"></i>
+          {{ successMessage }}
+        </div>
+      </form>
+
+      <!-- Footer Security Notice -->
+      <div class="security-notice mt-4 p-3 rounded"
+           style="background-color: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px;">
+        <div class="d-flex align-items-start">
+          <i class="fas fa-shield-alt text-warning me-2 mt-1" style="font-size: 14px;"></i>
+          <small class="text-muted" style="font-size: 12px; line-height: 1.4;">
+            <strong>Security Notice:</strong> Never share your authentication codes.
+            UTM will never ask for your 2FA codes via email or phone.
+          </small>
+        </div>
+      </div>
     </div>
   </div>
 </div>
