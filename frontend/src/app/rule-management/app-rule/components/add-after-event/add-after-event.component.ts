@@ -11,6 +11,7 @@ import {UtmIndexPattern} from '../../../../shared/types/index-pattern/utm-index-
 import {Rule} from '../../../models/rule.model';
 import {AfterEventFormService} from '../../../services/after-event-form.service';
 import {RuleService} from '../../../services/rule.service';
+import {ElasticDataTypesEnum} from "../../../../shared/enums/elastic-data-types.enum";
 
 
 @Component({
@@ -110,17 +111,16 @@ export class AddAfterEventComponent implements OnInit {
     );
   }
 
-  getOperators(field: string) {
-    const fieldName = field || '';
+  getOperators(field: ElasticSearchFieldInfoType) {
+    const fieldName = field.name || '';
     const hasKeyword = fieldName.includes('.keyword');
+    const isNumeric = field.type === ElasticDataTypesEnum.NUMBER || field.type === ElasticDataTypesEnum.LONG || ElasticDataTypesEnum.FLOAT;
 
-    return hasKeyword ? this.allOperators.keyword : this.allOperators.text;
+    return hasKeyword || isNumeric ? this.allOperators.keyword : this.allOperators.text;
   }
 
-  onFieldChange($event: any, index: number) {
-    const fieldName = $event.name || '';
-
-    this.operators = this.getOperators(fieldName);
+  onFieldChange($event: ElasticSearchFieldInfoType, index: number) {
+    this.operators = this.getOperators($event);
 
     const control = this.with.at(index);
     control.get('operator').reset();

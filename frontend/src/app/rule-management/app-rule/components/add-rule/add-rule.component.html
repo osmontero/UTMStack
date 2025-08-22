@@ -17,43 +17,6 @@
           </ng-container>
         </ng-container>
       </div>
-      <!--<div class="step-container d-flex justify-content-between mt-2 mb-4 w-75">
-        <ng-container *ngIf="mode === 'IMPORT'">
-          <div class="step">
-            <span class="text-blue-800 font-weight-bold">Import</span>
-            <div [ngClass]="isCompleted(RULE_FORM.STEP0) ? 'step-success': currentStep == RULE_FORM.STEP0 ? 'step-active' : 'step-inactive'"
-                 class="round-indicator">
-              <i class="text-white font-size-sm" [ngClass]="isCompleted(RULE_FORM.STEP0) ? 'icon-checkmark3' : 'icon-upload4'"></i>
-            </div>
-          </div>
-          <div class="step-link"></div>
-        </ng-container>
-
-        <div class="step">
-          <span class="text-blue-800 font-weight-bold">General</span>
-          <div [ngClass]="isCompleted(RULE_FORM.STEP1) ? 'step-success': currentStep == RULE_FORM.STEP1 ? 'step-active' : 'step-inactive'"
-               class="round-indicator">
-            <i class="text-white font-size-sm top-0" [ngClass]="isCompleted(RULE_FORM.STEP1) ? 'icon-checkmark3' : 'icon-shield-check'"></i>
-          </div>
-        </div>
-        <div class="step-link"></div>
-
-        <div class="step">
-          <span class="text-blue-800 font-weight-bold">Definition</span>
-          <div [ngClass]="isCompleted(RULE_FORM.STEP2) ? 'step-success' : currentStep == RULE_FORM.STEP2 ? 'step-active' : 'step-inactive'"
-               class="round-indicator">
-            <i class="text-white font-size-sm top-0" [ngClass]="isCompleted(RULE_FORM.STEP2) ? 'icon-checkmark3' : 'icon-cog7'"></i>
-          </div>
-        </div>
-        <div class="step-link"></div>
-        <div class="step">
-          <span class="text-blue-800 font-weight-bold">Events</span>
-          <div [ngClass]="isCompleted(RULE_FORM.STEP3) ? 'step-success' : currentStep == RULE_FORM.STEP3 ? 'step-active' : 'step-inactive'"
-               class="round-indicator">
-            <i class="text-white font-size-sm top-0" [ngClass]="isCompleted(RULE_FORM.STEP3) ? 'icon-checkmark3' : 'icon-list'"></i>
-          </div>
-        </div>
-      </div>-->
     </div>
     <div [hidden]="currentStep != RULE_FORM.STEP0">
       <div class="d-flex  mt-3 flex-column">
