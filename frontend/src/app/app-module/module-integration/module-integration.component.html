@@ -203,6 +203,12 @@
       <app-guide-oracle *ngSwitchCase="moduleEnum.ORACLE" [serverId]="serverId"
                        [integrationId]="module.id"></app-guide-oracle>
 
+      <app-guide-syslog [serverId]="serverId" *ngSwitchCase="moduleEnum.SURICATA"
+                        [moduleEnum]="moduleEnum.SURICATA"
+                        [dataType]="module.dataType.dataType"
+                        [guideName]="module.prettyName"
+                        [integrationId]="module.id"></app-guide-syslog>
+
 
   </div>
   <ng-template #loading>
