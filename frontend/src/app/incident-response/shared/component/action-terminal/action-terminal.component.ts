@@ -26,6 +26,7 @@ export class ActionTerminalComponent implements OnInit {
   }
 
   ngOnInit() {
+    console.log(this.action);
     this.form = this.fb.group({
       title: [ this.action ? this.action.title : '', [Validators.required, Validators.minLength(5)]],
       description: [this.action ? this.action.description : '', [Validators.required, Validators.minLength(5)]],

@@ -122,8 +122,14 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
     dialogRef.result.then(
       result => {
         if (result) {
+          if (action) {
+            this.removeAction(action);
+          }
           this.workflowActionsService.addActions({
-            ...result
+            ...action,
+            title: result.title,
+            description: result.description,
+            command: result.command,
           });
         }
       },
@@ -131,11 +137,6 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
         console.log('Modal cerrado por:', reason);
       }
     );
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   removeAction(action: any) {
@@ -151,5 +152,10 @@ export class ActionBuilderComponent implements OnInit, OnDestroy {
       ...action,
       conditional: $event
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
