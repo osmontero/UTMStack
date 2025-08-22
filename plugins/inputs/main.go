@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/threatwinds/go-sdk/catcher"
-	"github.com/threatwinds/go-sdk/plugins"
-	"github.com/threatwinds/go-sdk/utils"
 	"os"
 	"runtime"
 	"time"
+
+	"github.com/threatwinds/go-sdk/catcher"
+	"github.com/threatwinds/go-sdk/plugins"
+	"github.com/threatwinds/go-sdk/utils"
 )
 
 const defaultTenant string = "ce66672c-e36d-4761-a8c8-90058fee1a24"
