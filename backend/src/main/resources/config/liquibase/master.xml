@@ -241,5 +241,7 @@
 
     <include file="/config/liquibase/changelog/20250808001_add_options_module_group_conf_visibility.xml" relativeToChangelogFile="false"/>
 
+    <include file="/config/liquibase/changelog/20250814001_adding_suricata.xml" relativeToChangelogFile="false"/>
+
 
 </databaseChangeLog>
