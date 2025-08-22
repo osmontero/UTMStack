@@ -243,9 +243,5 @@
 
     <include file="/config/liquibase/changelog/20250814001_adding_suricata.xml" relativeToChangelogFile="false"/>
 
-    <include file="/config/liquibase/changelog/20250815001_update_tfa_section.xml" relativeToChangelogFile="false"/>
-
-    <include file="/config/liquibase/changelog/20250815002_update_tfa_config_parameter.xml" relativeToChangelogFile="false"/>
-
 
 </databaseChangeLog>
