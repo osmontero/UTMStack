@@ -63,5 +63,6 @@ public enum ModuleName {
     BITDEFENDER,
     SOC_AI,
     PFSENSE,
-    ORACLE
+    ORACLE,
+    SURICATA
 }
