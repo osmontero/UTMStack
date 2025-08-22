@@ -1,19 +1,18 @@
 package com.park.utmstack.service.elasticsearch.processor;
 
+import lombok.RequiredArgsConstructor;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 public class GroupByFieldProcessor implements SearchResultProcessor {
 
     private final String fieldName;
 
-    public GroupByFieldProcessor(String fieldName) {
-        this.fieldName = fieldName;
-    }
-
     @Override
     public List<Map<String, Object>> process(List<Map<String, Object>> rawResults) {
-
+        // Fase 1: Indexación por ID
         Map<Object, Map<String, Object>> byId = new LinkedHashMap<>();
         for (Map<String, Object> item : rawResults) {
             Object id = item.get("id");
@@ -23,32 +22,60 @@ public class GroupByFieldProcessor implements SearchResultProcessor {
         }
 
         Map<Object, List<Map<String, Object>>> childrenByParent = new LinkedHashMap<>();
+        Set<Object> childIds = new HashSet<>(); // ✅ Rastrear IDs de hijos
+
         for (Map<String, Object> item : rawResults) {
             Object parentId = item.get("parentId");
             if (parentId != null && byId.containsKey(parentId)) {
                 childrenByParent.computeIfAbsent(parentId, k -> new ArrayList<>()).add(item);
+                childIds.add(item.get("id")); // ✅ Marcar como hijo
             }
         }
 
         List<Map<String, Object>> result = new ArrayList<>();
         for (Map<String, Object> item : rawResults) {
             Object id = item.get("id");
-            if (id != null && childrenByParent.containsKey(id)) {
+
+            if (id != null && !childIds.contains(id)) {
                 Map<String, Object> enriched = new LinkedHashMap<>(item);
-                List<Map<String, Object>> children = childrenByParent.get(id);
-                enriched.put("children", children);
-                enriched.put("groupSize", children.size());
-                enriched.put("hasChildren", true);
+
+                if (childrenByParent.containsKey(id)) {
+
+                    List<Map<String, Object>> children = childrenByParent.get(id);
+                    enriched.put("children", processChildren(children, childrenByParent));
+                    enriched.put("groupSize", children.size());
+                    enriched.put("hasChildren", true);
+                } else {
+
+                    enriched.put("children", Collections.emptyList());
+                    enriched.put("hasChildren", false);
+                }
                 result.add(enriched);
-            } else {
-                Map<String, Object> untouched = new LinkedHashMap<>(item);
-                untouched.put("children", Collections.emptyList());
-                untouched.put("hasChildren", false);
-                result.add(untouched);
             }
         }
-
         return result;
+    }
+
+    private List<Map<String, Object>> processChildren(List<Map<String, Object>> children,
+                                                      Map<Object, List<Map<String, Object>>> childrenByParent) {
+        List<Map<String, Object>> processedChildren = new ArrayList<>();
+
+        for (Map<String, Object> child : children) {
+            Map<String, Object> enrichedChild = new LinkedHashMap<>(child);
+            Object childId = child.get("id");
+
+            if (childId != null && childrenByParent.containsKey(childId)) {
+                List<Map<String, Object>> grandChildren = childrenByParent.get(childId);
+                enrichedChild.put("children", processChildren(grandChildren, childrenByParent));
+                enrichedChild.put("groupSize", grandChildren.size());
+                enrichedChild.put("hasChildren", true);
+            } else {
+                enrichedChild.put("children", Collections.emptyList());
+                enrichedChild.put("hasChildren", false);
+            }
+            processedChildren.add(enrichedChild);
+        }
+        return processedChildren;
     }
 }
 
