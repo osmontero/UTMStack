@@ -67,5 +67,6 @@ export enum UtmModulesEnum {
   BITDEFENDER = 'BITDEFENDER',
   AS_400 = 'AS_400',
   SOC_AI = 'SOC_AI',
-  ORACLE = 'ORACLE'
+  ORACLE = 'ORACLE',
+  SURICATA= 'SURICATA'
 }
