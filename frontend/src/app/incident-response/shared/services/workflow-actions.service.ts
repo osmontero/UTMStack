@@ -34,7 +34,7 @@ export class WorkflowActionsService {
 
     this.actionsBehaviorSubject.next([...actions, {
       ...action,
-      conditional: { key: ActionConditionalEnum.ALWAYS, value: ';'},
+      conditional: action.conditional ? action.conditional : { key: ActionConditionalEnum.ALWAYS, value: ';'},
     }]);
   }
 
