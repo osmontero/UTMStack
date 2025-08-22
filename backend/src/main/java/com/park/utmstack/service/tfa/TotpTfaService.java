@@ -7,6 +7,7 @@ import com.google.zxing.common.BitMatrix;
 import com.park.utmstack.domain.User;
 import com.park.utmstack.domain.tfa.TfaMethod;
 import com.park.utmstack.domain.tfa.TfaSetupState;
+import com.park.utmstack.service.UserService;
 import com.park.utmstack.service.dto.tfa.init.Delivery;
 import com.park.utmstack.service.dto.tfa.init.TfaInitResponse;
 import com.park.utmstack.service.dto.tfa.verify.TfaVerifyResponse;
@@ -26,12 +27,12 @@ public class TotpTfaService implements TfaMethodService {
 
     private final GoogleAuthenticator authenticator;
     private final CacheService cache;
-    private final ConfigService configService;
+    private final UserService userService;
 
-    TotpTfaService(CacheService cache, ConfigService configService) {
+    TotpTfaService(CacheService cache, UserService userService) {
+        this.userService = userService;
         this.authenticator = new GoogleAuthenticator();
         this.cache = cache;
-        this.configService = configService;
     }
 
     @Override
@@ -75,11 +76,11 @@ public class TotpTfaService implements TfaMethodService {
 
 
     @Override
-    public void persistConfiguration(User user) {
+    public void persistConfiguration(User user) throws Exception {
         String secret = cache.getState(user.getLogin(), TfaMethod.TOTP)
                 .orElseThrow(() -> new IllegalStateException("No TFA setup found for user: " + user.getLogin()))
                 .getSecret();
-        configService.enableTfa(user.getLogin(), TfaMethod.TOTP, secret);
+        userService.updateUserTfaSecret(user.getLogin(), secret);
         cache.clear(user.getLogin(), TfaMethod.TOTP);
     }
 

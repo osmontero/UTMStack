@@ -12,6 +12,6 @@ public interface TfaMethodService {
 
     TfaVerifyResponse verifyCode(User use, String code);
 
-    void persistConfiguration(User use);
+    void persistConfiguration(User use) throws Exception;
 }
 

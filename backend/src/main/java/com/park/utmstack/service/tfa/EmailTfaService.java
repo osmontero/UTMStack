@@ -4,6 +4,7 @@ import com.park.utmstack.domain.User;
 import com.park.utmstack.domain.tfa.TfaMethod;
 import com.park.utmstack.domain.tfa.TfaSetupState;
 import com.park.utmstack.service.MailService;
+import com.park.utmstack.service.UserService;
 import com.park.utmstack.service.dto.tfa.init.Delivery;
 import com.park.utmstack.service.dto.tfa.init.TfaInitResponse;
 import com.park.utmstack.service.dto.tfa.verify.TfaVerifyResponse;
@@ -20,7 +21,7 @@ public class EmailTfaService implements TfaMethodService {
 
     private static final String CLASSNAME = "EmailTfaService";
     private final CacheService cache;
-    private final ConfigService configService;
+    private final UserService userService;
     private final EmailTotpService tfaService;
     private final MailService mailService;
 
@@ -71,11 +72,11 @@ public class EmailTfaService implements TfaMethodService {
     }
 
     @Override
-    public void persistConfiguration(User user) {
+    public void persistConfiguration(User user) throws Exception {
         String secret = cache.getState(user.getLogin(), TfaMethod.EMAIL)
                 .orElseThrow(() -> new IllegalStateException("No TFA setup found for user: " + user.getLogin()))
                 .getSecret();
-        configService.enableTfa(user.getLogin(), TfaMethod.EMAIL, secret);
+        userService.updateUserTfaSecret(user.getLogin(), secret);
         cache.clear(user.getLogin(), TfaMethod.EMAIL);
     }
 }

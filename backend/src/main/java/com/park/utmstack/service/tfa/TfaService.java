@@ -2,6 +2,7 @@ package com.park.utmstack.service.tfa;
 
 import com.park.utmstack.domain.User;
 import com.park.utmstack.domain.tfa.TfaMethod;
+import com.park.utmstack.service.UserService;
 import com.park.utmstack.service.dto.tfa.init.TfaInitResponse;
 import com.park.utmstack.service.dto.tfa.verify.TfaVerifyRequest;
 import com.park.utmstack.service.dto.tfa.verify.TfaVerifyResponse;
@@ -15,6 +16,7 @@ import java.util.List;
 public class TfaService {
 
     private final List<TfaMethodService> methodServices;
+    private final UserService userService;
 
     private TfaMethodService getMethodService(TfaMethod method) {
         return methodServices.stream()
@@ -31,6 +33,12 @@ public class TfaService {
     public TfaVerifyResponse verifyCode(User user, TfaVerifyRequest request) {
         TfaMethodService selected = getMethodService(request.getMethod());
         return selected.verifyCode(user, request.getCode());
+    }
+
+    public void persistConfiguration(TfaMethod method) throws Exception {
+        User user = userService.getCurrentUserLogin();
+        TfaMethodService selected = getMethodService(method);
+        selected.persistConfiguration(user);
     }
 }
 
