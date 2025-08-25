@@ -1,5 +1,6 @@
 package com.park.utmstack.service.tfa;
 
+import com.park.utmstack.config.Constants;
 import com.park.utmstack.domain.User;
 import com.park.utmstack.domain.tfa.TfaMethod;
 import com.park.utmstack.service.UserService;
@@ -39,6 +40,14 @@ public class TfaService {
         User user = userService.getCurrentUserLogin();
         TfaMethodService selected = getMethodService(method);
         selected.persistConfiguration(user);
+    }
+
+    public void generateChallenge(User user) throws Exception {
+
+        TfaMethod method = TfaMethod.valueOf(Constants.CFG.get(Constants.PROP_TFA_METHOD));
+
+        TfaMethodService selected = getMethodService(method);
+        selected.generateChallenge(user);
     }
 }
 

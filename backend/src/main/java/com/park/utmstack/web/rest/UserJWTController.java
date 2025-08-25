@@ -15,6 +15,7 @@ import com.park.utmstack.service.UserService;
 import com.park.utmstack.service.application_events.ApplicationEventService;
 import com.park.utmstack.service.login_attempts.LoginAttemptService;
 import com.park.utmstack.service.tfa.EmailTotpService;
+import com.park.utmstack.service.tfa.TfaService;
 import com.park.utmstack.util.CipherUtil;
 import com.park.utmstack.util.UtilResponse;
 import com.park.utmstack.util.exceptions.InvalidConnectionKeyException;
@@ -54,30 +55,33 @@ public class UserJWTController {
     private final AuthenticationManager authenticationManager;
     private final ApplicationEventService applicationEventService;
     private final UserService userService;
-    private final EmailTotpService tfaService;
+    private final EmailTotpService emailTotpService;
     private final MailService mailService;
     private final LoginAttemptService loginAttemptService;
     private final UtmFederationServiceClientRepository fsClientRepository;
     private final PasswordEncoder passwordEncoder;
+    private TfaService tfaService;
 
     public UserJWTController(TokenProvider tokenProvider,
                              AuthenticationManager authenticationManager,
                              ApplicationEventService applicationEventService,
                              UserService userService,
-                             EmailTotpService tfaService,
+                             EmailTotpService emailTotpService,
                              MailService mailService,
                              LoginAttemptService loginAttemptService,
                              UtmFederationServiceClientRepository fsClientRepository,
-                             PasswordEncoder passwordEncoder) {
+                             PasswordEncoder passwordEncoder,
+                             TfaService tfaService) {
         this.tokenProvider = tokenProvider;
         this.authenticationManager = authenticationManager;
         this.applicationEventService = applicationEventService;
         this.userService = userService;
-        this.tfaService = tfaService;
+        this.emailTotpService = emailTotpService;
         this.mailService = mailService;
         this.loginAttemptService = loginAttemptService;
         this.fsClientRepository = fsClientRepository;
         this.passwordEncoder = passwordEncoder;
+        this.tfaService = tfaService;
     }
 
     @PostMapping("/authenticate")
@@ -99,10 +103,9 @@ public class UserJWTController {
             String jwt = tokenProvider.createToken(authentication, rememberMe, authenticated);
 
             if (!authenticated) {
-                String secret = tfaService.generateSecret();
-                String code = tfaService.generateCode(secret);
-                User user = userService.updateUserTfaSecret(loginVM.getUsername(), secret);
-                mailService.sendTfaVerificationCode(user, code);
+                User user = userService.getUserWithAuthoritiesByLogin(loginVM.getUsername())
+                    .orElseThrow(() -> new BadCredentialsException("User " + loginVM.getUsername() + " not found"));
+                tfaService.generateChallenge(user);
             }
 
             HttpHeaders httpHeaders = new HttpHeaders();
@@ -196,7 +199,7 @@ public class UserJWTController {
         final String ctx = CLASSNAME + ".verifyCode";
         try {
             User user = userService.getCurrentUserLogin();
-            if (!tfaService.validateCode(user.getTfaSecret(), code))
+            if (!emailTotpService.validateCode(user.getTfaSecret(), code))
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).headers(
                     HeaderUtil.createFailureAlert("", "", "Your secret code is invalid")).body(null);
 

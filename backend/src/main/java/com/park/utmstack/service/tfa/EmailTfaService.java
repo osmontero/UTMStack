@@ -1,5 +1,6 @@
 package com.park.utmstack.service.tfa;
 
+import com.park.utmstack.config.Constants;
 import com.park.utmstack.domain.User;
 import com.park.utmstack.domain.tfa.TfaMethod;
 import com.park.utmstack.domain.tfa.TfaSetupState;
@@ -39,7 +40,7 @@ public class EmailTfaService implements TfaMethodService {
             String secret = tfaService.generateSecret();
             String code = tfaService.generateCode(secret);
 
-            long expiresAt = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(300);
+            long expiresAt = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(300) * 10 * 1000;
             TfaSetupState state = new TfaSetupState(secret, expiresAt);
             cache.storeState(user.getLogin(), TfaMethod.EMAIL, state);
 
@@ -78,6 +79,18 @@ public class EmailTfaService implements TfaMethodService {
                 .getSecret();
         userService.updateUserTfaSecret(user.getLogin(), secret);
         cache.clear(user.getLogin(), TfaMethod.EMAIL);
+    }
+
+    @Override
+    public void generateChallenge(User user) {
+        String secret = user.getTfaSecret();
+        String code = tfaService.generateCode(secret);
+
+        TfaSetupState state = new TfaSetupState(secret, Constants.EXPIRES_IN_SECONDS * 1000);
+        cache.storeState(user.getLogin(), TfaMethod.EMAIL, state);
+
+        mailService.sendTfaVerificationCode(user, code);
+
     }
 }
 

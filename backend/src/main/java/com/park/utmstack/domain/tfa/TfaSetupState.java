@@ -1,8 +1,5 @@
 package com.park.utmstack.domain.tfa;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
 import lombok.Getter;
 import lombok.ToString;
 

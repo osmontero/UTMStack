@@ -4,6 +4,7 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+import com.park.utmstack.config.Constants;
 import com.park.utmstack.domain.User;
 import com.park.utmstack.domain.tfa.TfaMethod;
 import com.park.utmstack.domain.tfa.TfaSetupState;
@@ -43,7 +44,7 @@ public class TotpTfaService implements TfaMethodService {
     @Override
     public TfaInitResponse initiateSetup(User user) {
         String secret = authenticator.createCredentials().getKey();
-        long expiresAt = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(300);
+        long expiresAt = System.currentTimeMillis() + Constants.EXPIRES_IN_SECONDS * 10 * 1000;
         TfaSetupState state = new TfaSetupState(secret, expiresAt);
         cache.storeState(user.getLogin(), TfaMethod.TOTP, state);
 
@@ -53,9 +54,7 @@ public class TotpTfaService implements TfaMethodService {
         String qrBase64 = generateQrBase64(uri);
         Delivery delivery = new Delivery(TfaMethod.TOTP, qrBase64);
 
-        long expiresInSeconds = 300;
-
-        return new TfaInitResponse("pending", delivery, expiresInSeconds);
+        return new TfaInitResponse("pending", delivery, Constants.EXPIRES_IN_SECONDS);
     }
 
     @Override
@@ -84,6 +83,13 @@ public class TotpTfaService implements TfaMethodService {
         cache.clear(user.getLogin(), TfaMethod.TOTP);
     }
 
+    @Override
+    public void generateChallenge(User user) {
+        String secret = user.getTfaSecret();
+        TfaSetupState state = new TfaSetupState(secret, Constants.EXPIRES_IN_SECONDS * 1000);
+        cache.storeState(user.getLogin(), TfaMethod.TOTP, state);
+    }
+
     private String generateQrBase64(String uri) {
         try {
             BitMatrix matrix = new MultiFormatWriter().encode(uri, BarcodeFormat.QR_CODE, 200, 200);
@@ -96,6 +102,7 @@ public class TotpTfaService implements TfaMethodService {
             throw new RuntimeException("Error al generar QR", e);
         }
     }
+
 }
 
 
