@@ -6,10 +6,15 @@ import { TabType } from '../type/tab.type';
 @Injectable()
 export class TabService {
   private tabs: TabType[] = [];
-  private tabSubject = new BehaviorSubject<TabType[]>(this.tabs);
-  public tabs$ = this.tabSubject.asObservable();
+  private tabSubject = new BehaviorSubject<TabType[]>([]);
   public onSaveTabSubject = new Subject<LogAnalyzerQueryType>();
 
+
+
+
+  public get tabs$(){
+    return this.tabSubject.asObservable();
+  }
   /**
    * Add a new tab and make it active.
    * @param tab The tab to add.
@@ -22,6 +27,7 @@ export class TabService {
       active: true,
     };
     this.tabs.push(newTab);
+
     this.emitTabs();
   }
 
@@ -111,6 +117,8 @@ export class TabService {
    * Emit the latest state of the tabs.
    */
   private emitTabs(): void {
-    this.tabSubject.next(this.tabs);
+    //avoiding javascript to send references to the subject
+    const tabsDeepcopy = JSON.parse(JSON.stringify(this.tabs))
+    this.tabSubject.next([...this.tabs]);
   }
 }
