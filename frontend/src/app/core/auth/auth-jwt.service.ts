@@ -1,4 +1,4 @@
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpResponse} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Router} from '@angular/router';
 import {LocalStorageService, SessionStorageService} from 'ngx-webstorage';
@@ -7,10 +7,14 @@ import {map} from 'rxjs/operators';
 
 import {ACCESS_KEY, COOKIE_AUTH_TOKEN, SERVER_API_URL, SESSION_AUTH_TOKEN} from '../../app.constants';
 import {UtmToastService} from '../../shared/alert/utm-toast.service';
+import {TfaMethod} from '../../shared/services/tfa/tfa.service';
 import {CSRFService} from './csrf.service';
 
 @Injectable({providedIn: 'root'})
 export class AuthServerProvider {
+
+  private _tfaMethod: TfaMethod;
+
   constructor(private http: HttpClient,
               private $localStorage: LocalStorageService,
               private $cookie: CSRFService,
@@ -29,8 +33,11 @@ export class AuthServerProvider {
       password: credentials.password,
       rememberMe: credentials.rememberMe
     };
-    const authenticateSuccess = (resp) => {
+    const authenticateSuccess = (resp: HttpResponse<any>) => {
       this.storeAuthenticationToken(resp.body.id_token);
+      if (resp.body.tfaMethod) {
+        this.tfaMethod = resp.body.tfaMethod as TfaMethod;
+      }
       return resp.body.authenticated;
     };
     return this.http.post(SERVER_API_URL + 'api/authenticate',
@@ -43,8 +50,8 @@ export class AuthServerProvider {
       this.storeAuthenticationToken(resp.body.id_token);
       return resp.body.authenticated;
     };
-    return this.http.get(SERVER_API_URL + 'api/tfa/verifyCode?code=' + code,
-      {observe: 'response'}).pipe(map(authenticateSuccess.bind(this)));
+    return this.http.post(SERVER_API_URL + 'api/tfa/verifyCode',
+      code, {observe: 'response'}).pipe(map(authenticateSuccess.bind(this)));
   }
 
   loginWithToken(jwt, rememberMe) {
@@ -91,6 +98,14 @@ export class AuthServerProvider {
       observer.next();
       observer.complete();
     });
+  }
+
+  get tfaMethod(): TfaMethod {
+    return this._tfaMethod;
+  }
+
+  set tfaMethod(ftaMethod: TfaMethod) {
+    this._tfaMethod = ftaMethod;
   }
 
 }

@@ -15,6 +15,7 @@ import {ThemeChangeBehavior} from '../../../behaviors/theme-change.behavior';
 import {ADMIN_DEFAULT_EMAIL, ADMIN_ROLE, DEMO_URL, USER_ROLE} from '../../../constants/global.constant';
 import {extractQueryParamsForNavigation, stringParamToQueryParams} from '../../../util/query-params-to-filter.util';
 import {PasswordResetInitComponent} from '../password-reset/init/password-reset-init.component';
+import {AuthServerProvider} from "../../../../core/auth/auth-jwt.service";
 
 @Component({
   selector: 'app-login',
