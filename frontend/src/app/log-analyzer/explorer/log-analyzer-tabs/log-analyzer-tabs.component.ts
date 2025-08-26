@@ -47,10 +47,9 @@ export class LogAnalyzerTabsComponent implements OnInit, OnDestroy {
             this.addNewTab(this.query.name, this.query, params);
           });
         } else {
-          if (isRefresh) {
-            this.tabService.deleteActiveTab();
+          if (this.tabService.getTabCount() ==0) {
+            this.addNewTab(null, null, params);
           }
-          this.addNewTab(null, null, params);
         }
       });
 
@@ -63,7 +62,9 @@ export class LogAnalyzerTabsComponent implements OnInit, OnDestroy {
     this.tabService.onSaveTabSubject
       .pipe(takeUntil(this.destroy$),
             filter(query => !!query))
-      .subscribe(query => this.tabService.updateActiveTab(query));
+      .subscribe(query => {
+      this.tabService.updateActiveTab(query)
+      });
 
     this.router.events.pipe(
       filter(event => event instanceof NavigationStart),
@@ -119,7 +120,7 @@ export class LogAnalyzerTabsComponent implements OnInit, OnDestroy {
   }
 
   trackByFn(index: number, tab: TabType): any {
-    return tab.uuid;
+    return `${tab.uuid}-${index}`;
   }
 
   ngOnDestroy(): void {
