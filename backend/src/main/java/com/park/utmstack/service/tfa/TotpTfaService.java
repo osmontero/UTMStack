@@ -69,7 +69,7 @@ public class TotpTfaService implements TfaMethodService {
                 valid,
                 expired,
                 tfaSetupState.getRemainingSeconds(),
-                expired ? "Setup expired" : "Code verification " + (valid ? "successful" : "failed")
+                expired ? "Code expired" : "Code verification " + (valid ? "successful" : "failed")
         );
     }
 
@@ -86,7 +86,7 @@ public class TotpTfaService implements TfaMethodService {
     @Override
     public void generateChallenge(User user) {
         String secret = user.getTfaSecret();
-        TfaSetupState state = new TfaSetupState(secret, Constants.EXPIRES_IN_SECONDS * 1000);
+        TfaSetupState state = new TfaSetupState(secret, System.currentTimeMillis() + Constants.EXPIRES_IN_SECONDS * 1000);
         cache.storeState(user.getLogin(), TfaMethod.TOTP, state);
     }
 

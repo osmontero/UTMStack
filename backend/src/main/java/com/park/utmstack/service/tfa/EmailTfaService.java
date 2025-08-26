@@ -40,7 +40,7 @@ public class EmailTfaService implements TfaMethodService {
             String secret = tfaService.generateSecret();
             String code = tfaService.generateCode(secret);
 
-            long expiresAt = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(300) * 10 * 1000;
+            long expiresAt = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(Constants.EXPIRES_IN_SECONDS) * 10 * 1000;
             TfaSetupState state = new TfaSetupState(secret, expiresAt);
             cache.storeState(user.getLogin(), TfaMethod.EMAIL, state);
 
@@ -68,7 +68,7 @@ public class EmailTfaService implements TfaMethodService {
                 valid,
                 expired,
                 tfaSetupState.getRemainingSeconds(),
-                expired ? "Setup expired" : "Code verification " + (valid ? "successful" : "failed")
+                expired ? "Code expired" : "Code verification " + (valid ? "successful" : "failed")
         );
     }
 
@@ -86,7 +86,7 @@ public class EmailTfaService implements TfaMethodService {
         String secret = user.getTfaSecret();
         String code = tfaService.generateCode(secret);
 
-        TfaSetupState state = new TfaSetupState(secret, Constants.EXPIRES_IN_SECONDS * 1000);
+        TfaSetupState state = new TfaSetupState(secret, System.currentTimeMillis() + Constants.EXPIRES_IN_SECONDS * 1000);
         cache.storeState(user.getLogin(), TfaMethod.EMAIL, state);
 
         mailService.sendTfaVerificationCode(user, code);
