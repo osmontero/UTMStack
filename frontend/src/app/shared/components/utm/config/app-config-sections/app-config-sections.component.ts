@@ -42,6 +42,7 @@ export class AppConfigSectionsComponent implements OnInit, OnDestroy {
   timezones = TIMEZONES;
   dateFormats = DATE_FORMATS;
   isCheckedEmailConfig = false;
+  isCheckedTFAConfig = false;
   sectionType = ApplicationConfigSectionEnum;
   selectOptions: { [key: string]: SelectOption[] } = {};
   isLoading: { [key: string]: boolean } = {};
@@ -227,6 +228,10 @@ export class AppConfigSectionsComponent implements OnInit, OnDestroy {
     this.isCheckedEmailConfig = event;
   }
 
+  checkedTFAConfig(event: boolean) {
+    this.isCheckedTFAConfig = event;
+  }
+
   isPasswordSet() {
     const conf = this.configToSave.find(conf => conf.confParamShort === 'utmstack.mail.password');
     return this.configToSave.length > 0 &&  conf && conf.confParamValue !== '';
@@ -300,10 +305,12 @@ export class AppConfigSectionsComponent implements OnInit, OnDestroy {
     }
   }
 
+  isEnabledTfa(): boolean {
+    return this.configs.some(conf => conf.confParamShort === 'utmstack.tfa.enable' && conf.confParamValue === 'true');
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
-
-  protected readonly VersionType = VersionType;
 }

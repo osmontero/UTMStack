@@ -1,0 +1,112 @@
+package com.park.utmstack.web.rest.tfa;
+
+import com.park.utmstack.config.Constants;
+import com.park.utmstack.domain.Authority;
+import com.park.utmstack.domain.User;
+import com.park.utmstack.domain.application_events.enums.ApplicationEventType;
+import com.park.utmstack.domain.tfa.TfaMethod;
+import com.park.utmstack.security.jwt.JWTFilter;
+import com.park.utmstack.security.jwt.TokenProvider;
+import com.park.utmstack.service.UserService;
+import com.park.utmstack.service.application_events.ApplicationEventService;
+import com.park.utmstack.service.dto.jwt.JWTToken;
+import com.park.utmstack.service.dto.tfa.init.TfaInitRequest;
+import com.park.utmstack.service.dto.tfa.init.TfaInitResponse;
+import com.park.utmstack.service.dto.tfa.verify.TfaVerifyRequest;
+import com.park.utmstack.service.dto.tfa.verify.TfaVerifyResponse;
+import com.park.utmstack.service.tfa.TfaService;
+import com.park.utmstack.web.rest.UserJWTController;
+import com.park.utmstack.web.rest.util.HeaderUtil;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("api/tfa")
+public class TfaController {
+
+    private final Logger log = LoggerFactory.getLogger(TfaController.class);
+    private static final String CLASSNAME = "TfaController";
+
+    private final TfaService tfaService;
+    private final UserService userService;
+    private final ApplicationEventService applicationEventService;
+    private final TokenProvider tokenProvider;
+
+    @PostMapping("/init")
+    public ResponseEntity<TfaInitResponse> initTfa(@RequestBody TfaInitRequest request) {
+        final String ctx = CLASSNAME + ".initTfa";
+        try {
+            User user = userService.getCurrentUserLogin();
+            TfaInitResponse response = tfaService.initiateSetup(user, request.getMethod());
+            return ResponseEntity.ok(response);
+        } catch (Exception e){
+            String msg = ctx + ": " + e.getMessage();
+            log.error(msg);
+            applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
+            throw e;
+        }
+
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<TfaVerifyResponse> verifyTfa(@RequestBody TfaVerifyRequest request) {
+        final String ctx = CLASSNAME + ".verifyTfa";
+        try {
+            User user = userService.getCurrentUserLogin();
+            TfaVerifyResponse response = tfaService.verifyCode(user, request);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            String msg = ctx + ": " + e.getMessage();
+            log.error(msg);
+            applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
+            throw e;
+        }
+    }
+
+    @PostMapping("/verifyCode")
+    public ResponseEntity<JWTToken> verifyCode(@RequestBody String code) {
+        final String ctx = CLASSNAME + ".verifyCode";
+        try {
+            User user = userService.getCurrentUserLogin();
+            TfaMethod method = TfaMethod.valueOf(Constants.CFG.get(Constants.PROP_TFA_METHOD));
+            TfaVerifyRequest request = new TfaVerifyRequest(method, code);
+            TfaVerifyResponse response = tfaService.verifyCode(user, request);
+            if (!response.isValid()){
+                return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
+                        .headers(HeaderUtil.createFailureAlert("", "", response.getMessage()))
+                        .body(null);
+            }
+
+            List<SimpleGrantedAuthority> authorities = user.getAuthorities().stream().map(Authority::getName)
+                    .map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+
+            org.springframework.security.core.userdetails.User principal = new org.springframework.security.core.userdetails.User(user.getLogin(), "", authorities);
+
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, "", authorities);
+
+            String jwt = tokenProvider.createToken(authentication, true, true);
+
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.add(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + jwt);
+            return new ResponseEntity<>(new JWTToken(jwt, true), httpHeaders, HttpStatus.OK);
+        } catch (Exception e) {
+            String msg = ctx + ": " + e.getMessage();
+            log.error(msg);
+            applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).headers(
+                    HeaderUtil.createFailureAlert("", "", msg)).body(null);
+        }
+    }
+
+}

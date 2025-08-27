@@ -1,8 +1,8 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {AccountService} from '../../../../../core/auth/account.service';
-import {UtmToastService} from '../../../../alert/utm-toast.service';
-import {UtmConfigEmailCheckService} from '../../../../services/config/utm-config-email-check.service';
-import {SectionConfigParamType} from '../../../../types/configuration/section-config-param.type';
+import {AccountService} from '../../../../../../../core/auth/account.service';
+import {UtmToastService} from '../../../../../../alert/utm-toast.service';
+import {UtmConfigEmailCheckService} from '../../../../../../services/config/utm-config-email-check.service';
+import {SectionConfigParamType} from '../../../../../../types/configuration/section-config-param.type';
 
 @Component({
   selector: 'app-utm-email-conf-check',

@@ -1,10 +1,43 @@
-.confirm-container {
-  img {
-    height: 130px;
-    width: 130px;
-  }
+.card {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
 
-  .login-container {
-    width: 250px;
-  }
+.form-control:focus {
+  border-color: #4f8ef7;
+  box-shadow: 0 0 0 0.2rem rgba(79, 142, 247, 0.25);
+}
+
+.input-group-text {
+  transition: all 0.2s ease;
+}
+
+.form-control:focus + .input-group-text,
+.form-control:focus ~ .input-group-text {
+  border-color: #4f8ef7;
+  color: #4f8ef7;
+}
+
+.progress-bar-animated {
+  animation: progress-bar-stripes 1s linear infinite;
+}
+
+@keyframes progress-bar-stripes {
+  0% { background-position: 1rem 0; }
+  100% { background-position: 0 0; }
+}
+
+.method-info {
+  transition: all 0.2s ease;
+}
+
+.method-info:hover {
+  background-color: #f1f5f9 !important;
+}
+
+.btn-link:hover {
+  text-decoration: underline !important;
+}
+
+.login-pic {
+  width: 100px;
 }

@@ -1,68 +1,53 @@
 package com.park.utmstack.service.tfa;
 
-import dev.samstevens.totp.code.CodeGenerator;
-import dev.samstevens.totp.code.DefaultCodeGenerator;
-import dev.samstevens.totp.code.DefaultCodeVerifier;
-import dev.samstevens.totp.secret.DefaultSecretGenerator;
-import dev.samstevens.totp.secret.SecretGenerator;
-import dev.samstevens.totp.time.SystemTimeProvider;
+import com.park.utmstack.config.Constants;
+import com.park.utmstack.domain.User;
+import com.park.utmstack.domain.tfa.TfaMethod;
+import com.park.utmstack.service.UserService;
+import com.park.utmstack.service.dto.tfa.init.TfaInitResponse;
+import com.park.utmstack.service.dto.tfa.verify.TfaVerifyRequest;
+import com.park.utmstack.service.dto.tfa.verify.TfaVerifyResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
+
+import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class TfaService {
-    private static final String CLASSNAME = "TfaService";
 
-    private static final int codeValidForInSeconds = 300;
+    private final List<TfaMethodService> methodServices;
+    private final UserService userService;
 
-    private final SystemTimeProvider timeProvider = new SystemTimeProvider();
-
-    /**
-     * @return
-     */
-    public String generateSecret() {
-        final String ctx = CLASSNAME + ".generateSecret";
-        try {
-            SecretGenerator secretGenerator = new DefaultSecretGenerator();
-            return secretGenerator.generate();
-        } catch (Exception e) {
-            throw new RuntimeException(ctx + ": " + e.getMessage());
-        }
+    private TfaMethodService getMethodService(TfaMethod method) {
+        return methodServices.stream()
+                .filter(service -> service.getMethod().equals(method))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Método TFA no soportado: " + method));
     }
 
-    /**
-     *
-     */
-    public String generateCode(String secret) {
-        final String ctx = CLASSNAME + ".generateCode";
-        try {
-            Assert.hasText(secret, "Secret value is missing");
-            CodeGenerator codeGenerator = new DefaultCodeGenerator();
-            return codeGenerator.generate(secret, Math.floorDiv(timeProvider.getTime(), codeValidForInSeconds));
-        } catch (Exception e) {
-            throw new RuntimeException(ctx + ": " + e.getMessage());
-        }
+    public TfaInitResponse initiateSetup(User user, TfaMethod method) {
+        TfaMethodService selected = getMethodService(method);
+        return selected.initiateSetup(user);
     }
 
-    /**
-     *
-     * @param secret
-     * @param code
-     * @return
-     */
-    public boolean validateCode(String secret, String code) {
-        final String ctx = CLASSNAME + ".validateCode";
-        try {
-            Assert.hasText(secret, "Secret value is missing");
-            Assert.hasText(code, "Code value is missing");
+    public TfaVerifyResponse verifyCode(User user, TfaVerifyRequest request) {
+        TfaMethodService selected = getMethodService(request.getMethod());
+        return selected.verifyCode(user, request.getCode());
+    }
 
-            DefaultCodeVerifier verifier = new DefaultCodeVerifier(new DefaultCodeGenerator(), timeProvider);
-            verifier.setTimePeriod(codeValidForInSeconds);
-            verifier.setAllowedTimePeriodDiscrepancy(1);
+    public void persistConfiguration(TfaMethod method) throws Exception {
+        User user = userService.getCurrentUserLogin();
+        TfaMethodService selected = getMethodService(method);
+        selected.persistConfiguration(user);
+    }
 
-            return verifier.isValidCode(secret, code);
-        } catch (Exception e) {
-            throw new RuntimeException(ctx + ": " + e.getMessage());
-        }
+    public void generateChallenge(User user) throws Exception {
+
+        TfaMethod method = TfaMethod.valueOf(Constants.CFG.get(Constants.PROP_TFA_METHOD));
+
+        TfaMethodService selected = getMethodService(method);
+        selected.generateChallenge(user);
     }
 }
+

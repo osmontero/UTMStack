@@ -6,6 +6,7 @@ import com.park.utmstack.domain.Authority;
 import com.park.utmstack.domain.User;
 import com.park.utmstack.domain.application_events.enums.ApplicationEventType;
 import com.park.utmstack.domain.federation_service.UtmFederationServiceClient;
+import com.park.utmstack.domain.tfa.TfaMethod;
 import com.park.utmstack.repository.federation_service.UtmFederationServiceClientRepository;
 import com.park.utmstack.security.TooMuchLoginAttemptsException;
 import com.park.utmstack.security.jwt.JWTFilter;
@@ -13,7 +14,9 @@ import com.park.utmstack.security.jwt.TokenProvider;
 import com.park.utmstack.service.MailService;
 import com.park.utmstack.service.UserService;
 import com.park.utmstack.service.application_events.ApplicationEventService;
+import com.park.utmstack.service.dto.jwt.JWTToken;
 import com.park.utmstack.service.login_attempts.LoginAttemptService;
+import com.park.utmstack.service.tfa.EmailTotpService;
 import com.park.utmstack.service.tfa.TfaService;
 import com.park.utmstack.util.CipherUtil;
 import com.park.utmstack.util.UtilResponse;
@@ -48,36 +51,30 @@ import java.util.stream.Collectors;
 public class UserJWTController {
 
     private static final String CLASSNAME = "UserJWTController";
+    private static final String TFA_METHOD = "Tfa-Method";
     private final Logger log = LoggerFactory.getLogger(UserJWTController.class);
 
     private final TokenProvider tokenProvider;
     private final AuthenticationManager authenticationManager;
     private final ApplicationEventService applicationEventService;
     private final UserService userService;
-    private final TfaService tfaService;
-    private final MailService mailService;
     private final LoginAttemptService loginAttemptService;
     private final UtmFederationServiceClientRepository fsClientRepository;
-    private final PasswordEncoder passwordEncoder;
+    private final TfaService tfaService;
 
     public UserJWTController(TokenProvider tokenProvider,
                              AuthenticationManager authenticationManager,
                              ApplicationEventService applicationEventService,
                              UserService userService,
-                             TfaService tfaService,
-                             MailService mailService,
                              LoginAttemptService loginAttemptService,
-                             UtmFederationServiceClientRepository fsClientRepository,
-                             PasswordEncoder passwordEncoder) {
+                             UtmFederationServiceClientRepository fsClientRepository, TfaService tfaService) {
         this.tokenProvider = tokenProvider;
         this.authenticationManager = authenticationManager;
         this.applicationEventService = applicationEventService;
         this.userService = userService;
-        this.tfaService = tfaService;
-        this.mailService = mailService;
         this.loginAttemptService = loginAttemptService;
         this.fsClientRepository = fsClientRepository;
-        this.passwordEncoder = passwordEncoder;
+        this.tfaService = tfaService;
     }
 
     @PostMapping("/authenticate")
@@ -87,7 +84,8 @@ public class UserJWTController {
             if (loginAttemptService.isBlocked())
                 throw new TooMuchLoginAttemptsException(String.format("Client IP %1$s blocked due to too many failed login attempts", loginAttemptService.getClientIP()));
 
-            boolean authenticated = !Boolean.parseBoolean(Constants.CFG.get(Constants.PROP_TFA_ENABLE));
+            boolean isAuth = !Boolean.parseBoolean(Constants.CFG.get(Constants.PROP_TFA_ENABLE));
+            String method  = Constants.CFG.get(Constants.PROP_TFA_METHOD);
 
             UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginVM.getUsername(), loginVM.getPassword());
@@ -96,18 +94,17 @@ public class UserJWTController {
             Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            String jwt = tokenProvider.createToken(authentication, rememberMe, authenticated);
+            String jwt = tokenProvider.createToken(authentication, rememberMe, isAuth);
 
-            if (!authenticated) {
-                String secret = tfaService.generateSecret();
-                String code = tfaService.generateCode(secret);
-                User user = userService.updateUserTfaSecret(loginVM.getUsername(), secret);
-                mailService.sendTfaVerificationCode(user, code);
+            if (!isAuth) {
+                User user = userService.getUserWithAuthoritiesByLogin(loginVM.getUsername())
+                    .orElseThrow(() -> new BadCredentialsException("User " + loginVM.getUsername() + " not found"));
+                tfaService.generateChallenge(user);
             }
 
             HttpHeaders httpHeaders = new HttpHeaders();
             httpHeaders.add(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + jwt);
-            return new ResponseEntity<>(new JWTToken(jwt, authenticated), httpHeaders, HttpStatus.OK);
+            return new ResponseEntity<>(new JWTToken(jwt, isAuth, method), httpHeaders, HttpStatus.OK);
         } catch (BadCredentialsException e) {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
@@ -188,68 +185,6 @@ public class UserJWTController {
             log.error(msg);
             applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
             return UtilResponse.buildInternalServerErrorResponse(msg);
-        }
-    }
-
-    @GetMapping("/tfa/verifyCode")
-    public ResponseEntity<JWTToken> verifyCode(@RequestParam String code) {
-        final String ctx = CLASSNAME + ".verifyCode";
-        try {
-            User user = userService.getCurrentUserLogin();
-            if (!tfaService.validateCode(user.getTfaSecret(), code))
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).headers(
-                    HeaderUtil.createFailureAlert("", "", "Your secret code is invalid")).body(null);
-
-            List<SimpleGrantedAuthority> authorities = user.getAuthorities().stream().map(Authority::getName)
-                .map(SimpleGrantedAuthority::new).collect(Collectors.toList());
-
-            org.springframework.security.core.userdetails.User principal = new org.springframework.security.core.userdetails.User(user.getLogin(), "", authorities);
-
-            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(principal, "", authorities);
-
-            String jwt = tokenProvider.createToken(authentication, true, true);
-
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + jwt);
-            return new ResponseEntity<>(new JWTToken(jwt, true), httpHeaders, HttpStatus.OK);
-        } catch (Exception e) {
-            String msg = ctx + ": " + e.getMessage();
-            log.error(msg);
-            applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).headers(
-                HeaderUtil.createFailureAlert("", "", msg)).body(null);
-        }
-    }
-
-
-    /**
-     * Object to return as body in JWT Authentication.
-     */
-    public static class JWTToken {
-
-        private String idToken;
-        private boolean authenticated;
-
-        JWTToken(String idToken, boolean authenticated) {
-            this.idToken = idToken;
-            this.authenticated = authenticated;
-        }
-
-        @JsonProperty("id_token")
-        String getIdToken() {
-            return idToken;
-        }
-
-        void setIdToken(String idToken) {
-            this.idToken = idToken;
-        }
-
-        public boolean isAuthenticated() {
-            return authenticated;
-        }
-
-        public void setAuthenticated(boolean authenticated) {
-            this.authenticated = authenticated;
         }
     }
 }

@@ -3,8 +3,10 @@ package com.park.utmstack.service;
 import com.park.utmstack.config.Constants;
 import com.park.utmstack.domain.UtmConfigurationParameter;
 import com.park.utmstack.domain.application_events.enums.ApplicationEventType;
+import com.park.utmstack.domain.tfa.TfaMethod;
 import com.park.utmstack.repository.UtmConfigurationParameterRepository;
 import com.park.utmstack.service.application_events.ApplicationEventService;
+import com.park.utmstack.service.tfa.TfaService;
 import com.park.utmstack.util.CipherUtil;
 import com.park.utmstack.util.exceptions.UtmMailException;
 import org.slf4j.Logger;
@@ -24,7 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.park.utmstack.config.Constants.DATE_FORMAT_SETTING_ID;
+import static com.park.utmstack.config.Constants.*;
 
 /**
  * Service Implementation for managing UtmConfigurationParameter.
@@ -40,15 +42,17 @@ public class UtmConfigurationParameterService {
     private final UserService userService;
     private final MailService mailService;
     private final ApplicationEventService applicationEventService;
+    private final TfaService tfaService;
 
     public UtmConfigurationParameterService(UtmConfigurationParameterRepository configParamRepository,
                                             UserService userService,
                                             MailService mailService,
-                                            ApplicationEventService applicationEventService) {
+                                            ApplicationEventService applicationEventService, TfaService tfaService) {
         this.configParamRepository = configParamRepository;
         this.userService = userService;
         this.mailService = mailService;
         this.applicationEventService = applicationEventService;
+        this.tfaService = tfaService;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -80,11 +84,24 @@ public class UtmConfigurationParameterService {
     public void saveAll(List<UtmConfigurationParameter> params) throws UtmMailException {
         final String ctx = CLASSNAME + ".saveAll";
         try {
-            // If the configuration to save is: Enable Two-Factor Authentication then we need to check
-            // if the email configuration is OK
-            params.stream().filter(p -> p.getConfParamShort().equals(Constants.PROP_TFA_ENABLE)
-                            && Boolean.parseBoolean(p.getConfParamValue()))
-                    .findFirst().ifPresent(tfa -> validateMailConfOnMFAActivation());
+
+            Boolean tfaEnabledParam = params.stream()
+                    .filter(p -> p.getConfParamShort().equals(Constants.PROP_TFA_ENABLE))
+                    .findFirst()
+                    .map(p -> Boolean.parseBoolean(p.getConfParamValue()))
+                    .orElse(Boolean.valueOf(CFG.get(PROP_TFA_ENABLE)));
+
+            TfaMethod tfaMethodParam = params.stream()
+                    .filter(p -> p.getConfParamShort().equals(Constants.PROP_TFA_METHOD))
+                    .findFirst()
+                    .map(p -> TfaMethod.valueOf(p.getConfParamValue()))
+                    .orElse(null);
+
+            if (tfaEnabledParam && tfaMethodParam != null) {
+                tfaService.persistConfiguration(tfaMethodParam);
+                log.info("TFA enabled with method: {}", tfaMethodParam);
+            }
+
 
             Map<String, String> cfg = new HashMap<>();
             for (UtmConfigurationParameter p : params) {
@@ -148,7 +165,7 @@ public class UtmConfigurationParameterService {
         }
     }
 
-    private void validateMailConfOnMFAActivation() throws UtmMailException {
+    public void validateMailConfOnMFAActivation() throws UtmMailException {
         final String ctx = CLASSNAME + ".validateMailConfOnMFAActivation";
         try {
             mailService.sendCheckEmail(List.of(userService.getCurrentUserLogin().getEmail()));
