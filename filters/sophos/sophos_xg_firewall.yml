@@ -721,7 +721,6 @@ pipeline:
             - log.restData
             - log.useragent
             - log.activityname
-            - log.application
             - log.httpresponsecode
             - log.overrideauthorizer
             - log.overridename
