@@ -237,6 +237,7 @@ import {
   UtmTfaConfCheckComponent
 } from "./components/utm/config/shared/components/utm-tfa-conf-check/utm-tfa-conf-check.component";
 import { UtmTfaVerificationComponent } from './components/utm-tfa-verification/utm-tfa-verification.component';
+import { TfaSetupComponent } from './components/auth/tfa-setup/tfa-setup.component';
 
 
 
@@ -395,7 +396,8 @@ import { UtmTfaVerificationComponent } from './components/utm-tfa-verification/u
     UtmCpCronEditorComponent,
     RelativeTimePipe,
     UtmTfaConfCheckComponent,
-    UtmTfaVerificationComponent
+    UtmTfaVerificationComponent,
+    TfaSetupComponent
   ],
   exports: [
     IndexPatternCreateComponent,

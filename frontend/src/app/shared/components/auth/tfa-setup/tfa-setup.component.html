@@ -1,0 +1,328 @@
+<!-- tfa-setup.component.html -->
+<div class="bg-image-utmstack"></div>
+
+<div class="container-fluid d-flex justify-content-center align-items-center min-vh-100 py-4">
+  <div class="verification-card" style="max-width: 420px; width: 100%;">
+    <div class="card shadow border-0" style="border-radius: 8px; background-color: white;">
+      <div class="card-body p-4">
+
+        <!-- Logo -->
+        <div class="text-center mb-4">
+          <div class="d-flex justify-content-center mb-4">
+            <div class="login-pic">
+              <img *ngIf="(loginImage$ | async) as logo; else loadImage"
+                   [src]="sanitizer.bypassSecurityTrustUrl(logo)"
+                   alt="Login" data-loading="lazy">
+              <ng-template #loadImage>
+                <i class="icon-image4" style="font-size: 100px;opacity: 0.1"></i>
+              </ng-template>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 1: METHOD SELECTION -->
+        <ng-container *ngIf="step === 'method-selection'">
+          <!-- Header -->
+          <div class="text-center mb-4">
+            <h4 class="fw-semibold mb-2 text-dark">Setup Two-Factor Authentication</h4>
+            <p class="text-muted mb-0" style="font-size: 14px;">
+              Choose how you'd like to receive your authentication codes
+            </p>
+          </div>
+
+          <!-- Method Selection Cards -->
+          <div class="mb-4">
+            <!-- TOTP Method -->
+            <div class="method-card mb-3 p-3 rounded border"
+                 style="cursor: pointer; transition: all 0.2s ease;"
+                 [ngClass]="{'border-primary bg-light': selectedMethod === TfaMethod.TOTP}"
+                 (click)="selectMethod(TfaMethod.TOTP)"
+                 (mouseenter)="$event.currentTarget.style.borderColor = '#4f8ef7'"
+                 (mouseleave)="$event.currentTarget.style.borderColor = selectedMethod === TfaMethod.TOTP ? '#4f8ef7' : '#e2e8f0'">
+              <div class="d-flex align-items-center">
+                <div class="method-icon me-3 d-flex align-items-center justify-content-center"
+                     style="width: 40px; height: 40px; background-color: #e0f2fe; border-radius: 8px;">
+                  <i class="icon-mobile text-primary" style="font-size: 16px;"></i>
+                </div>
+                <div class="method-details">
+                  <div class="fw-medium text-dark" style="font-size: 14px;">Authenticator App</div>
+                  <small class="text-muted" style="font-size: 12px;">
+                    Use Google Authenticator or similar app
+                  </small>
+                </div>
+                <div class="ms-auto">
+                  <i class="icon-arrow-right22 text-muted" style="font-size: 12px;"></i>
+                </div>
+              </div>
+            </div>
+
+            <!-- Email Method -->
+            <div class="method-card mb-3 p-3 rounded border"
+                 style="cursor: pointer; transition: all 0.2s ease;"
+                 [ngClass]="{'border-primary bg-light': selectedMethod === TfaMethod.EMAIL}"
+                 (click)="selectMethod(TfaMethod.EMAIL)"
+                 (mouseenter)="$event.currentTarget.style.borderColor = '#4f8ef7'"
+                 (mouseleave)="$event.currentTarget.style.borderColor = selectedMethod === TfaMethod.EMAIL ? '#4f8ef7' : '#e2e8f0'">
+              <div class="d-flex align-items-center">
+                <div class="method-icon me-3 d-flex align-items-center justify-content-center"
+                     style="width: 40px; height: 40px; background-color: #ecfdf5; border-radius: 8px;">
+                  <i class="icon-envelop text-success" style="font-size: 16px;"></i>
+                </div>
+                <div class="method-details">
+                  <div class="fw-medium text-dark" style="font-size: 14px;">Email Authentication</div>
+                  <small class="text-muted" style="font-size: 12px;">
+                    Receive codes via email
+                  </small>
+                </div>
+                <div class="ms-auto">
+                  <i class="icon-arrow-right22 text-muted" style="font-size: 12px;"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Skip Option -->
+          <div class="text-center mt-4">
+            <button type="button"
+                    class="btn btn-link text-muted"
+                    style="font-size: 13px; text-decoration: none; padding: 8px 0;"
+                    (click)="skipSetup()">
+              Skip setup (not recommended)
+            </button>
+          </div>
+        </ng-container>
+
+        <!-- STEP 2: SETUP & VERIFICATION -->
+        <ng-container *ngIf="(step === 'setup' || step === 'verification') && !codeVerified">
+          <!-- Header -->
+          <div class="text-center mb-4">
+            <h4 class="fw-semibold mb-2 text-dark">Two-Factor Authentication</h4>
+            <p class="text-muted mb-0" style="font-size: 14px;">
+              {{ selectedMethod === TfaMethod.EMAIL ? 'Enter the code sent to your email' : 'Scan QR code and enter the verification code' }}
+            </p>
+          </div>
+
+          <!-- TOTP Instructions -->
+          <ng-container *ngIf="selectedMethod === TfaMethod.TOTP">
+            <div class="text-center mb-4">
+              <div class="mb-3">
+                <p class="text-muted mb-3" style="font-size: 14px; line-height: 1.5;">
+                  Use the
+                  <a href="https://support.google.com/accounts/answer/1066447?hl=en"
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     class="text-primary text-decoration-none fw-medium">
+                    Google Authenticator
+                  </a>
+                  or
+                  <a href="https://www.microsoft.com/en-us/account/authenticator"
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     class="text-primary text-decoration-none fw-medium">
+                    Microsoft Authenticator
+                  </a>
+                  app, then scan the QR code below.
+                </p>
+              </div>
+
+              <div class="qr-code-container bg-white p-2 rounded border d-inline-block mb-3">
+                <img [src]="qrCodeUrl"
+                     alt="QR Code"
+                     class="qr-image"
+                     style="max-width: 200px; height: auto;" />
+              </div>
+
+
+            </div>
+          </ng-container>
+
+          <!-- Email Method Info -->
+          <ng-container *ngIf="selectedMethod === TfaMethod.EMAIL">
+            <div class="text-center mb-4">
+              <div class="alert alert-info border-0 d-inline-flex align-items-center"
+                   style="background-color: #e3f2fd; color: #1565c0; border-radius: 8px; font-size: 14px;">
+                <i class="icon-envelop me-2"></i>
+                <span class="fw-semibold">Check your email for the verification code</span>
+              </div>
+            </div>
+          </ng-container>
+
+          <!-- Method Info Card -->
+          <div class="method-info mb-4 p-3 rounded"
+               style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
+            <div class="d-flex align-items-center justify-content-center">
+              <div class="method-icon me-3 d-flex align-items-center justify-content-center"
+                   style="width: 40px; height: 40px; background-color: #e0f2fe; border-radius: 8px;">
+                <i class="{{ selectedMethod === TfaMethod.EMAIL ? 'icon-envelop' : 'icon-mobile' }} text-primary"
+                   style="font-size: 16px;"></i>
+              </div>
+              <div class="method-details">
+                <div class="fw-medium text-dark" style="font-size: 14px;">
+                  {{ selectedMethod === TfaMethod.EMAIL ? 'Email Authentication' : 'Authenticator App' }}
+                </div>
+                <small class="text-muted" style="font-size: 12px;">
+                  {{ selectedMethod === TfaMethod.EMAIL ? 'Code sent to your email' : 'Use your authenticator app' }}
+                </small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Countdown Timer -->
+          <div class="text-center mb-4">
+            <div class="timer-display d-inline-block px-4 py-2 rounded"
+                 style="background-color: #f8f9fa; border: 1px solid #e9ecef; font-family: 'Courier New', monospace;">
+              <app-countdown
+                [duration]="expiresInSeconds"
+                (intervalEnd)="onExpire()"
+                class="fw-bold text-danger"
+                style="font-size: 28px;">
+              </app-countdown>
+            </div>
+          </div>
+
+          <!-- Verification Form -->
+          <form (ngSubmit)="onSubmit()" #setupForm="ngForm" novalidate>
+            <!-- Code Input -->
+            <div class="form-group mb-4">
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"
+                      style="border-color: #d1d5db; color: #6b7280;">
+                  <i class="icon-key"></i>
+                </span>
+                <input
+                  id="code"
+                  name="code"
+                  type="text"
+                  class="form-control border-start-0"
+                  [(ngModel)]="code"
+                  (ngModelChange)="clearError()"
+                  required
+                  minlength="6"
+                  maxlength="6"
+                  autocomplete="one-time-code"
+                  placeholder="Enter 6-digit code"
+                  [class.is-invalid]="setupForm.submitted && (code.length < 6 || setupForm.invalid || errorMessage)"
+                  style="border-color: #d1d5db; font-family: 'Courier New', monospace; letter-spacing: 2px; text-align: center; font-size: 16px!important; height: 45px!important;"
+                />
+              </div>
+
+              <!-- Help Actions -->
+              <div class="text-center mt-3" *ngIf="selectedMethod === TfaMethod.EMAIL">
+                <small class="text-muted">
+                  Didn't receive the code?
+                  <button type="button"
+                          class="btn btn-link p-0 ms-1"
+                          style="font-size: 12px; text-decoration: none; color: #4f8ef7;"
+                          [disabled]="resending"
+                          (click)="resendCode()">
+                    <span *ngIf="resending" class="spinner-border spinner-border-sm me-1" style="width: 12px; height: 12px;"></span>
+                    {{ resending ? 'Sending...' : 'Resend Code' }}
+                  </button>
+                </small>
+              </div>
+            </div>
+
+            <!-- Verify Button -->
+            <div class="d-grid mb-3">
+              <button
+                type="submit"
+                class="btn btn-primary w-100"
+                [disabled]="verifying || code.length < 6"
+                style="height: 45px; border-radius: 6px; font-weight: 600; background: linear-gradient(135deg, #4f8ef7 0%, #7c3aed 100%); border: none; font-size: 14px;">
+
+                <ng-container *ngIf="verifying">
+                  <span class="spinner-border spinner-border-sm me-2"
+                        style="width: 16px; height: 16px;"
+                        role="status"></span>
+                  Verifying...
+                </ng-container>
+
+                <ng-container *ngIf="!verifying">
+                  <i class="icon-shield me-2"></i>
+                  Verify Code
+                </ng-container>
+              </button>
+            </div>
+
+            <!-- Error Message -->
+            <div *ngIf="errorMessage"
+                 class="alert alert-danger border-0 text-center mb-3"
+                 style="background-color: #fef2f2; color: #dc2626; border-radius: 6px; font-size: 13px; padding: 12px;">
+              <i class="icon-exclamation me-2"></i>
+              {{ errorMessage }}
+            </div>
+          </form>
+
+          <!-- Back Button -->
+          <div class="text-center mt-4">
+            <button type="button"
+                    class="btn btn-link text-muted"
+                    style="font-size: 13px; text-decoration: none; padding: 8px 0;"
+                    (click)="backToMethodSelection()">
+              <i class="icon-arrow-left22 me-2" style="font-size: 12px;"></i>
+              Back to Method Selection
+            </button>
+          </div>
+        </ng-container>
+
+        <!-- STEP 3: SUCCESS -->
+        <ng-container *ngIf="codeVerified && !verifying">
+          <div class="text-center">
+            <!-- Success State -->
+            <div class="success-state mb-4">
+              <div class="success-icon mb-3">
+                <i class="icon-checkmark-circle2 text-success" style="font-size: 64px; animation: successPop 0.6s ease-out;"></i>
+              </div>
+              <h4 class="text-success fw-bold mb-2">Setup Complete!</h4>
+              <p class="text-muted mb-4" style="line-height: 1.5;">
+                Your {{ selectedMethod === TfaMethod.EMAIL ? 'email authentication' : 'authenticator app' }} has been configured successfully.
+                <br>
+                Your account is now more secure with Two-Factor Authentication.
+              </p>
+
+              <div class="method-badge d-inline-flex align-items-center px-3 py-2 rounded mb-4"
+                   style="background-color: #e3f2fd; color: #1565c0; border: 1px solid #bee5eb;">
+                <i class="icon-shield me-2"></i>
+                <span class="fw-medium">
+                  2FA Method: {{ selectedMethod === TfaMethod.EMAIL ? 'Email Authentication' : 'Authenticator App' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex flex-column gap-2">
+              <button id="completeSetupButton"
+                      class="btn btn-primary w-100"
+                      (click)="completeSetup()"
+                      style="height: 45px; border-radius: 6px; font-weight: 600; background: linear-gradient(135deg, #4f8ef7 0%, #7c3aed 100%); border: none; font-size: 14px;">
+                <i class="icon-checkmark2 me-2"></i>
+                Complete Setup
+              </button>
+            </div>
+
+            <div class="mt-3">
+              <small class="text-muted">
+                <i class="icon-info22 me-1"></i>
+                Your 2FA settings are now active and protecting your account
+              </small>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- Security Notice (Solo mostrar en estados iniciales) -->
+        <div *ngIf="step !== 'success'" class="mt-4 p-3 rounded"
+             style="background-color: #fffbeb; border: 1px solid #fed7aa;">
+          <div class="d-flex align-items-start">
+            <i class="icon-shield me-2 mt-1"
+               style="font-size: 12px; color: #f59e0b; flex-shrink: 0;"></i>
+            <small class="text-muted" style="font-size: 11px; line-height: 1.4; color: #78716c;">
+              <strong>Security Notice:</strong> Never share your authentication codes with anyone.
+              UTMStack will never ask for your 2FA codes.
+            </small>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
