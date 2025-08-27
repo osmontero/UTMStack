@@ -108,7 +108,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/account/reset-password/init").permitAll()
                 .antMatchers("/api/account/reset-password/finish").permitAll()
                 .antMatchers("/api/images/all").permitAll()
-                .antMatchers("/api/tfa/verifyCode").hasAuthority(AuthoritiesConstants.PRE_VERIFICATION_USER)
+                .antMatchers("/api/tfa/**").hasAuthority(AuthoritiesConstants.PRE_VERIFICATION_USER)
                 .antMatchers("/api/utm-incident-jobs").hasAuthority(AuthoritiesConstants.ADMIN)
                 .antMatchers("/api/utm-incident-jobs/**").hasAuthority(AuthoritiesConstants.ADMIN)
                 .antMatchers("/api/utm-incident-variables/**").hasAuthority(AuthoritiesConstants.ADMIN)

@@ -114,6 +114,7 @@ public final class Constants {
     public static final String STATE_SAFE_DELETE = "safe_delete";
 
     public static final Long DATE_FORMAT_SETTING_ID = 5L;
+    public static final Long TFA_SETTING_ID = 3L;
 
     // GRPC
     public static final String AGENT_MANAGER_INTERNAL_KEY_HEADER = "internal-key";

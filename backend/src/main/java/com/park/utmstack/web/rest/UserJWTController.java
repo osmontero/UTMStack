@@ -93,14 +93,17 @@ public class UserJWTController {
 
             Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            String tempToken = tokenProvider.createToken(authentication, false, false);
 
             if (isTfaEnabled) {
                 User user = userService.getUserWithAuthoritiesByLogin(loginVM.getUsername())
                     .orElseThrow(() -> new BadCredentialsException("User " + loginVM.getUsername() + " not found"));
                 tfaService.generateChallenge(user);
+
             }
 
             return new ResponseEntity<>( LoginResponseDTO.builder()
+                    .token(tempToken)
                     .method(method)
                     .success(true)
                     .tfaRequired(isTfaEnabled)

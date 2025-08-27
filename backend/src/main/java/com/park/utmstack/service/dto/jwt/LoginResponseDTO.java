@@ -11,5 +11,6 @@ public class LoginResponseDTO {
     private boolean success;
     private boolean tfaRequired;
     private String method;
+    private String token;
 }
 
