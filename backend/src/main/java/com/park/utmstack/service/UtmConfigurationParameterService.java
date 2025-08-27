@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.park.utmstack.config.Constants.DATE_FORMAT_SETTING_ID;
+import static com.park.utmstack.config.Constants.*;
 
 /**
  * Service Implementation for managing UtmConfigurationParameter.
@@ -85,22 +85,21 @@ public class UtmConfigurationParameterService {
         final String ctx = CLASSNAME + ".saveAll";
         try {
 
-            UtmConfigurationParameter tfaEnabledParam = params.stream()
+            Boolean tfaEnabledParam = params.stream()
                     .filter(p -> p.getConfParamShort().equals(Constants.PROP_TFA_ENABLE))
                     .findFirst()
-                    .orElse(null);
+                    .map(p -> Boolean.parseBoolean(p.getConfParamValue()))
+                    .orElse(Boolean.valueOf(CFG.get(PROP_TFA_ENABLE)));
 
-            UtmConfigurationParameter tfaMethodParam = params.stream()
+            TfaMethod tfaMethodParam = params.stream()
                     .filter(p -> p.getConfParamShort().equals(Constants.PROP_TFA_METHOD))
                     .findFirst()
+                    .map(p -> TfaMethod.valueOf(p.getConfParamValue()))
                     .orElse(null);
 
-            if (tfaEnabledParam != null && tfaMethodParam != null && tfaMethodParam.getConfParamValue() != null  && Boolean.parseBoolean(tfaEnabledParam.getConfParamValue())) {
-                String tfaMethod =  tfaMethodParam.getConfParamValue();
-
-                tfaService.persistConfiguration(TfaMethod.valueOf(tfaMethod));
-
-                log.info("TFA enabled with method: {}", tfaMethod);
+            if (tfaEnabledParam && tfaMethodParam != null) {
+                tfaService.persistConfiguration(tfaMethodParam);
+                log.info("TFA enabled with method: {}", tfaMethodParam);
             }
 
 

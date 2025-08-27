@@ -54,7 +54,7 @@ public class TotpTfaService implements TfaMethodService {
         String qrBase64 = generateQrBase64(uri);
         Delivery delivery = new Delivery(TfaMethod.TOTP, qrBase64);
 
-        return new TfaInitResponse("pending", delivery, Constants.EXPIRES_IN_SECONDS);
+        return new TfaInitResponse("pending", delivery, Constants.EXPIRES_IN_SECONDS * 10);
     }
 
     @Override
