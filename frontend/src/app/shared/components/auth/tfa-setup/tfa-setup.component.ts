@@ -4,6 +4,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { interval, Observable, Subscription } from 'rxjs';
 import {ThemeChangeBehavior} from '../../../behaviors/theme-change.behavior';
 import {TfaMethod} from '../../../services/tfa/tfa.service';
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-tfa-setup',
@@ -33,6 +34,7 @@ export class TfaSetupComponent implements OnInit, OnDestroy {
 
   constructor( private themeChangeBehavior: ThemeChangeBehavior,
                public sanitizer: DomSanitizer,
+               private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -222,20 +224,6 @@ export class TfaSetupComponent implements OnInit, OnDestroy {
    * Omite la configuración TFA
    */
   skipSetup(): void {
-    const confirmed = confirm(
-      'Are you sure you want to skip Two-Factor Authentication setup?\n\n' +
-      'This will make your account less secure. You can always set it up later in your security settings.'
-    );
-
-    if (confirmed) {
-      console.log('User skipped TFA setup');
-      // En producción, marcar en el backend que el usuario omitió la configuración
-      // this.tfaService.skipTfaSetup().subscribe(() => {
-      //   this.router.navigate(['/dashboard']);
-      // });
-
-      // Por ahora, simular redirección
-      alert('TFA setup skipped. You can configure it later in Settings > Security.');
-    }
+    this.router.navigate(['/']);
   }
 }

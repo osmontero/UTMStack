@@ -6,6 +6,7 @@ import {LoginComponent} from './shared/components/auth/login/login.component';
 import {
   PasswordResetFinishComponent
 } from './shared/components/auth/password-reset/finish/password-reset-finish.component';
+import {TfaSetupComponent} from './shared/components/auth/tfa-setup/tfa-setup.component';
 import {TotpComponent} from './shared/components/auth/totp/totp.component';
 import {
   WelcomeToUtmstackComponent
@@ -153,6 +154,7 @@ const routes: Routes = [
   },
   {path: '', component: LoginComponent},
   {path: 'totp', component: TotpComponent},
+  {path: 'tfa-setup', component: TfaSetupComponent},
   {path: 'reset/finish', component: PasswordResetFinishComponent},
   {path: 'page-not-found', component: NotFoundComponent},
   {path: 'confirm-identity/:id', component: ConfirmIdentityComponent},

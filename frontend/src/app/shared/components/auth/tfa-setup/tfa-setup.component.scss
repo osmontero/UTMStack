@@ -1,6 +1,8 @@
-// tfa-setup.component.scss
 
-// Animación para el ícono de éxito
+.login-pic {
+  width: 100px;
+}
+
 @keyframes successPop {
   0% {
     transform: scale(0.8);

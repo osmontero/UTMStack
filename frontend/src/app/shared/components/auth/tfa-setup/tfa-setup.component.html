@@ -40,18 +40,20 @@
                  (mouseenter)="$event.currentTarget.style.borderColor = '#4f8ef7'"
                  (mouseleave)="$event.currentTarget.style.borderColor = selectedMethod === TfaMethod.TOTP ? '#4f8ef7' : '#e2e8f0'">
               <div class="d-flex align-items-center">
-                <div class="method-icon me-3 d-flex align-items-center justify-content-center"
+                <div class="method-icon ml-3 d-flex align-items-center justify-content-center"
                      style="width: 40px; height: 40px; background-color: #e0f2fe; border-radius: 8px;">
                   <i class="icon-mobile text-primary" style="font-size: 16px;"></i>
                 </div>
-                <div class="method-details">
-                  <div class="fw-medium text-dark" style="font-size: 14px;">Authenticator App</div>
-                  <small class="text-muted" style="font-size: 12px;">
-                    Use Google Authenticator or similar app
-                  </small>
-                </div>
-                <div class="ms-auto">
-                  <i class="icon-arrow-right22 text-muted" style="font-size: 12px;"></i>
+                <div class="d-flex justify-content-between align-items-center ml-2 w-100">
+                  <div class="method-details">
+                    <div class="fw-medium text-dark" style="font-size: 14px;">Authenticator App</div>
+                    <small class="text-muted" style="font-size: 12px;">
+                      Use Google Authenticator or similar app
+                    </small>
+                  </div>
+                  <div class="ms-auto">
+                    <i class="icon-arrow-right22 text-muted" style="font-size: 12px;"></i>
+                  </div>
                 </div>
               </div>
             </div>
@@ -64,18 +66,20 @@
                  (mouseenter)="$event.currentTarget.style.borderColor = '#4f8ef7'"
                  (mouseleave)="$event.currentTarget.style.borderColor = selectedMethod === TfaMethod.EMAIL ? '#4f8ef7' : '#e2e8f0'">
               <div class="d-flex align-items-center">
-                <div class="method-icon me-3 d-flex align-items-center justify-content-center"
+                <div class="method-icon ml-3 d-flex align-items-center justify-content-center"
                      style="width: 40px; height: 40px; background-color: #ecfdf5; border-radius: 8px;">
                   <i class="icon-envelop text-success" style="font-size: 16px;"></i>
                 </div>
-                <div class="method-details">
-                  <div class="fw-medium text-dark" style="font-size: 14px;">Email Authentication</div>
-                  <small class="text-muted" style="font-size: 12px;">
-                    Receive codes via email
-                  </small>
-                </div>
-                <div class="ms-auto">
-                  <i class="icon-arrow-right22 text-muted" style="font-size: 12px;"></i>
+                <div class="d-flex justify-content-between align-items-center ml-2 w-100">
+                  <div class="method-details">
+                    <div class="fw-medium text-dark" style="font-size: 14px;">Email Authentication</div>
+                    <small class="text-muted" style="font-size: 12px;">
+                      Receive codes via email
+                    </small>
+                  </div>
+                  <div class="ms-auto">
+                    <i class="icon-arrow-right22 text-muted" style="font-size: 12px;"></i>
+                  </div>
                 </div>
               </div>
             </div>
@@ -87,7 +91,7 @@
                     class="btn btn-link text-muted"
                     style="font-size: 13px; text-decoration: none; padding: 8px 0;"
                     (click)="skipSetup()">
-              Skip setup (not recommended)
+              Back to Login
             </button>
           </div>
         </ng-container>
