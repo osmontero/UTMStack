@@ -274,7 +274,7 @@
       Next
       <i class="icon-arrow-right32"></i>&nbsp;
     </button>
-    <button *ngIf="currentStep == RULE_FORM.STEP2" (click)="saveRule()" [disabled]="ruleForm.invalid"
+    <button *ngIf="currentStep == RULE_FORM.STEP2" (click)="saveRule()" [disabled]="!isRuleFormValid"
             class="btn utm-button utm-button-primary">
       <i [ngClass]="loading ? 'icon-spinner spinner' : 'icon-grid-alt top-0'"></i>&nbsp; Save
     </button>
