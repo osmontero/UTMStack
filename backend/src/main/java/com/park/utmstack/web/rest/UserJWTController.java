@@ -99,7 +99,6 @@ public class UserJWTController {
                 User user = userService.getUserWithAuthoritiesByLogin(loginVM.getUsername())
                     .orElseThrow(() -> new BadCredentialsException("User " + loginVM.getUsername() + " not found"));
                 tfaService.generateChallenge(user);
-
             }
 
             return new ResponseEntity<>( LoginResponseDTO.builder()
