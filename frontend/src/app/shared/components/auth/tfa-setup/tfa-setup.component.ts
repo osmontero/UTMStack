@@ -1,10 +1,11 @@
-// tfa-setup.component.ts
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { DomSanitizer } from '@angular/platform-browser';
-import { interval, Observable, Subscription } from 'rxjs';
+import {DomSanitizer, SafeUrl} from '@angular/platform-browser';
+import {Router} from '@angular/router';
+import { Observable, Subscription } from 'rxjs';
+import {UtmToastService} from '../../../alert/utm-toast.service';
 import {ThemeChangeBehavior} from '../../../behaviors/theme-change.behavior';
-import {TfaMethod} from '../../../services/tfa/tfa.service';
-import {Router} from "@angular/router";
+import {TfaMethod, TfaService} from '../../../services/tfa/tfa.service';
+import {AuthServerProvider} from "../../../../core/auth/auth-jwt.service";
 
 @Component({
   selector: 'app-tfa-setup',
@@ -18,7 +19,7 @@ export class TfaSetupComponent implements OnInit, OnDestroy {
   step: 'method-selection' | 'setup' | 'verification' | 'success' = 'method-selection';
   selectedMethod: TfaMethod | null = null;
 
-  qrCodeUrl = '';
+  qrCodeUrl: SafeUrl = '';
 
   code  = '';
   verifying = false;
@@ -34,7 +35,10 @@ export class TfaSetupComponent implements OnInit, OnDestroy {
 
   constructor( private themeChangeBehavior: ThemeChangeBehavior,
                public sanitizer: DomSanitizer,
-               private router: Router
+               private router: Router,
+               private tfaService: TfaService,
+               private utmToastService: UtmToastService,
+               private authServerProvider: AuthServerProvider
   ) {}
 
   ngOnInit(): void {
@@ -52,32 +56,32 @@ export class TfaSetupComponent implements OnInit, OnDestroy {
     this.selectedMethod = method;
     this.step = 'setup';
     this.clearError();
-
-    if (method === TfaMethod.TOTP) {
-      this.generateTOTPData();
-    } else if (method === TfaMethod.EMAIL) {
-      this.sendEmailCode();
-    }
-
-    this.startTimer();
+    this.initTfa();
   }
 
-  private generateTOTPData(): void {
-    // Llamar al API para generar los datos TOTP
-    // this.tfaService.generateTOTPSetup().subscribe(response => {
-    //   this.qrCodeUrl = response.qrCodeUrl;
-    // });
-
-    // Mock para desarrollo - en producción remover esto
-    const userEmail = 'usuario@ejemplo.com';
-    const appName = 'UTMStack';
-    const mockSecret = 'JBSWY3DPEHPK3PXP';
-    const otpauthUrl = `otpauth://totp/${appName}:${userEmail}?secret=${mockSecret}&issuer=${appName}`;
-    this.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(otpauthUrl)}`;
+  private initTfa(): void {
+    this.tfaService.initTfa({
+      method: this.selectedMethod
+    }).subscribe((response) => {
+      if (this.selectedMethod === TfaMethod.TOTP) {
+        this.qrCodeUrl = response.delivery.target ?
+          this.sanitizer.bypassSecurityTrustUrl(`data:image/png;base64,${response.delivery.target}`) : null;
+      } else {
+        this.qrCodeUrl = '';
+      }
+    }, (error) => {
+      if (error.status === 400) {
+        this.utmToastService.showError('Error initializing TFA',
+          'An error occurred while initializing two-factor authentication, please check configuration and try again');
+      } else {
+        this.utmToastService.showError('Error initializing TFA',
+          'An error occurred while initializing two-factor authentication, please contact with the support team');
+      }
+    });
   }
 
   private sendEmailCode(): void {
-    this.resending = true;
+    /*this.resending = true;
 
     // En producción, llamada al backend
     setTimeout(() => {
@@ -86,111 +90,44 @@ export class TfaSetupComponent implements OnInit, OnDestroy {
       // this.tfaService.sendEmailCode().subscribe(() => {
       //   this.resending = false;
       // });
-    }, 1000);
+    }, 1000);*/
   }
 
 
   resendCode(): void {
     if (this.selectedMethod === TfaMethod.EMAIL) {
       this.sendEmailCode();
-      this.resetTimer();
       this.clearError();
     }
   }
 
-  private startTimer(): void {
-    this.expiresInSeconds = 300; // 5 minutos
-    this.timerSubscription = interval(1000).subscribe(() => {
-      if (this.expiresInSeconds > 0) {
-        this.expiresInSeconds--;
-      } else {
-        this.onExpire();
+
+  onExpire(): void {
+
+  }
+
+  onSubmit() {
+    this.verifying = true;
+    this.tfaService.verifyTfa({
+      method: this.selectedMethod,
+      code: this.code
+    }).subscribe(response => {
+      this.verifying = false;
+      this.errorMessage = !response.valid ? 'Verification code is invalid' : response.expired ? 'Verification code has expired' : '';
+      if (response.valid) {
+        this.codeVerified = true;
+        this.step = 'success';
       }
+    }, error => {
+      this.verifying = false;
+      this.errorMessage = 'An error occurred while verifying the code, please try again later';
     });
   }
 
-  /**
-   * Reinicia el timer
-   */
-  private resetTimer(): void {
-    if (this.timerSubscription) {
-      this.timerSubscription.unsubscribe();
-    }
-    this.startTimer();
-  }
-
-  /**
-   * Maneja la expiración del código
-   */
-  onExpire(): void {
-    this.errorMessage = 'The code has expired. Please request a new one.';
-    if (this.timerSubscription) {
-      this.timerSubscription.unsubscribe();
-    }
-
-    if (this.selectedMethod === TfaMethod.EMAIL) {
-      // Para email, automáticamente reenviar
-      this.sendEmailCode();
-      this.resetTimer();
-    }
-  }
-
-  /**
-   * Submits el formulario de verificación
-   */
-  onSubmit(): void {
-    if (this.code.length < 6) {
-      this.errorMessage = 'The code must be 6 digits long';
-      return;
-    }
-
-    this.verifying = true;
-    this.clearError();
-
-    // Simular verificación (en producción sería llamada a API)
-    setTimeout(() => {
-      // Mock verification - en producción:
-      // this.tfaService.verifySetupCode(this.code, this.selectedMethod, this.secretKey)
-      //   .subscribe({
-      //     next: (response) => {
-      //       if (response.valid) {
-      //         this.codeVerified = true;
-      //         this.step = 'success';
-      //       } else {
-      //         this.errorMessage = 'Invalid code. Please try again.';
-      //       }
-      //       this.verifying = false;
-      //     },
-      //     error: (error) => {
-      //       this.errorMessage = 'Verification failed. Please try again.';
-      //       this.verifying = false;
-      //     }
-      //   });
-
-      // Mock verification
-      if (this.code === '123456' || this.code.length === 6) {
-        this.codeVerified = true;
-        this.step = 'success';
-        if (this.timerSubscription) {
-          this.timerSubscription.unsubscribe();
-        }
-      } else {
-        this.errorMessage = 'Invalid code. Please try again.';
-      }
-      this.verifying = false;
-    }, 1500);
-  }
-
-  /**
-   * Limpia el mensaje de error
-   */
   clearError(): void {
     this.errorMessage = '';
   }
 
-  /**
-   * Regresa a la selección de método
-   */
   backToMethodSelection(): void {
     this.step = 'method-selection';
     this.selectedMethod = null;
@@ -201,23 +138,19 @@ export class TfaSetupComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Completa la configuración
-   */
   completeSetup(): void {
-    // En producción, guardar la configuración final
-    console.log('Configuración TFA completada:', {
-      method: this.selectedMethod
+    this.verifying = true;
+    this.tfaService.completeTfa({
+      method: this.selectedMethod,
+      enable: true
+    }).subscribe(response => {
+      this.authServerProvider.tfaMethod = this.selectedMethod;
+      this.router.navigate(['/totp']);
+    }, error => {
+      this.verifying = false;
+      this.verifying = false;
+      this.errorMessage = 'An error occurred while saving the configuration, please try again later';
     });
-
-    // this.tfaService.completeTfaSetup({
-    //   method: this.selectedMethod
-    // }).subscribe(() => {
-    //   // Redirigir o cerrar modal
-    //   this.router.navigate(['/dashboard']);
-    // });
-
-    alert('2FA setup completed successfully!');
   }
 
   /**

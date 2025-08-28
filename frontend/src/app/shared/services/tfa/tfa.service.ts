@@ -26,6 +26,11 @@ export interface TfaVerifyRequest {
   code: string;
 }
 
+export interface TfaSaveRequest {
+  method: TfaMethod;
+  enable: boolean;
+}
+
 export interface TfaVerifyResponse {
   valid: boolean;
   expired: boolean;
@@ -47,5 +52,9 @@ export class TfaService {
 
   verifyTfa(request: TfaVerifyRequest): Observable<TfaVerifyResponse> {
     return this.http.post<TfaVerifyResponse>(`${this.baseUrl}/verify`, request);
+  }
+
+  completeTfa(request: TfaSaveRequest): Observable<TfaVerifyResponse> {
+    return this.http.post<TfaVerifyResponse>(`${this.baseUrl}/complete`, request);
   }
 }

@@ -34,9 +34,9 @@ export class AuthServerProvider {
       rememberMe: credentials.rememberMe
     };
     const authenticateSuccess = (resp: HttpResponse<any>) => {
-      // this.storeAuthenticationToken(resp.body.id_token);
-      if (resp.body.tfaMethod) {
-        this.tfaMethod = resp.body.tfaMethod as TfaMethod;
+      this.storeAuthenticationToken(resp.body.token);
+      if (resp.body.method) {
+        this.tfaMethod = resp.body.method as TfaMethod;
       }
       return resp.body;
     };

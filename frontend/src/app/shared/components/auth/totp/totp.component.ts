@@ -30,7 +30,6 @@ export class TotpComponent implements OnInit {
   constructor(private authService: AuthServerProvider,
               private router: Router,
               private spinner: NgxSpinnerService,
-              private utmToast: UtmToastService,
               private themeChangeBehavior: ThemeChangeBehavior,
               public sanitizer: DomSanitizer) {
   }
