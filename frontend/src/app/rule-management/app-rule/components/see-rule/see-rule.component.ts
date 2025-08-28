@@ -24,11 +24,12 @@ export class SeeRuleComponent {
   }
 
   copyToClipboard() {
-    navigator.clipboard.writeText(this.yamlString).then(() => {
+    window.navigator['clipboard'].writeText(this.yamlString).then(() => {
       this.copied = true;
       setTimeout(() => (this.copied = false), 1500);
     });
-  }}
+  }
+}
 
 
 
