@@ -101,7 +101,6 @@ export class AddRuleComponent implements OnInit, OnDestroy {
           if (controlName !== 'afterEvents') {
             const control = this.ruleForm.get(controlName);
             if (control && !control.valid) {
-              console.log(control,'is invalid')
               isValid = false;
             }
           }

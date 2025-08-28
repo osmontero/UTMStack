@@ -13,10 +13,11 @@ export class ImportRuleService {
     }
   }
 
-  private minWordsCheck(value: string, min: number, max: number): boolean {
+  private minWordsCheck(value: string, min: number, minLengthPerWord: number): boolean {
     if (!value) return false;
-    const words = value.trim().split(/\s+/);
-    return words.length >= min && words.length <= max;
+    const words = value.trim().split(/\s+/).filter(word => word.length >= minLengthPerWord);
+    return words.length >= min;
+
   }
 
   isValidRule(obj: Rule): { isValid: boolean; errors: Record<string, string[]> } {

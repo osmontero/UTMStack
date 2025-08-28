@@ -2,7 +2,7 @@
   <div *ngFor="let key of keys; let i = index"
        [ngClass]="{'error-highlight': hasError(key)}">
     <ngx-json-viewer [expanded]="false" [json]="separatedObject[i]"></ngx-json-viewer>
-    <small *ngIf="hasError(key)" class="error-message">
+    <small *ngIf="hasError(key)" class="error-message text-xs">
       {{ getErrors(key).join(', ') }}
     </small>
   </div>

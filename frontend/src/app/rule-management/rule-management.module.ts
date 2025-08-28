@@ -45,11 +45,13 @@ import {RuleResolverService} from './services/rule.resolver.service';
 import {RuleService} from './services/rule.service';
 import {RulesResolverService} from './services/rules.resolver.service';
 import {GenericFilterComponent} from './share/generic-filter/generic-filter.component';
+import {SeeRuleComponent} from './app-rule/components/see-rule/see-rule.component'
 
 
 @NgModule({
   declarations: [
       AppRuleComponent,
+      SeeRuleComponent,
       RuleListComponent,
       RuleFieldComponent,
       RuleDetailComponent,
@@ -104,7 +106,8 @@ import {GenericFilterComponent} from './share/generic-filter/generic-filter.comp
        AddTypeComponent,
        AddPatternComponent,
        AddAssetComponent,
-       ImportRuleComponent
+       ImportRuleComponent,
+      SeeRuleComponent,
    ]
 })
 export class RuleManagementModule { }
