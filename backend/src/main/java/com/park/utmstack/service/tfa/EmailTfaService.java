@@ -77,7 +77,7 @@ public class EmailTfaService implements TfaMethodService {
         String secret = cache.getState(user.getLogin(), TfaMethod.EMAIL)
                 .orElseThrow(() -> new IllegalStateException("No TFA setup found for user: " + user.getLogin()))
                 .getSecret();
-        userService.updateUserTfaSecret(user.getLogin(), secret);
+        userService.updateUserTfaSecret(user.getLogin(), secret, TfaMethod.EMAIL.toString());
         cache.clear(user.getLogin(), TfaMethod.EMAIL);
     }
 

@@ -10,10 +10,11 @@ export class LoginService {
               private authServerProvider: AuthServerProvider) {
   }
 
-  login(credentials): Promise<any> {
+  /*login(credentials): Promise<any> {
     return new Promise((resolve, reject) => {
       this.authServerProvider.login(credentials).subscribe(
         data => {
+          console.log(data);
           if (data) {
             this.accountService.identity(true).then(account => {
               resolve(data);
@@ -21,6 +22,19 @@ export class LoginService {
           } else {
             resolve(data);
           }
+        },
+        err => {
+          reject(err);
+        }
+      );
+    });
+  }*/
+
+  login(credentials): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.authServerProvider.login(credentials).subscribe(
+        data => {
+          resolve(data);
         },
         err => {
           reject(err);

@@ -87,7 +87,7 @@ public class TfaController {
         final String ctx = CLASSNAME + ".completeTfa";
         try {
 
-            List<UtmConfigurationParameter> tfaParams = utmConfigurationParameterService.getConfigParameterBySectionId(Constants.TFA_SETTING_ID);
+            /*List<UtmConfigurationParameter> tfaParams = utmConfigurationParameterService.getConfigParameterBySectionId(Constants.TFA_SETTING_ID);
 
             for (UtmConfigurationParameter param : tfaParams) {
                 switch (param.getConfParamShort()) {
@@ -98,9 +98,11 @@ public class TfaController {
                         param.setConfParamValue(String.valueOf(request.isEnable()));
                         break;
                 }
-            }
+            }*/
 
-            utmConfigurationParameterService.saveAll(tfaParams);
+
+
+            tfaService.persistConfiguration(request.getMethod());
             User user = userService.getCurrentUserLogin();
             tfaService.generateChallenge(user);
             return ResponseEntity.ok().build();
@@ -127,7 +129,7 @@ public class TfaController {
         final String ctx = CLASSNAME + ".verifyCode";
         try {
             User user = userService.getCurrentUserLogin();
-            TfaMethod method = TfaMethod.valueOf(Constants.CFG.get(Constants.PROP_TFA_METHOD));
+            TfaMethod method = TfaMethod.valueOf(user.getTfaMethod());
             TfaVerifyRequest request = new TfaVerifyRequest(method, code);
             TfaVerifyResponse response = tfaService.verifyCode(user, request);
 

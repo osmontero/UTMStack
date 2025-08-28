@@ -44,7 +44,7 @@ public class TfaService {
 
     public void generateChallenge(User user) throws Exception {
 
-        TfaMethod method = TfaMethod.valueOf(Constants.CFG.get(Constants.PROP_TFA_METHOD));
+        TfaMethod method = TfaMethod.valueOf(user.getTfaMethod());
 
         TfaMethodService selected = getMethodService(method);
         selected.generateChallenge(user);

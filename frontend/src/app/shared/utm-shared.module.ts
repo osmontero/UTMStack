@@ -25,6 +25,7 @@ import {LoginComponent} from './components/auth/login/login.component';
 import {PasswordResetFinishComponent} from './components/auth/password-reset/finish/password-reset-finish.component';
 import {PasswordResetInitComponent} from './components/auth/password-reset/init/password-reset-init.component';
 import {PasswordStrengthBarComponent} from './components/auth/password-strength/password-strength-bar.component';
+import { TfaSetupComponent } from './components/auth/tfa-setup/tfa-setup.component';
 import {TotpComponent} from './components/auth/totp/totp.component';
 import {ContactUsComponent} from './components/contact-us/contact-us.component';
 import {
@@ -33,6 +34,7 @@ import {
 import {
   UtmAdminChangeEmailComponent
 } from './components/getting-started/utm-admin-change-email/utm-admin-change-email.component';
+import {UtmInstanceInfoComponent} from "./components/getting-started/utm-instance-info/utm-instance-info.component";
 import {
   WelcomeToUtmstackComponent
 } from './components/getting-started/welcome-to-utmstack/welcome-to-utmstack.component';
@@ -93,11 +95,13 @@ import {UtmNotificationComponent} from './components/layout/header/utm-header-no
 import {SidebarComponent} from './components/layout/sidebar/sidebar.component';
 import {NotFoundComponent} from './components/not-found/not-found.component';
 import { SelectableListComponent } from './components/selectable-list/selectable-list.component';
+import {UtmCpCronEditorComponent} from "./components/utm-cp-cron-editor/utm-cp-cron-editor.component";
 import {
   UtmHeaderHealthWarningComponent
 } from './components/utm-header-health-warning/utm-header-health-warning.component';
 import {UtmLiteVersionComponent} from './components/utm-lite-version/utm-lite-version.component';
 import {UtmModuleDisabledComponent} from './components/utm-module-disabled/utm-module-disabled.component';
+import { UtmTfaVerificationComponent } from './components/utm-tfa-verification/utm-tfa-verification.component';
 import {KpiComponent} from './components/utm/charts/kpi/kpi.component';
 import {NoDataChartComponent} from './components/utm/charts/no-data-chart/no-data-chart.component';
 import {
@@ -109,6 +113,9 @@ import {
   AppModuleDisabledWarningComponent
 } from './components/utm/config/app-module-disabled-warning/app-module-disabled-warning.component';
 import {UtmEmailConfCheckComponent} from './components/utm/config/shared/components/utm-email-conf-check/utm-email-conf-check.component';
+import {
+  UtmTfaConfCheckComponent
+} from "./components/utm/config/shared/components/utm-tfa-conf-check/utm-tfa-conf-check.component";
 import {
   ElasticMetricHealthComponent
 } from './components/utm/elastic/elastic-metric-health/elastic-metric-health.component';
@@ -225,18 +232,12 @@ import {UtmDatePipe} from './pipes/date.pipe';
 import {FilterPipe} from './pipes/filter.pipe';
 import {ThousandSuffPipe} from './pipes/numbers/thousand-suff.pipe';
 import {KeysPipe} from './pipes/object-keys/keys.pipe';
+import {RelativeTimePipe} from "./pipes/relative-time.pipe";
 import {SafePipe} from './pipes/safe.pipe';
 import {HighlightPipe} from './pipes/text/highlight.pipe';
 import {TimePeriodPipe} from './pipes/time-period.pipe';
 import {TimezoneOffsetPipe} from './pipes/timezone-offset.pipe';
 import {UtmNotifier} from './websocket/utm-notifier';
-import {UtmInstanceInfoComponent} from "./components/getting-started/utm-instance-info/utm-instance-info.component";
-import {UtmCpCronEditorComponent} from "./components/utm-cp-cron-editor/utm-cp-cron-editor.component";
-import {RelativeTimePipe} from "./pipes/relative-time.pipe";
-import {
-  UtmTfaConfCheckComponent
-} from "./components/utm/config/shared/components/utm-tfa-conf-check/utm-tfa-conf-check.component";
-import { UtmTfaVerificationComponent } from './components/utm-tfa-verification/utm-tfa-verification.component';
 
 
 
@@ -395,7 +396,8 @@ import { UtmTfaVerificationComponent } from './components/utm-tfa-verification/u
     UtmCpCronEditorComponent,
     RelativeTimePipe,
     UtmTfaConfCheckComponent,
-    UtmTfaVerificationComponent
+    UtmTfaVerificationComponent,
+    TfaSetupComponent
   ],
   exports: [
     IndexPatternCreateComponent,

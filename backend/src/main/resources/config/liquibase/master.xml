@@ -247,5 +247,7 @@
 
     <include file="/config/liquibase/changelog/20250815002_update_tfa_config_parameter.xml" relativeToChangelogFile="false"/>
 
+    <include file="/config/liquibase/changelog/20250828001_add_tfa_method_column.xml" relativeToChangelogFile="false"/>
+
 
 </databaseChangeLog>
