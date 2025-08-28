@@ -343,7 +343,7 @@ export class AddRuleComponent implements OnInit, OnDestroy {
     if (control instanceof FormArray) {
       if (control.length === 1) {
         const firstElement = control.at(0).value;
-        const isEmpty = Object.values(firstElement).every(val => val === '' || val == null || val.length==0);
+        const isEmpty = Object.values(firstElement).every((val:any) => val === '' || val == null || val.length==0);
         return !isEmpty ? null : { firstElementEmpty: true };
       }
     }

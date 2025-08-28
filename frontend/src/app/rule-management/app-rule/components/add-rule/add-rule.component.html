@@ -199,7 +199,7 @@
               </div>
             </div>
           </div>
-          <div class="col-md-12 form-group">
+          <div class="col-md-12 form-group mt-4">
             <app-expression-console
               [ngClass]="{'is-invalid': ruleForm.get('definition').invalid && ruleForm.get('definition').touched}"
               formControlName="definition"
@@ -260,7 +260,7 @@
       </div>
     </form>
   </div>
-  <div *ngIf="ruleForm" class="button-container d-flex justify-content-end pr-3 w-100">
+  <div *ngIf="ruleForm" class="button-container d-flex justify-content-end pb-4 pr-3 w-100">
     <button *ngIf="currentStep != RULE_FORM.STEP2" (click)="activeModal.close()"
             class="btn utm-button utm-button-grey mr-2">
       <i class="icon-cancel-circle2 top-0"></i>&nbsp; Cancel
