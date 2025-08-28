@@ -79,7 +79,7 @@ public class TotpTfaService implements TfaMethodService {
         String secret = cache.getState(user.getLogin(), TfaMethod.TOTP)
                 .orElseThrow(() -> new IllegalStateException("No TFA setup found for user: " + user.getLogin()))
                 .getSecret();
-        userService.updateUserTfaSecret(user.getLogin(), secret);
+        userService.updateUserTfaSecret(user.getLogin(), secret, TfaMethod.TOTP.toString());
         cache.clear(user.getLogin(), TfaMethod.TOTP);
     }
 

@@ -1,9 +1,12 @@
 package com.park.utmstack.service;
 
+import com.park.utmstack.config.Constants;
+import com.park.utmstack.domain.User;
 import com.park.utmstack.domain.UtmConfigurationParameter;
 import com.park.utmstack.domain.UtmConfigurationParameter_;
 import com.park.utmstack.repository.UtmConfigurationParameterRepository;
 import com.park.utmstack.service.dto.UtmConfigurationParameterCriteria;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -22,16 +25,15 @@ import java.util.List;
  * It returns a {@link List} of {@link UtmConfigurationParameter} or a {@link Page} of {@link UtmConfigurationParameter} which fulfills the criteria.
  */
 @Service
+@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class UtmConfigurationParameterQueryService extends QueryService<UtmConfigurationParameter> {
 
     private final Logger log = LoggerFactory.getLogger(UtmConfigurationParameterQueryService.class);
 
     private final UtmConfigurationParameterRepository utmConfigurationParameterRepository;
+    private final UserService userService;
 
-    public UtmConfigurationParameterQueryService(UtmConfigurationParameterRepository utmConfigurationParameterRepository) {
-        this.utmConfigurationParameterRepository = utmConfigurationParameterRepository;
-    }
 
     /**
      * Return a {@link List} of {@link UtmConfigurationParameter} which matches the criteria from the database
@@ -57,6 +59,16 @@ public class UtmConfigurationParameterQueryService extends QueryService<UtmConfi
     public Page<UtmConfigurationParameter> findByCriteria(UtmConfigurationParameterCriteria criteria, Pageable page) {
         log.debug("find by criteria : {}, page: {}", criteria, page);
         final Specification<UtmConfigurationParameter> specification = createSpecification(criteria);
+        Page<UtmConfigurationParameter> result = utmConfigurationParameterRepository.findAll(specification, page);
+
+        if (criteria.getSectionId().getEquals().equals(Constants.TFA_SETTING_ID)) {
+            User user = userService.getCurrentUserLogin();
+            result.getContent().forEach(utmConfigurationParameter -> {
+                if(utmConfigurationParameter.getConfParamShort().equals(Constants.PROP_TFA_METHOD)){
+                    utmConfigurationParameter.setConfParamValue(user.getTfaMethod());
+                }
+            });
+        }
         return utmConfigurationParameterRepository.findAll(specification, page);
     }
 

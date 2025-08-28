@@ -142,7 +142,6 @@ public class UtmConfigurationParameterResource {
     public ResponseEntity<Void> checkEmailConfiguration(@Valid @RequestBody List<UtmConfigurationParameter> parameters) {
         final String ctx = CLASSNAME + ".checkEmailConfiguration";
         try {
-
             utmStackService.checkEmailConfiguration(this.mailConfigService.getMailConfigFromParameters(parameters));
             return ResponseEntity.ok().build();
         } catch (MessagingException e) {

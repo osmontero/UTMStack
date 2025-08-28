@@ -86,7 +86,6 @@ public class UserJWTController {
                 throw new TooMuchLoginAttemptsException(String.format("Client IP %1$s blocked due to too many failed login attempts", loginAttemptService.getClientIP()));
 
             boolean isTfaEnabled = Boolean.parseBoolean(Constants.CFG.get(Constants.PROP_TFA_ENABLE));
-            String method  = Constants.CFG.get(Constants.PROP_TFA_METHOD);
 
             UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginVM.getUsername(), loginVM.getPassword());
@@ -95,15 +94,16 @@ public class UserJWTController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             String tempToken = tokenProvider.createToken(authentication, false, false);
 
-            if (isTfaEnabled) {
-                User user = userService.getUserWithAuthoritiesByLogin(loginVM.getUsername())
+            User user = userService.getUserWithAuthoritiesByLogin(loginVM.getUsername())
                     .orElseThrow(() -> new BadCredentialsException("User " + loginVM.getUsername() + " not found"));
+
+            if (isTfaEnabled && (user.getTfaMethod() != null && !user.getTfaMethod().isEmpty())) {
                 tfaService.generateChallenge(user);
             }
 
             return new ResponseEntity<>( LoginResponseDTO.builder()
                     .token(tempToken)
-                    .method(method)
+                    .method(user.getTfaMethod())
                     .success(true)
                     .tfaRequired(isTfaEnabled)
                     .build(), HttpStatus.OK);
