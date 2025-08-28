@@ -145,12 +145,12 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
           }));
 
           this.rules = this.rules.map(rule => {
-          const isValid = this.importRuleService.isValidRule(rule);
-
+          const {isValid,errors} = this.importRuleService.isValidRule(rule);
           return {
             ...rule,
             valid: isValid,
-            status: isValid ? ('valid' as Status) : ('error' as Status)
+            status: isValid ? ('valid' as Status) : ('error' as Status),
+            errors
           };
 
         });

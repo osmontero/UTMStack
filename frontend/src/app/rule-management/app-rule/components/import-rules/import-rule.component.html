@@ -86,7 +86,7 @@
           </div>
 
           <div *ngIf="rule.showDetail" [ngClass]="{'alert-danger' : !rule.valid, 'alert-success': rule.valid}" class="alert mt-2 py-2 pl-3 w-100">
-            <app-utm-json-detail-view [rowDocument]="rule"></app-utm-json-detail-view>
+            <app-utm-json-detail-view [errors]="rule.errors" [rowDocument]="rule"></app-utm-json-detail-view>
           </div>
         </div>
       </div>

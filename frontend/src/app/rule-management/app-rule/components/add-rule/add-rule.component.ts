@@ -1,5 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {AbstractControl, FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {AbstractControl, ValidatorFn ,ValidationErrors, FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
+
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {forkJoin, Observable} from 'rxjs';
 import {map} from 'rxjs/operators';
@@ -93,8 +94,39 @@ export class AddRuleComponent implements OnInit, OnDestroy {
     this.loadDataTypes();
   }
 
+  get isRuleFormValid(){
+    let isValid = true;
+    if(this.ruleForm.get('afterEvents').errors && this.ruleForm.get('afterEvents').errors.firstElementEmpty) {
+       Object.keys(this.ruleForm.controls).forEach(controlName => {
+          if (controlName !== 'afterEvents') {
+            const control = this.ruleForm.get(controlName);
+            if (control && !control.valid) {
+              isValid = false;
+            }
+          }
+        });
+    }else{
+      return this.ruleForm.valid
+    }
+
+    return isValid
+  }
+
+
+
+  get ruleFormValue(){
+    if(this.ruleForm.get('afterEvents').errors && this.ruleForm.get('afterEvents').errors.firstElementEmpty) {
+      return {
+           ...this.ruleForm.value,
+           afterEvents:[]
+      }
+    }else{
+      return this.ruleForm.value
+    }
+  }
+
   saveRule() {
-    if (this.ruleForm.valid) {
+    if (this.isRuleFormValid) {
       const variables = this.savedVariables .length > 0 ?  this.savedVariables.map(variable => ({
         as: variable.as,
         get: variable.get,
@@ -102,7 +134,7 @@ export class AddRuleComponent implements OnInit, OnDestroy {
       })) : [];
       this.isSubmitting = true;
       const rule: Rule = {
-        ...this.ruleForm.value,
+        ...this.ruleFormValue,
         dataTypes: this.getDataTypes(this.ruleForm.value.dataTypes)
       };
       // rule.definition.ruleVariables = variables;
@@ -146,7 +178,7 @@ export class AddRuleComponent implements OnInit, OnDestroy {
         rule && rule.afterEvents && rule.afterEvents.length
           ? rule.afterEvents.map(event => this.buildSearchRequest(event))
           : []
-      )
+      ,[this.firstEmptySingleElementValidator()])
     });
     // this.savedVariables = rule ? rule.definition.ruleVariables : [];
     const afterEventsArray = this.ruleForm.get('afterEvents') as FormArray;
@@ -162,7 +194,7 @@ export class AddRuleComponent implements OnInit, OnDestroy {
       });
     });
 
-
+    this.addAfterEvent()
   }
 
 
@@ -303,4 +335,21 @@ export class AddRuleComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.dataTypeService.resetTypes();
   }
+
+
+ firstEmptySingleElementValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (control instanceof FormArray) {
+      if (control.length === 1) {
+        const firstElement = control.at(0).value;
+        const isEmpty = Object.values(firstElement).every((val:any) => val === '' || val == null || val.length==0);
+        return !isEmpty ? null : { firstElementEmpty: true };
+      }
+    }
+    return null;
+  };
+}
+
+
+
 }

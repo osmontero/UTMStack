@@ -41,6 +41,12 @@
               <td class="td-action">
                 <div class="d-flex justify-content-end align-items-center medium-icon">
 
+                  <i (click)="visualizeRule(rule)"
+                     class="icon-eye cursor-pointer ml-2"
+                     ngbTooltip="View Rule"
+                     container="body"
+                     placement="left"></i>
+
                   <i (click)="activeRule(rule)"
                      class="cursor-pointer ml-2"
                      [ngClass]="{'icon-blocked': rule.ruleActive, 'icon-check2': !rule.ruleActive}"

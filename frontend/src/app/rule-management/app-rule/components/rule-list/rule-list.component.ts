@@ -19,6 +19,7 @@ import {FilterService} from '../../../services/filter.service';
 import {RuleService} from '../../../services/rule.service';
 import {AddRuleComponent} from '../add-rule/add-rule.component';
 import {ImportRuleComponent} from '../import-rules/import-rule.component';
+import {SeeRuleComponent} from '../see-rule/see-rule.component'
 
 
 @Component({
@@ -201,6 +202,12 @@ export class RuleListComponent implements OnInit, OnDestroy {
     modal.componentInstance.mode = 'EDIT';
 
     this.handleResponse(modal);
+  }
+
+
+  visualizeRule(rule:Rule){
+      const modal = this.modalService.open(SeeRuleComponent, {size: 'lg', centered: true});
+      modal.componentInstance.rowDocument = rule;
   }
 
   handleResponse(modal: NgbModalRef) {
