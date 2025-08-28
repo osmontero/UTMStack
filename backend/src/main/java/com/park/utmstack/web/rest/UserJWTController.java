@@ -15,6 +15,7 @@ import com.park.utmstack.service.MailService;
 import com.park.utmstack.service.UserService;
 import com.park.utmstack.service.application_events.ApplicationEventService;
 import com.park.utmstack.service.dto.jwt.JWTToken;
+import com.park.utmstack.service.dto.jwt.LoginResponseDTO;
 import com.park.utmstack.service.login_attempts.LoginAttemptService;
 import com.park.utmstack.service.tfa.EmailTotpService;
 import com.park.utmstack.service.tfa.TfaService;
@@ -78,33 +79,34 @@ public class UserJWTController {
     }
 
     @PostMapping("/authenticate")
-    public ResponseEntity<JWTToken> authorize(@Valid @RequestBody LoginVM loginVM) {
+    public ResponseEntity<LoginResponseDTO> authorize(@Valid @RequestBody LoginVM loginVM) {
         final String ctx = CLASSNAME + ".authorize";
         try {
             if (loginAttemptService.isBlocked())
                 throw new TooMuchLoginAttemptsException(String.format("Client IP %1$s blocked due to too many failed login attempts", loginAttemptService.getClientIP()));
 
-            boolean isAuth = !Boolean.parseBoolean(Constants.CFG.get(Constants.PROP_TFA_ENABLE));
+            boolean isTfaEnabled = Boolean.parseBoolean(Constants.CFG.get(Constants.PROP_TFA_ENABLE));
             String method  = Constants.CFG.get(Constants.PROP_TFA_METHOD);
 
             UsernamePasswordAuthenticationToken authenticationToken =
                 new UsernamePasswordAuthenticationToken(loginVM.getUsername(), loginVM.getPassword());
-            boolean rememberMe = loginVM.isRememberMe() != null && loginVM.isRememberMe();
 
             Authentication authentication = this.authenticationManager.authenticate(authenticationToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            String tempToken = tokenProvider.createToken(authentication, false, false);
 
-            String jwt = tokenProvider.createToken(authentication, rememberMe, isAuth);
-
-            if (!isAuth) {
+            if (isTfaEnabled) {
                 User user = userService.getUserWithAuthoritiesByLogin(loginVM.getUsername())
                     .orElseThrow(() -> new BadCredentialsException("User " + loginVM.getUsername() + " not found"));
                 tfaService.generateChallenge(user);
             }
 
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add(JWTFilter.AUTHORIZATION_HEADER, "Bearer " + jwt);
-            return new ResponseEntity<>(new JWTToken(jwt, isAuth, method), httpHeaders, HttpStatus.OK);
+            return new ResponseEntity<>( LoginResponseDTO.builder()
+                    .token(tempToken)
+                    .method(method)
+                    .success(true)
+                    .tfaRequired(isTfaEnabled)
+                    .build(), HttpStatus.OK);
         } catch (BadCredentialsException e) {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);

@@ -20,10 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.park.utmstack.config.Constants.*;
@@ -160,6 +157,16 @@ public class UtmConfigurationParameterService {
                     .findAllBySectionId(DATE_FORMAT_SETTING_ID).stream()
                     .collect(Collectors.toMap(UtmConfigurationParameter::getConfParamShort,
                             UtmConfigurationParameter::getConfParamValue));
+        } catch (Exception e) {
+            throw new Exception(ctx + ": " + e.getMessage());
+        }
+    }
+
+    public List<UtmConfigurationParameter> getConfigParameterBySectionId(long sectionId) throws Exception {
+        final String ctx = CLASSNAME + ".getConfigParameterBySectionId";
+        try {
+            return new ArrayList<>(configParamRepository
+                    .findAllBySectionId(sectionId));
         } catch (Exception e) {
             throw new Exception(ctx + ": " + e.getMessage());
         }
