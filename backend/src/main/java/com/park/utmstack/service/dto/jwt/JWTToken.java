@@ -31,5 +31,5 @@ public class JWTToken {
     void setIdToken(String idToken) {
         this.idToken = idToken;
     }
-/**/
+
 }
