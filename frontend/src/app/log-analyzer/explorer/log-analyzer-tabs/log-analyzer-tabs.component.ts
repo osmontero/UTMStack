@@ -50,6 +50,9 @@ export class LogAnalyzerTabsComponent implements OnInit, OnDestroy {
           if (this.tabService.getTabCount() ==0) {
             this.addNewTab(null, null, params);
           }
+          if(isRefresh){
+            this.updateCurrentTab(params)
+          }
         }
       });
 
@@ -78,9 +81,21 @@ export class LogAnalyzerTabsComponent implements OnInit, OnDestroy {
   }
 
   tabChanged(tab: TabType) {
+    console.log(tab)
     this.tabSelected = tab;
     this.tabService.setActiveTab(tab.id);
     this.indexPatternBehavior.changePattern({pattern: tab.tabData.pattern, tabUUID: tab.uuid});
+  }
+
+  updateCurrentTab(params?:Params){
+    if(!this.tabSelected)return
+      const pattern = params && params.patternId ? new UtmIndexPattern(params.patternId, params.indexPattern, true) :
+        new UtmIndexPattern(1, 'v11-log-*', true);
+        this.tabService.updateActiveTab({name:this.tabSelected.title,pattern})
+        //timeout to set the reload at the end of DOM reload
+        setTimeout(()=>{
+            this.indexPatternBehavior.changePattern({pattern, tabUUID:this.tabSelected.uuid});
+        },0)
   }
 
   addNewTab(tabName?: string, query?: LogAnalyzerQueryType, params?: Params) {
