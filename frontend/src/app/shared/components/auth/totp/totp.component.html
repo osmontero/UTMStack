@@ -1,7 +1,7 @@
 <div class="bg-image-utmstack"></div>
 
-<div *ngIf="!isVerified" class="container-fluid d-flex justify-content-center align-items-center min-vh-100 py-4">
-  <div class="verification-card" style="max-width: 420px; width: 100%;">
+<div class="container-fluid d-flex justify-content-center align-items-center min-vh-100 py-4">
+  <div class="verification-card" style="max-width: 420px; width: 100%;" >
     <div class="card shadow border-0" style="border-radius: 8px; background-color: white;">
       <div class="card-body p-4">
 
@@ -27,7 +27,7 @@
           </div>
 
           <!-- Method Info -->
-          <div class="method-info mb-4 p-3 rounded"
+          <div class="method-info mb-4 p-2 rounded"
                style="background-color: #f8fafc; border: 1px solid #e2e8f0;">
             <div class="d-flex align-items-center justify-content-center">
               <div class="method-icon me-3 d-flex align-items-center justify-content-center"
@@ -69,10 +69,6 @@
             <!-- Code Input -->
             <div class="form-group mb-4">
               <div class="input-group">
-                <span class="input-group-text bg-light border-end-0"
-                      style="border-color: #d1d5db; color: #6b7280;">
-                  <i class="icon-key"></i>
-                </span>
                 <input
                   id="verificationCode"
                   name="verificationCode"
@@ -86,6 +82,7 @@
                   autocomplete="one-time-code"
                   placeholder="Enter 6-digit code"
                   [class.is-invalid]="verifyForm.submitted && (verificationCode.length < 6 || verifyForm.invalid || hasError)"
+                  [disabled]="isVerifying ||  isVerified"
                   style="border-color: #d1d5db; font-family: 'Courier New', monospace; letter-spacing: 2px; text-align: center; font-size: 16px!important; height: 45px!important;"
                 />
               </div>
@@ -133,12 +130,12 @@
             </div>
 
             <!-- Verify Button -->
-            <div class="d-grid mb-3">
+            <div class="d-grid mb-2">
               <button
                 type="submit"
-                class="btn btn-primary w-100"
-                [disabled]="isVerifying || verificationCode.length < 6"
-                style="height: 45px; border-radius: 6px; font-weight: 600; background: linear-gradient(135deg, #4f8ef7 0%, #7c3aed 100%); border: none; font-size: 14px;">
+                class="btn utm-button utm-button-primary w-100"
+                [disabled]="isVerifying || verificationCode.length < 6 || isVerified"
+                style="height: 45px; border-radius: 6px; font-weight: 600; border: none; font-size: 14px;">
 
                 <ng-container *ngIf="isVerifying">
                   <span class="spinner-border spinner-border-sm me-2"
@@ -164,18 +161,19 @@
           </form>
 
         <!-- Back to Login -->
-        <div class="text-center mt-4" *ngIf="!isVerified">
+        <div class="text-center" *ngIf="!isVerified">
           <button type="button"
-                  class="btn btn-link text-muted"
-                  style="font-size: 13px; text-decoration: none; padding: 8px 0;"
+                  class="btn btn-link text-muted text-lg"
+                  style="font-size: 0.9rem; text-decoration: none; "
+
                   (click)="backToLogin()">
-            <i class="icon-arrow-left22 ml-2" style="font-size: 12px;"></i>
+            <i class="icon-arrow-left22 ml-2" style="font-size: 0.9rem;"></i>
             Back to Login
           </button>
         </div>
 
         <!-- Security Notice -->
-        <div *ngIf="!isVerified" class="mt-4 p-3 rounded"
+        <div *ngIf="!isVerified" class="mt-2 p-3 rounded"
              style="background-color: #fffbeb; border: 1px solid #fed7aa;">
           <div class="d-flex align-items-start">
             <i class="fas fa-shield-alt me-2 mt-1"
