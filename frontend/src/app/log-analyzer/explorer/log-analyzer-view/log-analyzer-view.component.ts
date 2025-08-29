@@ -117,6 +117,7 @@ export class LogAnalyzerViewComponent implements OnInit, OnDestroy {
               };
             }
           }
+
       });
     this.dateFormat$ = this.timezoneFormatService.getDateFormatSubject();
     this.initExplorer();

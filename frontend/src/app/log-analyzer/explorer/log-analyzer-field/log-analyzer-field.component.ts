@@ -46,11 +46,11 @@ export class LogAnalyzerFieldComponent implements OnInit, OnDestroy {
         filter((dataChange: LogAnalyzerDataChangeType) => {
           return !!dataChange && this.uuid === dataChange.tabUUID;
         }))
-      .subscribe((dataChange: LogAnalyzerDataChangeType) => {
+      .subscribe( (dataChange: LogAnalyzerDataChangeType) => {
         this.pageStart = 0;
         this.pageEnd = 100;
         this.pattern = dataChange.pattern.pattern;
-        this.loadFields();
+        this.loadFields()
       });
 
     this.indexFieldController.$field.subscribe(async (field) => {

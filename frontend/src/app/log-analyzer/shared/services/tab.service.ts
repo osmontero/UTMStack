@@ -64,6 +64,7 @@ export class TabService {
     const activeTab = this.getActiveTab();
     if (activeTab) {
       activeTab.title = query.name;
+      activeTab.tabData=query
       this.emitTabs();
     }
   }
