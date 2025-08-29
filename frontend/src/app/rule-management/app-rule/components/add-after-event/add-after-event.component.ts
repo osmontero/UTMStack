@@ -112,6 +112,7 @@ export class AddAfterEventComponent implements OnInit {
   }
 
   getOperators(field: ElasticSearchFieldInfoType) {
+    if(!field)return
     const fieldName = field.name || '';
     const hasKeyword = fieldName.includes('.keyword');
     const isNumeric = field.type === ElasticDataTypesEnum.NUMBER || field.type === ElasticDataTypesEnum.LONG || ElasticDataTypesEnum.FLOAT;
