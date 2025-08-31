@@ -81,8 +81,7 @@
                   maxlength="6"
                   autocomplete="one-time-code"
                   placeholder="Enter 6-digit code"
-                  [class.is-invalid]="verifyForm.submitted && (verificationCode.length < 6 || verifyForm.invalid || hasError)"
-                  [disabled]="isVerifying ||  isVerified"
+                  [class.is-invalid]="verifyForm.submitted && (verificationCode.length < 6 || verifyForm.invalid)"
                   style="border-color: #d1d5db; font-family: 'Courier New', monospace; letter-spacing: 2px; text-align: center; font-size: 16px!important; height: 45px!important;"
                 />
               </div>
