@@ -4,6 +4,7 @@ import {AbstractControl, FormArray, FormBuilder, FormGroup} from '@angular/forms
 import {Observable, of} from 'rxjs';
 import {catchError, map} from 'rxjs/operators';
 import {UtmToastService} from '../../../../shared/alert/utm-toast.service';
+import {ElasticDataTypesEnum} from '../../../../shared/enums/elastic-data-types.enum';
 import {FieldDataService} from '../../../../shared/services/elasticsearch/field-data.service';
 import {IndexPatternService} from '../../../../shared/services/elasticsearch/index-pattern.service';
 import {ElasticSearchFieldInfoType} from '../../../../shared/types/elasticsearch/elastic-search-field-info.type';
@@ -11,7 +12,6 @@ import {UtmIndexPattern} from '../../../../shared/types/index-pattern/utm-index-
 import {Rule} from '../../../models/rule.model';
 import {AfterEventFormService} from '../../../services/after-event-form.service';
 import {RuleService} from '../../../services/rule.service';
-import {ElasticDataTypesEnum} from "../../../../shared/enums/elastic-data-types.enum";
 
 
 @Component({
@@ -112,10 +112,13 @@ export class AddAfterEventComponent implements OnInit {
   }
 
   getOperators(field: ElasticSearchFieldInfoType) {
-    if(!field)return
+    if (!field) {return; }
     const fieldName = field.name || '';
     const hasKeyword = fieldName.includes('.keyword');
-    const isNumeric = field.type === ElasticDataTypesEnum.NUMBER || field.type === ElasticDataTypesEnum.LONG || ElasticDataTypesEnum.FLOAT;
+    const isNumeric = field.type === ElasticDataTypesEnum.NUMBER || field.type === ElasticDataTypesEnum.LONG
+      || field.type === ElasticDataTypesEnum.FLOAT;
+
+    console.log(hasKeyword);
 
     return hasKeyword || isNumeric ? this.allOperators.keyword : this.allOperators.text;
   }

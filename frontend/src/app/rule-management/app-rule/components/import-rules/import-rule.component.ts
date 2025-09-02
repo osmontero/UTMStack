@@ -113,6 +113,9 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
             dataTypes: file.dataTypes && file.dataTypes.length > 0 ? file.dataTypes : []
           };
       });
+      console.log('filesWithDataTypes', filesWithDataTypes);
+
+      // Fetch and filter data types for each file
       forkJoin(
           filesWithDataTypes.map(file =>
             forkJoin(

@@ -181,7 +181,7 @@
             <label class="form-label text-muted small">Operator</label>
             <ng-select
               formControlName="operator"
-              [items]="getOperators(expr.get('field').value)"
+              [items]="operators"
               bindLabel="label"
               bindValue="value"
               class="w-100"
