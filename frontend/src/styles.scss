@@ -1388,6 +1388,17 @@ app-utm-items-per-page {
 }
 
 
+.form-group .form-control-feedback {
+  display: flex;
+  align-items: center;   /* centra vertical */
+  height: 100%;          /* ocupa todo el alto del input */
+  pointer-events: none;  /* opcional, para que no tape el input */
+}
+
+.form-group .form-control-feedback {
+  top: 50%;
+  transform: translateY(-50%);
+}
 
 
 
