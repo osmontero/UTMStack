@@ -25,17 +25,9 @@ export class IncidentSeverityComponent {
         this.background = 'border-warning-800 text-warning-800';
         this.label = 'MEDIUM';
         break;
-      case IncidentSeverityEnum.LOW:
+      default:
         this.background = 'border-info-800 text-info-800';
         this.label = 'LOW';
-        break;
-      case IncidentSeverityEnum.UNIMPORTANT:
-        this.background = 'border-green-800 text-green-800';
-        this.label = 'UNIMPORTANT';
-        break;
-      default:
-        this.background = 'border-slate-800 text-slate-800';
-        this.label = 'UNKNOWN';
         break;
     }
 
