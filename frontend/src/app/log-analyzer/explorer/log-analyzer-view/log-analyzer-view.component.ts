@@ -298,15 +298,16 @@ export class LogAnalyzerViewComponent implements OnInit, OnDestroy {
     this.sortBy = NatureDataPrefixEnum.TIMESTAMP + ',' + 'desc';
     this.pattern = pattern;
     this.fields = [{field: '@timestamp', type: ElasticDataTypesEnum.DATE, visible: true, label: '@timestamp'}];*/
+          this.router.navigate([], {
+            relativeTo: this.activatedRoute,
+            queryParams: {
+              patternId: pattern.id,
+              indexPattern: pattern.pattern,
+              refreshRoute: true
+            },
+          });
 
-    this.router.navigate([], {
-      relativeTo: this.activatedRoute,
-      queryParams: {
-        patternId: pattern.id,
-        indexPattern: pattern.pattern,
-        refreshRoute: true
-      },
-    });
+
   }
 
   saveQuery() {
