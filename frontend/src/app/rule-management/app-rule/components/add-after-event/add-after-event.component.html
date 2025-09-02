@@ -1,113 +1,3 @@
-<!--
-<div [formGroup]="form" class="p-2">
-  &lt;!&ndash; Index Pattern &ndash;&gt;
-  <div class="mb-4">
-    <label for="indexPattern" class="form-label fw-bold">Index Pattern</label>
-    <ng-select
-      formControlName="indexPattern"
-      (change)="changeIndexPattern($event.pattern)"
-      [items]="patterns$ | async"
-      bindLabel="pattern"
-      bindValue="pattern"
-      [closeOnSelect]="true"
-      [clearable]="false"
-      [markFirst]="true"
-      [loadingText]="'Loading index patterns...'"
-      id="indexPattern"
-      class="w-100"
-    ></ng-select>
-  </div>
-
-  &lt;!&ndash; WITH expressions &ndash;&gt;
-  <div formArrayName="with" class="mb-4">
-    <fieldset class="form-fieldset border p-3">
-      <legend>
-        <label>Expressions</label>
-        <span class="span-small-icon ml-2">
-                  <i (click)="addExpression()"
-                     class="icon-plus2 mr-1 cursor-pointer"
-                     ngbTooltip="Add">
-                  </i>
-              </span>
-      </legend>
-    <div *ngFor="let expr of with.controls; let j = index"
-      [formGroupName]="j"
-      class="mb-3">
-      <div class="row g-3 align-items-end">
-        <div class="col-md-4">
-          <label class="form-label">Field</label>
-          <ng-select
-            formControlName="field"
-            [items]="fields$ | async"
-            bindLabel="name"
-            bindValue="name"
-            [addTag]="true"
-            [closeOnSelect]="true"
-            [clearable]="false"
-            [loadingText]="'Loading fields...'"
-            class="w-100"
-          ></ng-select>
-        </div>
-        <div class="col-md-3">
-          <label class="form-label">Operator</label>
-          <ng-select
-            formControlName="operator"
-            [items]="operators"
-            [closeOnSelect]="true"
-            [clearable]="false"
-            class="w-100"
-          ></ng-select>
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">Value</label>
-          <input formControlName="value" class="form-control" />
-        </div>
-        <div class="col-md-1 d-flex justify-content-end">
-          <button type="button" class="btn btn-outline-danger medium-icon" (click)="removeExpression(j)" ngbTooltip="Remove expression">
-            <i class="icon-trash medium-icon"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-    </fieldset>
-  </div>
-
-  &lt;!&ndash; OR nested SearchRequests &ndash;&gt;
-  <div formArrayName="or" class="mb-4">
-    <fieldset class="form-fieldset border p-3">
-      <legend>
-        <label>Events</label>
-        <span class="span-small-icon ml-2">
-                  <i (click)="addOr()"
-                     class="icon-plus2 mr-1 cursor-pointer"
-                     ngbTooltip="Add">
-                  </i>
-              </span>
-      </legend>
-
-    <div *ngFor="let nested of or.controls; let k = index" class="card shadow-sm border-0 mb-3">
-      <div class="card-header d-flex justify-content-between align-items-center bg-light">
-        <span class="fw-semibold">After Event #{{ k + 1 }}</span>
-        <div class="medium-icon">
-          <a class="mr-1 cursor-pointer" (click)="addOr()"
-            ngbTooltip="Add another nested condition">
-            <i class="icon-plus2"></i>
-          </a>
-          <a class="cursor-pointer" (click)="removeOr(k)"
-            ngbTooltip="Remove this nested condition">
-            <i class="icon-cross2"></i>
-          </a>
-        </div>
-      </div>
-      <div class="card-body">
-        <app-after-event [form]="asFormGroup(or.at(k))" (remove)="removeOr(k)"></app-after-event>
-      </div>
-    </div>
-    </fieldset>
-  </div>
-</div>
--->
-
 <div [formGroup]="form" class="p-2">
   <!-- Index Pattern, Within and Count -->
   <div class="row g-2 mt-2 mb-3">
@@ -168,7 +58,7 @@
             <ng-select
               (change)="onFieldChange($event, j)"
               formControlName="field"
-              [items]="fields$ | async"
+              [items]="fields"
               bindLabel="name"
               bindValue="name"
               class="w-100"
@@ -181,7 +71,7 @@
             <label class="form-label text-muted small">Operator</label>
             <ng-select
               formControlName="operator"
-              [items]="operators"
+              [items]="getOperatorByField(expr.controls['field'].value)"
               bindLabel="label"
               bindValue="value"
               class="w-100"
