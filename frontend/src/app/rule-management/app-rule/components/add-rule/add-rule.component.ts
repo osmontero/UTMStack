@@ -1,5 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {AbstractControl, ValidatorFn ,ValidationErrors, FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
+import {AbstractControl, FormArray ,FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators} from '@angular/forms';
 
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {forkJoin, Observable} from 'rxjs';
@@ -9,7 +9,7 @@ import {AddRuleStepEnum, DataType, Mode, Rule, SearchRequest} from '../../../mod
 import {AfterEventFormService} from '../../../services/after-event-form.service';
 import {DataTypeService} from '../../../services/data-type.service';
 import {RuleService} from '../../../services/rule.service';
-import {minWordsValidator} from "../../validators/customs.validators";
+import {minWordsValidator} from '../../validators/customs.validators';
 
 @Component({
   selector: 'app-add-rule',
@@ -105,11 +105,11 @@ export class AddRuleComponent implements OnInit, OnDestroy {
             }
           }
         });
-    }else{
+    } else{
       return this.ruleForm.valid
     }
 
-    return isValid
+    return isValid;
   }
 
 
@@ -118,10 +118,10 @@ export class AddRuleComponent implements OnInit, OnDestroy {
     if(this.ruleForm.get('afterEvents').errors && this.ruleForm.get('afterEvents').errors.firstElementEmpty) {
       return {
            ...this.ruleForm.value,
-           afterEvents:[]
-      }
-    }else{
-      return this.ruleForm.value
+           afterEvents: []
+      };
+    } else {
+      return this.ruleForm.value;
     }
   }
 
@@ -169,7 +169,7 @@ export class AddRuleComponent implements OnInit, OnDestroy {
       integrity: [rule ? rule.integrity : 0, [Validators.required, Validators.min(0), Validators.max(3)]],
       availability: [rule ? rule.availability : 0, [Validators.required, Validators.min(0), Validators.max(3)]],
       category: [rule ? rule.category : '', [Validators.required, minWordsValidator(1, 3)]],
-      technique: [rule ? rule.technique : '', [Validators.required, minWordsValidator(2, 3)]],
+      technique: [rule ? rule.technique : '', [Validators.required, minWordsValidator(1, 3)]],
       description: [rule ? rule.description : '', [Validators.required, minWordsValidator(2, 3)]],
       definition: [rule ? rule.definition : '', [Validators.required, minWordsValidator(2, 3)]],
       systemOwner: [rule ? rule.systemOwner : false],

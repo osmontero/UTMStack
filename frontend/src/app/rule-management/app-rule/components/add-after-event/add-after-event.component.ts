@@ -24,7 +24,7 @@ export class AddAfterEventComponent implements OnInit {
   @Input() rule: Rule;
   @Output() remove = new EventEmitter<void>();
   patterns$: Observable<UtmIndexPattern[]>;
-  fields$: Observable<ElasticSearchFieldInfoType[]>;
+  fields$: Observable<ElasticSearchFieldInfoType[]> = of([] as ElasticSearchFieldInfoType[]);
   allOperators = {
     keyword: [
       { label: 'filter term', value: 'filter_term' },

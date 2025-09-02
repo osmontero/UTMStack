@@ -75,8 +75,8 @@ export class ImportRuleService {
     // technique
     if (typeof obj.technique !== 'string' || obj.technique.trim() === '') {
       errors['technique'] = ['Technique is required'];
-    } else if (!this.minWordsCheck(obj.technique, 2, 3)) {
-      errors['technique'] = ['Technique must contain between 2 and 3 words'];
+    } else if (!this.minWordsCheck(obj.technique, 1, 3)) {
+      errors['technique'] = ['Technique must contain between 1 and 3 words'];
     }
 
     // description
