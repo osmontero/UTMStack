@@ -77,9 +77,10 @@ export class IndexPatternSelectComponent implements OnInit {
     return this.patterns.map(pattern => ({ id: pattern.id, name: pattern.pattern, selected: this.pattern.id == pattern.id }));
   }
 
-  selectedPattern($event) {
+  selectedPattern($event,popover) {
     this.pattern = this.patterns.find(p => p.id === $event.id);
     this.indexPatternList = this.getListPatterns();
     this.indexPatternChange.emit(this.pattern);
+     popover.close();
   }
 }

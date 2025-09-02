@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute, NavigationEnd, NavigationStart, Params, Router} from '@angular/router';
 import {UUID} from 'angular2-uuid';
-import {Observable, Subject} from 'rxjs';
+import {Observable, Subject,take} from 'rxjs';
 import {filter, takeUntil, tap} from 'rxjs/operators';
 import {UtmIndexPattern} from '../../../shared/types/index-pattern/utm-index-pattern';
 import {IndexPatternBehavior} from '../../shared/behaviors/index-pattern.behavior';
@@ -47,12 +47,12 @@ export class LogAnalyzerTabsComponent implements OnInit, OnDestroy {
             this.addNewTab(this.query.name, this.query, params);
           });
         } else {
-          if (this.tabService.getTabCount() ==0) {
-            this.addNewTab(null, null, params);
-          }
-          if(isRefresh){
-            this.updateCurrentTab(params)
-          }
+              this.tabSelected = this.tabService.getActiveTab()
+              if(isRefresh && !!this.tabSelected){
+                  this.updateCurrentTab(params)
+                  return
+              }
+              this.addNewTab(null, null, params);
         }
       });
 
@@ -81,7 +81,6 @@ export class LogAnalyzerTabsComponent implements OnInit, OnDestroy {
   }
 
   tabChanged(tab: TabType) {
-    console.log(tab)
     this.tabSelected = tab;
     this.tabService.setActiveTab(tab.id);
     this.indexPatternBehavior.changePattern({pattern: tab.tabData.pattern, tabUUID: tab.uuid});

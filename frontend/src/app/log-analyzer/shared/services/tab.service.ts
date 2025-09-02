@@ -119,7 +119,6 @@ export class TabService {
    */
   private emitTabs(): void {
     //avoiding javascript to send references to the subject
-    const tabsDeepcopy = JSON.parse(JSON.stringify(this.tabs))
     this.tabSubject.next([...this.tabs]);
   }
 }
