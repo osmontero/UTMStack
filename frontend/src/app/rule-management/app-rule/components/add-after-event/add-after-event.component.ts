@@ -12,6 +12,7 @@ import {UtmIndexPattern} from '../../../../shared/types/index-pattern/utm-index-
 import {Rule} from '../../../models/rule.model';
 import {AfterEventFormService} from '../../../services/after-event-form.service';
 import {RuleService} from '../../../services/rule.service';
+import {getOperator} from "../../../../shared/util/query-params-to-filter.util";
 
 
 @Component({
@@ -24,7 +25,7 @@ export class AddAfterEventComponent implements OnInit {
   @Input() rule: Rule;
   @Output() remove = new EventEmitter<void>();
   patterns$: Observable<UtmIndexPattern[]>;
-  fields$: Observable<ElasticSearchFieldInfoType[]> = of([] as ElasticSearchFieldInfoType[]);
+  fields: ElasticSearchFieldInfoType[] = [] as ElasticSearchFieldInfoType[];
   allOperators = {
     keyword: [
       { label: 'filter term', value: 'filter_term' },
@@ -102,13 +103,13 @@ export class AddAfterEventComponent implements OnInit {
   }
 
   changeIndexPattern(indexPattern: string) {
-    this.fields$ = this.fieldDataService.getFields(indexPattern).pipe(
+    this.fieldDataService.getFields(indexPattern).pipe(
       map((fields) => fields || []),
       catchError((error) => {
         this.toastService.showError('Error', 'Failed to load fields');
         return of([]);
       })
-    );
+    ).subscribe(fields => this.fields = fields);
   }
 
   getOperators(field: ElasticSearchFieldInfoType) {
@@ -118,16 +119,16 @@ export class AddAfterEventComponent implements OnInit {
     const isNumeric = field.type === ElasticDataTypesEnum.NUMBER || field.type === ElasticDataTypesEnum.LONG
       || field.type === ElasticDataTypesEnum.FLOAT;
 
-    console.log(hasKeyword);
-
     return hasKeyword || isNumeric ? this.allOperators.keyword : this.allOperators.text;
   }
 
   onFieldChange($event: ElasticSearchFieldInfoType, index: number) {
-    this.operators = this.getOperators($event);
-
     const control = this.with.at(index);
     control.get('operator').reset();
   }
 
+  getOperatorByField(fieldName: string) {
+    const field = this.fields.find(f => f.name === fieldName);
+    return this.getOperators(field);
+  }
 }
