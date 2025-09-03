@@ -125,6 +125,9 @@ export class TfaSetupComponent implements OnInit, OnDestroy {
   }
 
   clearError(): void {
+    if(this.code.length == 6 && this.selectedMethod === TfaMethod.TOTP ){
+      this.onSubmit()
+    }
     this.errorMessage = '';
   }
 

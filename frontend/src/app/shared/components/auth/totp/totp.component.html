@@ -67,9 +67,14 @@
           <form (ngSubmit)="onSubmit()" #verifyForm="ngForm" novalidate>
 
             <!-- Code Input -->
-            <div class="form-group mb-4">
+            <div class="form-group mb-4 position-relative">
+              <div  class="spinner-container">
+                <app-utm-spinner [loading]="isVerifying" label=""></app-utm-spinner>
+              </div>
+
               <div class="input-group">
                 <input
+                  [disabled]="isVerifying"
                   id="verificationCode"
                   name="verificationCode"
                   type="text"
@@ -129,7 +134,9 @@
             </div>
 
             <!-- Verify Button -->
-            <div class="d-grid mb-2">
+            <div class="d-grid mb-2 relative"
+              style="display:none;"
+            >
               <button
                 type="submit"
                 class="btn utm-button utm-button-primary w-100"

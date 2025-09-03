@@ -66,6 +66,9 @@ export class TotpComponent implements OnInit {
   }
 
   clearError() {
+    if(this.verificationCode.length == 6){
+      this.onSubmit()
+    }
     this.errorMessage = '';
   }
 }
