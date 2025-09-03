@@ -222,6 +222,7 @@ import {TimePeriodPipe} from "./pipes/time-period.pipe";
 import {ModalAddNoteComponent} from "./components/utm/util/modal-add-note/modal-add-note.component";
 import { UtmCollapsibleTextComponent } from './components/utm/util/utm-collapsible-text/utm-collapsible-text.component';
 import {FilterPipe} from "./pipes/filter.pipe";
+import {RefreshFilterComponent} from "./components/utm/filters/refresh-filter/refresh-filter.component";
 
 
 @NgModule({
@@ -367,7 +368,8 @@ import {FilterPipe} from "./pipes/filter.pipe";
     ModalAddNoteComponent,
     TimePeriodPipe,
     UtmCollapsibleTextComponent,
-    FilterPipe
+    FilterPipe,
+    RefreshFilterComponent
   ],
   exports: [
     IndexPatternCreateComponent,
@@ -466,7 +468,8 @@ import {FilterPipe} from "./pipes/filter.pipe";
     ModalAddNoteComponent,
     TimePeriodPipe,
     UtmCollapsibleTextComponent,
-    FilterPipe
+    FilterPipe,
+    RefreshFilterComponent
   ],
   entryComponents: [
     LoginComponent,
