@@ -1,8 +1,11 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {ActivatedRoute, NavigationEnd, NavigationStart, Params, Router} from '@angular/router';
+import {ActivatedRoute, NavigationStart, Params, Router} from '@angular/router';
 import {UUID} from 'angular2-uuid';
-import {Observable, Subject,take} from 'rxjs';
+import {Observable, Subject} from 'rxjs';
 import {filter, takeUntil, tap} from 'rxjs/operators';
+import {
+  ElasticFilterDefaultTime
+} from '../../../shared/components/utm/filters/elastic-filter-time/elastic-filter-time.component';
 import {UtmIndexPattern} from '../../../shared/types/index-pattern/utm-index-pattern';
 import {IndexPatternBehavior} from '../../shared/behaviors/index-pattern.behavior';
 import {LogAnalyzerQueryService} from '../../shared/services/log-analyzer-query.service';
@@ -10,9 +13,6 @@ import {TabService} from '../../shared/services/tab.service';
 import {LogAnalyzerQueryType} from '../../shared/type/log-analyzer-query.type';
 import {TabType} from '../../shared/type/tab.type';
 import {LogAnalyzerViewComponent} from '../log-analyzer-view/log-analyzer-view.component';
-import {
-  ElasticFilterDefaultTime
-} from "../../../shared/components/utm/filters/elastic-filter-time/elastic-filter-time.component";
 
 @Component({
   selector: 'app-log-analyzer-tabs',
@@ -47,10 +47,10 @@ export class LogAnalyzerTabsComponent implements OnInit, OnDestroy {
             this.addNewTab(this.query.name, this.query, params);
           });
         } else {
-              this.tabSelected = this.tabService.getActiveTab()
-              if(isRefresh && !!this.tabSelected){
-                  this.updateCurrentTab(params)
-                  return
+              this.tabSelected = this.tabService.getActiveTab();
+              if (isRefresh && !!this.tabSelected) {
+                  this.updateCurrentTab(params);
+                  return;
               }
               this.addNewTab(null, null, params);
         }
@@ -66,7 +66,7 @@ export class LogAnalyzerTabsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$),
             filter(query => !!query))
       .subscribe(query => {
-      this.tabService.updateActiveTab(query)
+      this.tabService.updateActiveTab(query);
       });
 
     this.router.events.pipe(
@@ -86,15 +86,14 @@ export class LogAnalyzerTabsComponent implements OnInit, OnDestroy {
     this.indexPatternBehavior.changePattern({pattern: tab.tabData.pattern, tabUUID: tab.uuid});
   }
 
-  updateCurrentTab(params?:Params){
-    if(!this.tabSelected)return
-      const pattern = params && params.patternId ? new UtmIndexPattern(params.patternId, params.indexPattern, true) :
+  updateCurrentTab(params?: Params) {
+    if (!this.tabSelected) {return; }
+    const pattern = params && params.patternId ? new UtmIndexPattern(params.patternId, params.indexPattern, true) :
         new UtmIndexPattern(1, 'v11-log-*', true);
-        this.tabService.updateActiveTab({name:this.tabSelected.title,pattern})
-        //timeout to set the reload at the end of DOM reload
-        setTimeout(()=>{
-            this.indexPatternBehavior.changePattern({pattern, tabUUID:this.tabSelected.uuid});
-        },0)
+    this.tabService.updateActiveTab({name: this.tabSelected.title, pattern});
+    setTimeout(() => {
+            this.indexPatternBehavior.changePattern({pattern, tabUUID: this.tabSelected.uuid});
+        }, 0);
   }
 
   addNewTab(tabName?: string, query?: LogAnalyzerQueryType, params?: Params) {
