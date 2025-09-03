@@ -437,7 +437,7 @@ func (c *Compose) Populate(conf *Config, stack *StackConfig) *Compose {
 			"10000:8080",
 		},
 		Volumes: []string{
-			stack.Rules + ":/app/rulesets",
+			stack.Rules + ":/app/rulesets/custom",
 		},
 		Environment: []string{
 			"SERVER_NAME=" + conf.ServerName,
