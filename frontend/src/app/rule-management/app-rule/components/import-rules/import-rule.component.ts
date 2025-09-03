@@ -12,11 +12,11 @@ import {ImportRuleService} from './import-rule.service';
 
 
 type RuleList = {
-    rule:Rule,
-    valid: boolean,
-    status: Status,
-    errors:Record<string, string[]>,
-    isLoading:boolean
+    rule:Rule;
+    valid: boolean;
+    status: Status;
+    errors:Record<string; string[]>;
+    isLoading:boolean;
 }
 
 @Component({
@@ -153,7 +153,7 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
           ),
         ).pipe(finalize(()=>(this.loading = false))).subscribe(updatedFiles => {
           this.rules = updatedFiles.map(file => {
-            const rule = {
+            let rule:Rule = {
                 ...file,
                 dataTypes: file.dataTypes.length > 0 ? file.dataTypes : [],
             };
@@ -170,6 +170,7 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
               rule,
               valid: isValid,
               status: isValid ? ('valid' as Status) : ('error' as Status),
+              isLoading:false,
               errors
             };
 
@@ -217,3 +218,5 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
     this.dataTypeService.resetTypes();
   }
 }
+
+
