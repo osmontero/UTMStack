@@ -3,8 +3,8 @@ import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
 import {SERVER_API_URL} from '../../../app.constants';
 import {UtmDashboardVisualizationType} from '../../../shared/chart/types/dashboard/utm-dashboard-visualization.type';
-import {createRequestOption} from '../../../shared/util/request-util';
 import {RefreshDataService} from '../../../shared/services/util/refresh-data.service';
+import {createRequestOption} from '../../../shared/util/request-util';
 
 
 @Injectable({
