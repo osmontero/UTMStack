@@ -1,3 +1,4 @@
-# UTMStack 10.9.0 Release Notes
+# UTMStack 10.9.1 Release Notes
 
-- Added New Suricata Integration.
+-- Dashboard Rendering with Time Filters
+   Resolved performance issues affecting dashboard responsiveness when applying time-based filters.
