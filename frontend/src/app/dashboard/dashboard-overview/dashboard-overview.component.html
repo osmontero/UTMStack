@@ -1,7 +1,8 @@
-<div class="container-fluid dashboard-container pr-3 pl-3 pt-2">
+<div class="container-fluid dashboard-container px-1 pt-2">
   <div *ngIf="!pdfExport" class="d-flex justify-content-between align-items-center mb-2">
     <h5 class="card-title label-header mb-0 text-uppercase label-header">Overview</h5>
     <div class="header-elements d-flex justify-content-end align-items-center">
+      <app-refresh-filter></app-refresh-filter>
       <app-elastic-filter-time [invertContent]="true"
                                [isEmitter]="true"
                                container="body"></app-elastic-filter-time>
@@ -20,14 +21,10 @@
     </div>
     <div class="row">
       <div class="col-lg-4 col-md-12 col-sm-12">
-        <app-chart-alert-daily-week [refreshInterval]="refreshInterval"
-                                    (loaded)="onRun()">
-        </app-chart-alert-daily-week>
+        <app-chart-alert-daily-week (loaded)="onRun()"></app-chart-alert-daily-week>
       </div>
       <div class="col-lg-8 col-md-12 col-sm-12">
-        <app-chart-alert-by-status [refreshInterval]="refreshInterval"
-                                   (loaded)="onRun()">
-        </app-chart-alert-by-status>
+        <app-chart-alert-by-status (loaded)="onRun()"></app-chart-alert-by-status>
       </div>
     </div>
 
@@ -39,8 +36,8 @@
                               [navigateUrl]="ALERT_ROUTE"
                               [paramClick]="paramAlertSeverityCLick"
                               [params]="paramsAlertSeverity"
-                              (loaded)="onRun()"
-                              [refreshInterval]="refreshInterval">
+                              [type]="RefreshType.CHART_COMMON_PIE_SEVERITY"
+                              (loaded)="onRun()">
         </app-chart-common-pie>
       </div>
       <div class="col-lg-5 col-md-12 col-sm-12">
@@ -54,8 +51,8 @@
                                 [navigateUrl]="ALERT_ROUTE"
                                 [paramClick]="tableTopAlertsParamsClick"
                                 [params]="tableTopAlertsParams"
-                                (loaded)="onRun()"
-                                [refreshInterval]="refreshInterval">
+                                [type]="RefreshType.CHART_COMMON_TABLE_TOP_ALERT"
+                                (loaded)="onRun()">
         </app-chart-common-table>
       </div>
     </div>
@@ -74,10 +71,10 @@
                               [paramClick]="paramEventByTypeCLick"
                               [params]="paramsEventByType"
                               (loaded)="onRun()"
-                              [refreshInterval]="refreshInterval"></app-chart-common-pie>
+                              [type]="RefreshType.CHART_COMMON_PIE_EVENT"></app-chart-common-pie>
       </div>
       <div class="col-lg-5 col-md-12 col-sm-12">
-        <app-chart-event-in-time [refreshInterval]="refreshInterval"
+        <app-chart-event-in-time [type]="RefreshType.CHART_EVENT_IN_TIME"
                                  (loaded)="onRun()"></app-chart-event-in-time>
       </div>
       <div class="col-lg-4 col-md-12 col-sm-12">
@@ -86,8 +83,8 @@
                                 [navigateUrl]="LOG_ANALYZER_ROUTE"
                                 [paramClick]="paramEvenTopCLick"
                                 [params]="paramsTopEvent"
-                                (loaded)="onRun()"
-                                [refreshInterval]="refreshInterval">
+                                [type]="RefreshType.CHART_COMMON_TABLE_TOP_EVENT"
+                                (loaded)="onRun()">
         </app-chart-common-table>
       </div>
     </div>

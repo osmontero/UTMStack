@@ -1,47 +1,66 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {ChangeDetectionStrategy, Component, EventEmitter, OnDestroy, OnInit, Output} from '@angular/core';
 import {Router} from '@angular/router';
 import {NgxSpinnerService} from 'ngx-spinner';
+import {Observable, Subject} from 'rxjs';
+import {filter, map, startWith, switchMap, takeUntil, tap} from 'rxjs/operators';
 import {ALERT_GLOBAL_FIELD, ALERT_TIMESTAMP_FIELD} from '../../../../shared/constants/alert/alert-field.constant';
 import {ElasticOperatorsEnum} from '../../../../shared/enums/elastic-operators.enum';
-import {OverviewAlertDashboardService} from '../../../../shared/services/charts-overview/overview-alert-dashboard.service';
+import {
+  OverviewAlertDashboardService
+} from '../../../../shared/services/charts-overview/overview-alert-dashboard.service';
+import {RefreshService, RefreshType} from '../../../../shared/services/util/refresh.service';
 import {ChartSerieValueType} from '../../../../shared/types/chart-reponse/chart-serie-value.type';
 
 @Component({
   selector: 'app-chart-alert-daily-week',
   templateUrl: './chart-alert-daily-week.component.html',
-  styleUrls: ['./chart-alert-daily-week.component.scss']
+  styleUrls: ['./chart-alert-daily-week.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ChartAlertDailyWeekComponent implements OnInit, OnDestroy {
-  @Input() refreshInterval;
   @Output() loaded = new EventEmitter<void>();
   interval: any;
   dailyAlert: ChartSerieValueType[] = [];
-  loadingChartDailyAlert = true;
+  loadingChartDailyAlert = false;
+  destroy$ = new Subject<void>();
+  dailyAlert$: Observable<ChartSerieValueType[]>;
 
   constructor(private overviewAlertDashboardService: OverviewAlertDashboardService,
+              private refreshService: RefreshService,
               private router: Router,
               private spinner: NgxSpinnerService) {
   }
 
   ngOnInit() {
-    this.getDailyAlert();
-    if (this.refreshInterval) {
-      this.interval = setInterval(() => {
-        this.getDailyAlert();
-      }, this.refreshInterval);
-    }
+
+    this.dailyAlert$ = this.refreshService.refresh$
+      .pipe(
+        takeUntil(this.destroy$),
+        filter((refreshType: string) => (
+          refreshType === RefreshType.ALL)),
+        startWith(this.init()),
+        switchMap(() => {
+          return this.getDailyAlert();
+        })
+      );
   }
 
-  ngOnDestroy(): void {
-    clearInterval(this.interval);
+  init() {
+    return this.getDailyAlert();
   }
 
   getDailyAlert() {
-    this.overviewAlertDashboardService.getCardAlertTodayWeek().subscribe(response => {
-      this.dailyAlert = response.body;
-      this.loadingChartDailyAlert = false;
-      this.loaded.emit();
-    });
+    this.loadingChartDailyAlert = true;
+    return this.overviewAlertDashboardService
+      .getCardAlertTodayWeek()
+        .pipe(
+          map(response => {
+            return response.body;
+          }),
+          tap(() => {
+            this.loaded.emit();
+            this.loadingChartDailyAlert = false;
+          }));
   }
 
   chartEvent(type: 'today' | 'week') {
@@ -58,6 +77,11 @@ export class ChartAlertDailyWeekComponent implements OnInit, OnDestroy {
     }).then(() => {
       this.spinner.hide('loadingSpinner');
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
 }

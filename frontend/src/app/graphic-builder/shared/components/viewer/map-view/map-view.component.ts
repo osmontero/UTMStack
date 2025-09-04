@@ -1,7 +1,7 @@
-import {AfterViewInit, Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {AfterViewInit, Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {UUID} from 'angular2-uuid';
 import * as L from 'leaflet';
-import {Observable, Observer, Subject} from 'rxjs';
+import {Observable, Observer, of, Subject} from 'rxjs';
 import {UtmToastService} from '../../../../../shared/alert/utm-toast.service';
 import {DashboardBehavior} from '../../../../../shared/behaviors/dashboard.behavior';
 import {EchartClickAction} from '../../../../../shared/chart/types/action/echart-click-action';
@@ -18,13 +18,16 @@ import {RunVisualizationService} from '../../../services/run-visualization.servi
 import {UtmChartClickActionService} from '../../../services/utm-chart-click-action.service';
 import {rebuildVisualizationFilterTime} from '../../../util/chart-filter/chart-filter.util';
 import {resolveDefaultVisualizationTime} from '../../../util/visualization/visualization-render.util';
+import {RefreshService, RefreshType} from "../../../../../shared/services/util/refresh.service";
+import {catchError, filter, map, switchMap, takeUntil, tap} from "rxjs/operators";
+import {TimeFilterBehavior} from "../../../../../shared/behaviors/time-filter.behavior";
 
 @Component({
   selector: 'app-map-view',
   templateUrl: './map-view.component.html',
   styleUrls: ['./map-view.component.scss']
 })
-export class MapViewComponent implements OnInit, AfterViewInit {
+export class MapViewComponent implements OnInit, AfterViewInit, OnDestroy {
   mapId = UUID.UUID();
   @Input() building: boolean;
   @Input() chartId: number;
@@ -37,6 +40,7 @@ export class MapViewComponent implements OnInit, AfterViewInit {
   @Output() runned = new EventEmitter<string>();
   loadingOption = true;
   data: { name: string, value: number[] }[] = [];
+  data$: Observable<{ name: string, value: number[] }[]>;
   mapOption: LeafletMapType;
   map: any;
   contentLoaded: Observer<boolean>;
@@ -45,12 +49,187 @@ export class MapViewComponent implements OnInit, AfterViewInit {
   error = false;
   defaultTime: ElasticFilterDefaultTime;
   markersLayer: any;
+  refreshType: string;
+  destroy$: Subject<void> = new Subject<void>();
+  // tslint:disable-next-line:max-line-length
+  res: { name: string, value: number[] }[] = [
+    {
+      "name": "57.135.189.63",
+      "value": [
+        26.2729,
+        -80.26,
+        28.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:6463:35f3:3a5f:c61f",
+      "value": [
+        37.751,
+        -97.822,
+        22.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:5c36:dc9f:f881:d87c",
+      "value": [
+        37.751,
+        -97.822,
+        9.0
+      ]
+    },
+    {
+      "name": "88.196.79.239",
+      "value": [
+        59.433,
+        24.7323,
+        7.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:c08d:edc:4c08:ca06",
+      "value": [
+        37.751,
+        -97.822,
+        6.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:a015:cc03:ee94:b65a",
+      "value": [
+        37.751,
+        -97.822,
+        4.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:b509:9ea9:cb8c:ba47",
+      "value": [
+        37.751,
+        -97.822,
+        4.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:1c73:b69d:5b2b:5b81",
+      "value": [
+        37.751,
+        -97.822,
+        3.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:5863:8f23:93eb:4f60",
+      "value": [
+        37.751,
+        -97.822,
+        3.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:6182:367b:f8f5:99cb",
+      "value": [
+        37.751,
+        -97.822,
+        3.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:6cca:ff0:72c2:98e1",
+      "value": [
+        37.751,
+        -97.822,
+        3.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:916a:63e6:9196:57ee",
+      "value": [
+        37.751,
+        -97.822,
+        3.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:9587:4412:99a:4169",
+      "value": [
+        37.751,
+        -97.822,
+        3.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:9ddb:ce24:5ea2:2f84",
+      "value": [
+        37.751,
+        -97.822,
+        3.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:b13f:97f3:2728:950",
+      "value": [
+        37.751,
+        -97.822,
+        3.0
+      ]
+    },
+    {
+      "name": "2600:1700:234c:ac10:d0cb:fe60:ca36:8c59",
+      "value": [
+        25.6958,
+        -80.3626,
+        2.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:217b:7bdc:ab48:e41a",
+      "value": [
+        37.751,
+        -97.822,
+        2.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:9d3d:d2e1:d3f2:b458",
+      "value": [
+        37.751,
+        -97.822,
+        2.0
+      ]
+    },
+    {
+      "name": "107.202.154.128",
+      "value": [
+        25.7689,
+        -80.1946,
+        1.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:a589:cf0c:9737:f4c6",
+      "value": [
+        37.751,
+        -97.822,
+        1.0
+      ]
+    },
+    {
+      "name": "2601:58a:8984:9240:ccbc:1190:7f84:c0b8",
+      "value": [
+        37.751,
+        -97.822,
+        1.0
+      ]
+    }
+  ];
 
   constructor(private runVisualizationService: RunVisualizationService,
               private runVisualizationBehavior: RunVisualizationBehavior,
               private utmChartClickActionService: UtmChartClickActionService,
               private dashboardBehavior: DashboardBehavior,
-              private toastService: UtmToastService) {
+              private toastService: UtmToastService,
+              private refreshService: RefreshService,
+              private timeFilterBehavior: TimeFilterBehavior) {
 
   }
 
@@ -80,6 +259,13 @@ export class MapViewComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
+    this.refreshType = `${this.chartId}`;
+    this.data$ = this.refreshService.refresh$
+      .pipe(
+        filter((refreshType) => refreshType === RefreshType.ALL ||
+          refreshType === this.refreshType),
+        switchMap((value, index) => this.runVisualization()));
+
     this.mapLoaded().subscribe(value => {
       if (value) {
         const baseLayers = {};
@@ -104,27 +290,47 @@ export class MapViewComponent implements OnInit, AfterViewInit {
         }, 1);
       }
     });
-    this.runVisualizationBehavior.$run.subscribe(id => {
+    this.runVisualizationBehavior.$run
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(id => {
       if (id && this.chartId === id) {
-        this.runVisualization();
+        this.refreshService.sendRefresh(this.refreshType);
         this.defaultTime = resolveDefaultVisualizationTime(this.visualization);
       }
     });
-    this.dashboardBehavior.$filterDashboard.subscribe(dashboardFilter => {
+    this.dashboardBehavior.$filterDashboard
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(dashboardFilter => {
       if (dashboardFilter && dashboardFilter.indexPattern === this.visualization.pattern.pattern) {
         mergeParams(dashboardFilter.filter, this.visualization.filterType).then(newFilters => {
           this.visualization.filterType = sanitizeFilters(newFilters);
-          this.runVisualization();
+          this.refreshService.sendRefresh(this.refreshType);
         });
       }
     });
-    this.runVisualization();
+
+    this.timeFilterBehavior.$time
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(time => !!time))
+      .subscribe(time => {
+        if (time) {
+          this.onTimeFilterChange({
+            timeFrom: time.from,
+            timeTo: time.to
+          });
+        }
+      });
+
     this.defaultTime = resolveDefaultVisualizationTime(this.visualization);
+    if(!this.defaultTime){
+      this.refreshService.sendRefresh(this.refreshType);
+    }
   }
 
   runVisualization() {
     this.loadingOption = true;
-    this.runVisualizationService.run(this.visualization).subscribe(resp => {
+    /*this.runVisualizationService.run(this.visualization).subscribe(resp => {
       this.loadingOption = false;
       this.runned.emit('runned');
       this.data = resp;
@@ -136,7 +342,27 @@ export class MapViewComponent implements OnInit, AfterViewInit {
       this.runned.emit('runned');
       this.toastService.showError('Error',
         'Error occurred while running visualization');
-    });
+    });*/
+
+    return this.runVisualizationService.run(this.visualization)
+      .pipe(
+        tap((data) => {
+          this.loadingOption = false;
+          this.runned.emit('runned');
+          this.data = data;
+          this.onChartChange();
+          this.error = false;
+        }),
+        map( data => data.length > 0 ? data[0] : [] ),
+        catchError(() => {
+          this.loadingOption = false;
+          this.error = true;
+          this.runned.emit('runned');
+          this.toastService.showError('Error',
+            'Error occurred while running visualization');
+          return of([]);
+        })
+      );
   }
 
   /**
@@ -232,7 +458,33 @@ export class MapViewComponent implements OnInit, AfterViewInit {
   onTimeFilterChange($event: TimeFilterType) {
     rebuildVisualizationFilterTime($event, this.visualization.filterType).then(filters => {
       this.visualization.filterType = filters;
-      this.runVisualization();
+      this.refreshService.sendRefresh(this.refreshType);
     });
+  }
+
+  initMap() {
+    // const osmLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+    // let osmUrl: string;
+    // let osmAttrib: string;
+    // if (this.mapOption && this.mapOption.tiles.length === 0) {
+    //   osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    //   osmAttrib = '&copy; ' + osmLink + ' Contributors';
+    // } else {
+    //   osmUrl = this.mapOption.tiles[0].urlTemplate;
+    //   osmAttrib = this.mapOption.tiles[0].options.attribution;
+    // }
+    // const osmMap = L.tileLayer(osmUrl, {attribution: osmAttrib});
+    this.map = new L.map(this.mapId, {
+      // layers: [osmMap], // only add one!
+      minZoom: 1
+    });
+    this.markersLayer = new L.LayerGroup();
+    this.sub.next(true);
+  }
+
+  ngOnDestroy(): void {
+    this.refreshService.stopInterval();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

@@ -23,6 +23,7 @@ import {OverviewAlertDashboardService} from '../../shared/services/charts-overvi
 import {IndexPatternService} from '../../shared/services/elasticsearch/index-pattern.service';
 import {LocalFieldService} from '../../shared/services/elasticsearch/local-field.service';
 import {ExportPdfService} from '../../shared/services/util/export-pdf.service';
+import {RefreshService, RefreshType} from '../../shared/services/util/refresh.service';
 import {ChartSerieValueType} from '../../shared/types/chart-reponse/chart-serie-value.type';
 import {ElasticFilterType} from '../../shared/types/filter/elastic-filter.type';
 import {UtmIndexPatternFields} from '../../shared/types/index-pattern/utm-index-pattern-fields';
@@ -66,9 +67,6 @@ export class DashboardOverviewComponent implements OnInit, OnDestroy {
     indexPattern: IndexPatternSystemEnumName.LOG
   };
   paramEvenTopCLick = 'logx.wineventlog.event_name.keyword';
-
-  adActive: boolean;
-  vulActive: boolean;
   alertSeverityColorMap: { value: string, color: string }[] = [
     {color: '#42A5F5', value: LOW_TEXT},
     {color: '#FF9800', value: MEDIUM_TEXT},
@@ -81,6 +79,8 @@ export class DashboardOverviewComponent implements OnInit, OnDestroy {
   runList = 0;
   visualizationRender = 8;
   preparingPrint = true;
+  RefreshType = RefreshType;
+  timeOutId: any;
 
 
   constructor(private overviewAlertDashboardService: OverviewAlertDashboardService,
@@ -92,7 +92,8 @@ export class DashboardOverviewComponent implements OnInit, OnDestroy {
               private exportPdfService: ExportPdfService,
               private activatedRoute: ActivatedRoute,
               private timeFilterBehavior: TimeFilterBehavior,
-              private utmToastService: UtmToastService) {
+              private utmToastService: UtmToastService,
+              private refreshService: RefreshService) {
   }
 
   ngOnInit() {
@@ -129,7 +130,7 @@ export class DashboardOverviewComponent implements OnInit, OnDestroy {
     //   }
     // });
 
-    setTimeout(() => {
+    this.timeOutId = setTimeout(() => {
       this.synchronizeFields();
     }, 100000);
 
@@ -266,6 +267,7 @@ export class DashboardOverviewComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.refreshService.stopInterval();
+    clearTimeout(this.timeOutId);
   }
-
 }

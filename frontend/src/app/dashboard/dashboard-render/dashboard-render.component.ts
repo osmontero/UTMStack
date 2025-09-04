@@ -1,8 +1,10 @@
-import {AfterViewInit, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
-import {NgbModal} from '@ng-bootstrap/ng-bootstrap';
+import {AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
 import {CompactType, GridsterConfig, GridsterItem, GridType} from 'angular-gridster2';
 import {UUID} from 'angular2-uuid';
+import {NgxSpinnerService} from 'ngx-spinner';
+import {Observable} from 'rxjs';
+import {map, tap} from 'rxjs/operators';
 import {IComponent} from '../../graphic-builder/dashboard-builder/shared/services/layout.service';
 import {rebuildVisualizationFilterTime} from '../../graphic-builder/shared/util/chart-filter/chart-filter.util';
 import {DashboardBehavior} from '../../shared/behaviors/dashboard.behavior';
@@ -11,20 +13,20 @@ import {UtmDashboardVisualizationType} from '../../shared/chart/types/dashboard/
 import {UtmDashboardType} from '../../shared/chart/types/dashboard/utm-dashboard.type';
 import {VisualizationType} from '../../shared/chart/types/visualization.type';
 import {ChartTypeEnum} from '../../shared/enums/chart-type.enum';
+import {ExportPdfService} from '../../shared/services/util/export-pdf.service';
+import {RefreshService} from '../../shared/services/util/refresh.service';
 import {DashboardFilterType} from '../../shared/types/filter/dashboard-filter.type';
 import {ElasticFilterType} from '../../shared/types/filter/elastic-filter.type';
 import {mergeParams, sanitizeFilters} from '../../shared/util/elastic-filter.util';
 import {filtersToStringParam} from '../../shared/util/query-params-to-filter.util';
 import {normalizeString} from '../../shared/util/string-util';
 import {RenderLayoutService} from '../shared/services/render-layout.service';
-import {UtmRenderVisualization} from '../shared/services/utm-render-visualization.service';
-import {ExportPdfService} from "../../shared/services/util/export-pdf.service";
-import {NgxSpinnerService} from "ngx-spinner";
 
 @Component({
   selector: 'app-dashboard-render',
   templateUrl: './dashboard-render.component.html',
-  styleUrls: ['./dashboard-render.component.scss']
+  styleUrls: ['./dashboard-render.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardRenderComponent implements OnInit, OnDestroy, AfterViewInit {
   dashboardId: number;
@@ -59,25 +61,37 @@ export class DashboardRenderComponent implements OnInit, OnDestroy, AfterViewIni
     swap: false
   };
   filtersValues: ElasticFilterType[] = [];
-  timeEnable: number[] = [];
+  layout$: Observable<{ grid: GridsterItem, visualization: VisualizationType } []>;
 
   constructor(private activatedRoute: ActivatedRoute,
               private layoutService: RenderLayoutService,
               private cdr: ChangeDetectorRef,
-              private modalService: NgbModal,
               private dashboardBehavior: DashboardBehavior,
               private timeFilterBehavior: TimeFilterBehavior,
-              private utmRenderVisualization: UtmRenderVisualization,
               private exportPdfService: ExportPdfService,
-              private spinner: NgxSpinnerService) {
+              private spinner: NgxSpinnerService,
+              private refreshService: RefreshService,
+              private router: Router) {
   }
 
   ngOnInit() {
-    console.log('Init dashboard');
-
     document.body.classList.add('overflow-hidden');
     this.loadingVisualizations = true;
-    this.activatedRoute.params.subscribe(params => {
+    this.layout$ = this.activatedRoute.data
+      .pipe(
+        tap((visualizations) => {
+          this.dashboard = this.layoutService.dashboard;
+          this.filters = this.dashboard && this.dashboard.filters ? JSON.parse(this.dashboard.filters) : [];
+         /* if (this.dashboard.refreshTime) {
+            console.log(this.dashboard.refreshTime);
+            this.onRefreshTime(this.dashboard.refreshTime);
+          }*/
+          this.loadingVisualizations = false;
+        }),
+        map(data => data.response)
+    );
+
+    /*this.activatedRoute.params.subscribe(params => {
       this.dashboardId = params.id;
       if (this.dashboardId) {
         const request = {
@@ -105,7 +119,7 @@ export class DashboardRenderComponent implements OnInit, OnDestroy, AfterViewIni
           this.loadingVisualizations = false;
         });
       }
-    });
+    });*/
     this.dashboardBehavior.$filterDashboard.subscribe(dashboardFilter => {
       if (dashboardFilter) {
         mergeParams(dashboardFilter.filter, this.filtersValues).then(newFilters => {
@@ -113,6 +127,7 @@ export class DashboardRenderComponent implements OnInit, OnDestroy, AfterViewIni
         });
       }
     });
+
     this.timeFilterBehavior.$time.subscribe(time => {
       if (time) {
         rebuildVisualizationFilterTime({timeFrom: time.from, timeTo: time.to}, this.filtersValues).then(filters => {
@@ -146,9 +161,7 @@ export class DashboardRenderComponent implements OnInit, OnDestroy, AfterViewIni
   ngOnDestroy(): void {
     document.body.classList.remove('overflow-hidden');
     clearInterval(this.interval);
-    this.visualizationRender = [];
-    this.layoutService.layout = [];
-    this.timeEnable = [];
+    this.layoutService.clearLayout();
     this.dashboardBehavior.$filterDashboard.next(null);
   }
 
@@ -164,7 +177,7 @@ export class DashboardRenderComponent implements OnInit, OnDestroy, AfterViewIni
   exportToPdf() {
     filtersToStringParam(this.filtersValues).then(queryParams => {
       this.spinner.show('buildPrintPDF');
-      const url = '/dashboard/export/' + this.dashboardId + '/' + normalizeString(this.dashboard.name) + '?' + queryParams;
+      const url = '/dashboard/export/' + this.dashboard.id + '/' + normalizeString(this.dashboard.name) + '?' + queryParams;
       // window.open('/dashboard/export/' + this.dashboardId + '/' + normalizeString(this.dashboard.name) + '?' + queryParams, '_blank');
       this.exportPdfService.getPdf(url, this.dashboard.name, 'PDF_TYPE_TOKEN').subscribe(response => {
         this.spinner.hide('buildPrintPDF').then(() =>
@@ -174,6 +187,10 @@ export class DashboardRenderComponent implements OnInit, OnDestroy, AfterViewIni
         console.error('Error downloading PDF:', error);
       });
     });
+  }
+
+  trackByFn(index: number, item: { grid: GridsterItem, visualization: VisualizationType }) {
+    return item.visualization.id;
   }
 }
 

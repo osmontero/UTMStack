@@ -1,6 +1,8 @@
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
 import {Router} from '@angular/router';
 import {NgxSpinnerService} from 'ngx-spinner';
+import {Observable, Subject} from 'rxjs';
+import {filter, map, switchMap, takeUntil, tap} from 'rxjs/operators';
 import {Legend} from '../../../../shared/chart/types/charts/chart-properties/legend/legend';
 import {SeriesPie} from '../../../../shared/chart/types/charts/chart-properties/series/pie/series-pie';
 import {ItemStyle} from '../../../../shared/chart/types/charts/chart-properties/style/item-style';
@@ -9,18 +11,23 @@ import {UTM_COLOR_THEME} from '../../../../shared/constants/utm-color.const';
 import {ChartTypeEnum} from '../../../../shared/enums/chart-type.enum';
 import {ElasticOperatorsEnum} from '../../../../shared/enums/elastic-operators.enum';
 import {ElasticTimeEnum} from '../../../../shared/enums/elastic-time.enum';
-import {OverviewAlertDashboardService} from '../../../../shared/services/charts-overview/overview-alert-dashboard.service';
+import {
+  OverviewAlertDashboardService
+} from '../../../../shared/services/charts-overview/overview-alert-dashboard.service';
+import {RefreshService, RefreshType} from '../../../../shared/services/util/refresh.service';
 import {PieResponseType} from '../../../../shared/types/chart-reponse/pie-response.type';
 import {ElasticFilterCommonType} from '../../../../shared/types/filter/elastic-filter-common.type';
 import {TimeFilterType} from '../../../../shared/types/time-filter.type';
+import {TimeFilterBehavior} from "../../../../shared/behaviors/time-filter.behavior";
 
 @Component({
   selector: 'app-chart-common-pie',
   templateUrl: './chart-common-pie.component.html',
-  styleUrls: ['./chart-common-pie.component.scss']
+  styleUrls: ['./chart-common-pie.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ChartCommonPieComponent implements OnInit, OnDestroy {
-  @Input() refreshInterval;
+  @Input() type: RefreshType;
   @Input() header: string;
   @Input() colors: string[];
   @Input() colorsMap: { value: string, color: string }[];
@@ -36,43 +43,64 @@ export class ChartCommonPieComponent implements OnInit, OnDestroy {
   chartEnumType = ChartTypeEnum;
   pieOption: any;
   noData = false;
-
+  destroy$ = new Subject<void>();
+  data$: Observable<any>;
 
   constructor(private overviewAlertDashboardService: OverviewAlertDashboardService,
               private router: Router,
-              private spinner: NgxSpinnerService) {
+              private refreshService: RefreshService,
+              private spinner: NgxSpinnerService,
+              private timeFilterBehavior: TimeFilterBehavior) {
   }
 
   ngOnInit() {
     this.queryParams.top = 10;
-    if (this.refreshInterval) {
+    /*if (this.refreshInterval) {
       this.interval = setInterval(() => {
         this.getPieData();
       }, this.refreshInterval);
-    }
+    }*/
+
+    this.data$ = this.refreshService.refresh$
+      .pipe(takeUntil(this.destroy$),
+          filter(refreshType => (
+              refreshType === RefreshType.ALL || refreshType === this.type)),
+          switchMap(() => this.getPieData()));
+
+    this.timeFilterBehavior.$time
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(time => !!time))
+      .subscribe(time => {
+        if (time) {
+          this.onTimeFilterChange({
+            timeFrom: time.from,
+            timeTo: time.to
+          });
+        }
+      });
   }
 
   onTimeFilterChange($event: TimeFilterType) {
     this.queryParams.from = $event.timeFrom;
     this.queryParams.to = $event.timeTo;
-    this.getPieData();
-  }
-
-  ngOnDestroy(): void {
-    clearInterval(this.interval);
+    this.refreshService.sendRefresh(this.type);
   }
 
   getPieData() {
-    this.overviewAlertDashboardService.getDataPie(this.endpoint, this.queryParams).subscribe((severity) => {
-      this.loadingPieOption = false;
-      if (severity.body.data.length > 0) {
-        this.noData = false;
-        this.buildPieChart(severity.body);
-      } else {
-        this.noData = true;
-      }
-      this.loaded.emit();
-    });
+     return this.overviewAlertDashboardService.getDataPie(this.endpoint, this.queryParams)
+      .pipe(
+        map(response => response.body),
+        tap(response => {
+          this.loadingPieOption = false;
+          if (response.data.length > 0) {
+            this.noData = false;
+            this.buildPieChart(response);
+          } else {
+            this.noData = true;
+          }
+          this.loaded.emit();
+        }));
   }
 
   buildPieChart(data: PieResponseType) {
@@ -134,7 +162,6 @@ export class ChartCommonPieComponent implements OnInit, OnDestroy {
     } else {
       return UTM_COLOR_THEME[Math.random() * UTM_COLOR_THEME.length];
     }
-
   }
 
   private processMapColor(chart: PieResponseType): { name: string, itemStyle: any, value: number }[] {
@@ -153,5 +180,10 @@ export class ChartCommonPieComponent implements OnInit, OnDestroy {
     });
 
     return config;
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }
