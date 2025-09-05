@@ -39,7 +39,7 @@ require('echarts-wordcloud');
   styleUrls: ['./chart-view.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ChartViewComponent implements OnInit, OnChanges, OnDestroy {
+export class ChartViewComponent implements OnInit, OnDestroy {
 
   @Input() chartId: number;
   @Input() building: boolean;
@@ -72,14 +72,10 @@ export class ChartViewComponent implements OnInit, OnChanges, OnDestroy {
               private timeFilterBehavior: TimeFilterBehavior) {
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    this.refreshType = `${this.chartId}`;
-    this.refreshService.sendRefresh(this.refreshType);
-  }
-
   ngOnInit() {
     this.defaultTime = resolveDefaultVisualizationTime(this.visualization);
     this.refreshType = `${this.chartId}`;
+
     this.data$ = this.refreshService.refresh$
       .pipe(
         takeUntil(this.destroy$),

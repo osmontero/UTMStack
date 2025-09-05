@@ -133,7 +133,7 @@ export class TableViewComponent implements OnInit, OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges) {
     this.refreshType = `${this.chartId}`;
-    this.refreshService.sendRefresh(this.refreshType);
+
     if (changes.height && changes.height.currentValue !== 'NaNpx') {
       const currentGridHeight = Number(changes.height.currentValue.replace('px', ''));
       if (!isNaN(currentGridHeight)) {
