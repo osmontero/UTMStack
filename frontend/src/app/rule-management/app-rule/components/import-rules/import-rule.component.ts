@@ -3,12 +3,21 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup} from '@angular/forms';
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {forkJoin, from, of} from 'rxjs';
-import {catchError, concatMap, map, tap, toArray} from 'rxjs/operators';
+import {catchError, concatMap, finalize, map, tap, toArray} from 'rxjs/operators';
 import {UtmToastService} from '../../../../shared/alert/utm-toast.service';
 import {AddRuleStepEnum, Mode, Rule, Status} from '../../../models/rule.model';
 import {DataTypeService} from '../../../services/data-type.service';
 import {RuleService} from '../../../services/rule.service';
 import {ImportRuleService} from './import-rule.service';
+
+
+interface RuleList {
+    rule: Rule;
+    valid: boolean;
+    status: Status;
+    errors: Record<string, string[]>;
+    isLoading: boolean;
+}
 
 @Component({
   selector: 'app-import-rule',
@@ -26,7 +35,7 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
   currentStep: AddRuleStepEnum;
   stepCompleted: number[] = [];
   files = [];
-  rules: Rule[] = [];
+  rules: RuleList[] = [];
 
   constructor(private importRuleService: ImportRuleService,
               private dataTypeService: DataTypeService,
@@ -42,8 +51,9 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
   saveRule() {
     this.loading = true;
     from(this.rules).pipe(
-      concatMap(rule =>
-        this.ruleService.saveRule('ADD', rule).pipe(
+      concatMap(ruleData => {
+        const rule = ruleData.rule as Rule;
+        return this.ruleService.saveRule('ADD', rule).pipe(
           tap(() => rule.isLoading = !rule.isLoading),
           map((response: HttpResponse<any>) => {
             if (response.status === 204) {
@@ -59,8 +69,8 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
             rule.status = 'error';
             return of(rule);
           })
-        )
-      ),
+        );
+      }),
       toArray()
     ).subscribe({
       next: response => {
@@ -107,6 +117,7 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
 
   validRules() {
     if (this.files.length > 0) {
+      this.loading = true;
       const filesWithDataTypes = this.files.map(file => {
           return {
             ...file,
@@ -139,25 +150,32 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
                 afterEvents: file.afterEvents || [],
                 dataTypes: filteredDataTypes.filter(dt => !!dt)
               }))
-            )
-          )
-        ).subscribe(updatedFiles => {
-          this.rules = updatedFiles.map(file => ({
-            ...file,
-            dataTypes: file.dataTypes.length > 0 ? file.dataTypes : [],
-          }));
+            ),
+          ),
+        ).pipe(finalize(() => (this.loading = false))).subscribe(updatedFiles => {
+          this.rules = updatedFiles.map(file => {
+            let rule: Rule = {
+                ...file,
+                dataTypes: file.dataTypes.length > 0 ? file.dataTypes : [],
+            };
+            const {isValid, errors} = this.importRuleService.isValidRule(rule);
 
-          this.rules = this.rules.map(rule => {
-          const {isValid,errors} = this.importRuleService.isValidRule(rule);
-          return {
-            ...rule,
-            valid: isValid,
-            status: isValid ? ('valid' as Status) : ('error' as Status),
-            errors
-          };
+            // move null fields (required and not sended) upper than others
+            Object.keys(rule).forEach(key => {
+              if (rule[key] === null) {
+                rule = {[key]: null, ...rule};
+              }
+            });
 
-        });
+            return {
+              rule,
+              valid: isValid,
+              status: isValid ? ('valid' as Status) : ('error' as Status),
+              isLoading: false,
+              errors
+            };
 
+          });
         });
     } else {
       this.mode = 'ERROR';
@@ -201,3 +219,5 @@ export class ImportRuleComponent implements OnInit, OnDestroy {
     this.dataTypeService.resetTypes();
   }
 }
+
+

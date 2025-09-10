@@ -3,7 +3,7 @@ import {ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output}
 import {NgbActiveModal} from '@ng-bootstrap/ng-bootstrap';
 import {LocalStorageService} from 'ngx-webstorage';
 import {EMPTY, Observable} from 'rxjs';
-import {catchError, concatMap, filter, map} from 'rxjs/operators';
+import {catchError, concatMap, filter, map,tap} from 'rxjs/operators';
 import {UtmToastService} from '../../../../shared/alert/utm-toast.service';
 import {CpStandardService} from '../../services/cp-standard.service';
 import {ComplianceStandardType} from '../../type/compliance-standard.type';
@@ -33,13 +33,15 @@ export class UtmCpStandardComponent implements OnInit {
       .pipe(filter(refresh => !!refresh),
         concatMap(() => this.standardService.fetchData({page: 0, size: 1000})),
         map((res) => res.body),
+        tap(standards=>{
+            this.selectedStandard =standards.find(s=>s.id==this.standardId);
+        }),
         catchError((err: HttpErrorResponse) => {
           this.toastService.showError('Error',
             'Unable to retrieve the list of compliance standards. Please try again or contact support.');
           return EMPTY;
         }));
 
-    this.selectedStandard = this.$localStorage.retrieve('selectedStandard');
     this.standardService.notifyRefresh(true);
   }
 
@@ -54,7 +56,6 @@ export class UtmCpStandardComponent implements OnInit {
   }
 
   confirmSelection() {
-    this.$localStorage.store('selectedStandard', this.selectedStandard);
     this.activeModal.close(this.selectedStandard);
   }
 }

@@ -54,6 +54,11 @@
 
     <div [hidden]="currentStep === RULE_FORM.STEP0">
       <div class="rule-items mt-3 wm-200px">
+
+        <div *ngIf="loading" class="position-absolute d-flex justify-content-center align-items-center loader w-100 h-100 ">
+          <app-utm-spinner [loading]="loading" label="Loading"></app-utm-spinner>
+        </div>
+
         <div style="background: #f8f8f8" *ngFor="let rule of rules; let i = index"
              class="p-2 border rounded mb-2 d-flex flex-column">
 
@@ -64,7 +69,7 @@
                    class="font-size-sm"></i>
               </span>
               <span class="ml-2">
-                <strong>{{ rule.name + ' ' }}</strong>
+                <strong>{{ rule.rule.name + ' ' }}</strong>
                 <small>({{ rule.status }} )</small>
               </span>
             </div>
@@ -86,7 +91,7 @@
           </div>
 
           <div *ngIf="rule.showDetail" [ngClass]="{'alert-danger' : !rule.valid, 'alert-success': rule.valid}" class="alert mt-2 py-2 pl-3 w-100">
-            <app-utm-json-detail-view [errors]="rule.errors" [rowDocument]="rule"></app-utm-json-detail-view>
+            <app-utm-json-detail-view [errors]="rule.errors" [rowDocument]="rule.rule"></app-utm-json-detail-view>
           </div>
         </div>
       </div>
@@ -104,6 +109,7 @@
     </button>
 
     <button *ngIf="currentStep != RULE_FORM.STEP2 && currentStep != RULE_FORM.STEP2" (click)="next()"
+      [disabled]="loading"
             class="btn utm-button utm-button-primary">
       Next
       <i class="icon-arrow-right32"></i>&nbsp;

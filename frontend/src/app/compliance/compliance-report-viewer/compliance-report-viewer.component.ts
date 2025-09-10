@@ -115,9 +115,6 @@ export class ComplianceReportViewerComponent implements OnInit, AfterViewInit, O
   }
 
   ngAfterViewInit(): void {
-    if (!this.standard) {
-      this.manageStandards();
-    }
   }
 
   manageStandards() {
@@ -127,10 +124,10 @@ export class ComplianceReportViewerComponent implements OnInit, AfterViewInit, O
       centered: true
     };
     const modalRef = this.modalService.open(UtmCpStandardComponent, options);
+    modalRef.componentInstance.standardId = this.standard.id;
 
     modalRef.result.then((standard) => {
       this.standard = standard;
-
       this.router.navigate([], {
         relativeTo: this.activatedRoute,
         queryParams: { standardId: this.standard.id },
