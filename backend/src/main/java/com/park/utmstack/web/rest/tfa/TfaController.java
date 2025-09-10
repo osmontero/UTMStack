@@ -87,7 +87,7 @@ public class TfaController {
         final String ctx = CLASSNAME + ".completeTfa";
         try {
 
-            /*List<UtmConfigurationParameter> tfaParams = utmConfigurationParameterService.getConfigParameterBySectionId(Constants.TFA_SETTING_ID);
+            List<UtmConfigurationParameter> tfaParams = utmConfigurationParameterService.getConfigParameterBySectionId(Constants.TFA_SETTING_ID);
 
             for (UtmConfigurationParameter param : tfaParams) {
                 switch (param.getConfParamShort()) {
@@ -98,12 +98,15 @@ public class TfaController {
                         param.setConfParamValue(String.valueOf(request.isEnable()));
                         break;
                 }
-            }*/
+            }
+
+
 
 
 
             tfaService.persistConfiguration(request.getMethod());
             User user = userService.getCurrentUserLogin();
+            utmConfigurationParameterService.saveAllConfigParams(tfaParams);
             tfaService.generateChallenge(user);
             return ResponseEntity.ok().build();
         } catch (UtmMailException e) {

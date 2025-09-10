@@ -172,6 +172,12 @@ public class UtmConfigurationParameterService {
         }
     }
 
+
+    public void saveAllConfigParams(List<UtmConfigurationParameter> params) {
+        final String ctx = CLASSNAME + ".saveAllConfigParams";
+        configParamRepository.saveAll(params);
+    }
+
     public void validateMailConfOnMFAActivation() throws UtmMailException {
         final String ctx = CLASSNAME + ".validateMailConfOnMFAActivation";
         try {
