@@ -12,7 +12,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
 	"github.com/utmstack/UTMStack/installer/config"
@@ -99,7 +98,7 @@ func CollectAndShipSwarmLogs() error {
 func createZip(
 	ctx context.Context,
 	cli *client.Client,
-	containers []types.Container,
+	containers []container.Summary,
 	zipPath string,
 ) error {
 	file, err := os.Create(zipPath)
