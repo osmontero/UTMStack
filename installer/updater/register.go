@@ -40,6 +40,11 @@ func RegisterInstance() error {
 			Version: instanceInfo.Version,
 		}
 
+		serverConfig := config.GetConfig()
+		if serverConfig != nil && (serverConfig.Branch == "alpha" || serverConfig.Branch == "beta" || serverConfig.Branch == "rc") {
+			instanceRegisterReq.MappingName = serverConfig.ServerName
+		}
+
 		instanceJSON, err := json.Marshal(instanceRegisterReq)
 		if err != nil {
 			return fmt.Errorf("error marshalling instance register request: %v", err)
