@@ -2,11 +2,15 @@ import {Component, OnInit} from '@angular/core';
 import {DomSanitizer} from '@angular/platform-browser';
 import {Router} from '@angular/router';
 import {NgxSpinnerService} from 'ngx-spinner';
-import {Observable} from "rxjs";
+import {Observable} from 'rxjs';
 import {AuthServerProvider} from '../../../../core/auth/auth-jwt.service';
-import {UtmToastService} from '../../../alert/utm-toast.service';
 import {ThemeChangeBehavior} from '../../../behaviors/theme-change.behavior';
 import {TfaMethod} from '../../../services/tfa/tfa.service';
+import {extractQueryParamsForNavigation} from "../../../util/query-params-to-filter.util";
+import {ADMIN_DEFAULT_EMAIL, ADMIN_ROLE} from "../../../constants/global.constant";
+import {StateStorageService} from "../../../../core/auth/state-storage.service";
+import {AccountService} from "../../../../core/auth/account.service";
+import {UtmToastService} from "../../../alert/utm-toast.service";
 
 
 @Component({
@@ -31,7 +35,10 @@ export class TotpComponent implements OnInit {
               private router: Router,
               private spinner: NgxSpinnerService,
               private themeChangeBehavior: ThemeChangeBehavior,
-              public sanitizer: DomSanitizer) {
+              public sanitizer: DomSanitizer,
+              private stateStorageService: StateStorageService,
+              private accountService: AccountService,
+              private utmToast: UtmToastService) {
   }
 
   ngOnInit(): void {
@@ -46,13 +53,10 @@ export class TotpComponent implements OnInit {
       .verifyCode(this.verificationCode).subscribe((auth) => {
       if (auth) {
         this.isVerified = true;
-        this.spinner.show();
-        this.router.navigate(['/dashboard/overview'])
-          .then(() => this.spinner.hide());
+        this.startNavigation();
       }
     }, error => {
       this.errorMessage = error.headers.get('X-UtmStack-error');
-      console.log(error.headers.get('X-UtmStack-error'));
       this.isVerifying = false;
     });
   }
@@ -66,9 +70,28 @@ export class TotpComponent implements OnInit {
   }
 
   clearError() {
-    if(this.verificationCode.length == 6){
-      this.onSubmit()
+    if (this.verificationCode.length === 6) {
+      this.onSubmit();
     }
     this.errorMessage = '';
+  }
+
+  startNavigation() {
+    this.accountService.identity(true).then(account => {
+      if (account) {
+        const { path, queryParams } =
+          extractQueryParamsForNavigation(this.stateStorageService.getUrl() ? this.stateStorageService.getUrl() : '' );
+        if (path) {
+          this.stateStorageService.resetPreviousUrl();
+        }
+        const redirectTo = (account.authorities.includes(ADMIN_ROLE) && account.email === ADMIN_DEFAULT_EMAIL)
+          ? '/getting-started' : !!path ? path : '/dashboard/overview';
+        console.log(redirectTo);
+        this.router.navigate([redirectTo], {queryParams})
+          .then(() => this.spinner.hide());
+      } else {
+        this.utmToast.showError('Login error', 'User without privileges.');
+      }
+    });
   }
 }
