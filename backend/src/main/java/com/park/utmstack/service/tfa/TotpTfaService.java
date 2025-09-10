@@ -63,7 +63,13 @@ public class TotpTfaService implements TfaMethodService {
                 .orElseThrow(() -> new IllegalStateException("No TFA setup found for user: " + user.getLogin()));
 
         boolean expired = tfaSetupState.isExpired();
-        boolean valid = !expired && authenticator.authorize(tfaSetupState.getSecret(), Integer.parseInt(code));
+        boolean valid = !expired && authenticator.authorize(tfaSetupState.getSecret(), Integer.parseInt(code)) && !code.equals(tfaSetupState.getLastUsedCode());
+
+        if(expired){
+            tfaSetupState.setLastUsedCode(code);
+            tfaSetupState.setExpiresAt(System.currentTimeMillis() + Constants.EXPIRES_IN_SECONDS * 1000);
+            cache.storeState(user.getLogin(), TfaMethod.TOTP, tfaSetupState);
+        }
 
         return new TfaVerifyResponse(
                 valid,
