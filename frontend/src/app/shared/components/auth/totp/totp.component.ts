@@ -1,16 +1,16 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {DomSanitizer} from '@angular/platform-browser';
 import {Router} from '@angular/router';
 import {NgxSpinnerService} from 'ngx-spinner';
-import {Observable} from 'rxjs';
+import {interval, Observable, Subscription} from 'rxjs';
+import {AccountService} from '../../../../core/auth/account.service';
 import {AuthServerProvider} from '../../../../core/auth/auth-jwt.service';
+import {StateStorageService} from '../../../../core/auth/state-storage.service';
+import {UtmToastService} from '../../../alert/utm-toast.service';
 import {ThemeChangeBehavior} from '../../../behaviors/theme-change.behavior';
+import {ADMIN_DEFAULT_EMAIL, ADMIN_ROLE} from '../../../constants/global.constant';
 import {TfaMethod} from '../../../services/tfa/tfa.service';
-import {extractQueryParamsForNavigation} from "../../../util/query-params-to-filter.util";
-import {ADMIN_DEFAULT_EMAIL, ADMIN_ROLE} from "../../../constants/global.constant";
-import {StateStorageService} from "../../../../core/auth/state-storage.service";
-import {AccountService} from "../../../../core/auth/account.service";
-import {UtmToastService} from "../../../alert/utm-toast.service";
+import {extractQueryParamsForNavigation} from '../../../util/query-params-to-filter.util';
 
 
 @Component({
@@ -18,18 +18,16 @@ import {UtmToastService} from "../../../alert/utm-toast.service";
   templateUrl: './totp.component.html',
   styleUrls: ['./totp.component.scss']
 })
-export class TotpComponent implements OnInit {
+export class TotpComponent implements OnInit, OnDestroy {
   form: any = {};
-  isLoggedIn = false;
-  isLoginFailed = false;
   errorMessage = '';
-  currentUser: any;
   isVerifying = false;
   loginImage$: Observable<string>;
   TfaMethod = TfaMethod;
   method: TfaMethod;
   isVerified = false;
   verificationCode = '';
+  private expireSub: Subscription;
 
   constructor(private authService: AuthServerProvider,
               private router: Router,
@@ -44,6 +42,8 @@ export class TotpComponent implements OnInit {
   ngOnInit(): void {
     this.method = this.authService.tfaMethod;
     this.loginImage$ = this.themeChangeBehavior.$themeIcon.asObservable();
+
+    this.expireSub = interval(30 * 1000).subscribe(() => this.onExpire());
   }
 
 
@@ -66,7 +66,8 @@ export class TotpComponent implements OnInit {
   }
 
   onExpire() {
-
+    console.log('expired');
+    this.authService.renewCode().subscribe();
   }
 
   clearError() {
@@ -93,5 +94,9 @@ export class TotpComponent implements OnInit {
         this.utmToast.showError('Login error', 'User without privileges.');
       }
     });
+  }
+
+  ngOnDestroy() {
+    this.expireSub.unsubscribe();
   }
 }
