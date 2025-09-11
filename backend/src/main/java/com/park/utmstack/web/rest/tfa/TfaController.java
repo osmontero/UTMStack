@@ -31,6 +31,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
+import tech.jhipster.web.util.ResponseUtil;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -62,7 +63,7 @@ public class TfaController {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
             applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
-            throw e;
+            return UtilResponse.buildInternalServerErrorResponse(msg);
         }
 
     }
@@ -77,8 +78,22 @@ public class TfaController {
         } catch (Exception e) {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
+            return UtilResponse.buildInternalServerErrorResponse(msg);
+        }
+    }
+
+    @GetMapping("/generate-challenge")
+    public ResponseEntity<Void> generateChallenge() {
+        final String ctx = CLASSNAME + ".generateChallenge";
+        try {
+            User user = userService.getCurrentUserLogin();
+            tfaService.generateChallenge(user);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            String msg = ctx + ": " + e.getMessage();
+            log.error(msg);
             applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
-            throw e;
+            return UtilResponse.buildInternalServerErrorResponse(msg);
         }
     }
 
@@ -99,10 +114,6 @@ public class TfaController {
                         break;
                 }
             }
-
-
-
-
 
             tfaService.persistConfiguration(request.getMethod());
             User user = userService.getCurrentUserLogin();

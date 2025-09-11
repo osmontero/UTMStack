@@ -64,13 +64,6 @@ public class TotpTfaService implements TfaMethodService {
 
         boolean expired = tfaSetupState.isExpired();
         boolean valid = !expired && authenticator.authorize(tfaSetupState.getSecret(), Integer.parseInt(code)) && !code.equals(tfaSetupState.getLastUsedCode());
-
-        if(expired){
-            tfaSetupState.setLastUsedCode(code);
-            tfaSetupState.setExpiresAt(System.currentTimeMillis() + Constants.EXPIRES_IN_SECONDS * 1000);
-            cache.storeState(user.getLogin(), TfaMethod.TOTP, tfaSetupState);
-        }
-
         return new TfaVerifyResponse(
                 valid,
                 expired,
@@ -91,8 +84,9 @@ public class TotpTfaService implements TfaMethodService {
 
     @Override
     public void generateChallenge(User user) {
+        cache.clear(user.getLogin(), TfaMethod.TOTP);
         String secret = user.getTfaSecret();
-        TfaSetupState state = new TfaSetupState(secret, System.currentTimeMillis() + Constants.EXPIRES_IN_SECONDS * 1000);
+        TfaSetupState state = new TfaSetupState(secret, System.currentTimeMillis() + (Constants.EXPIRES_IN_SECONDS + 10) * 1000);
         cache.storeState(user.getLogin(), TfaMethod.TOTP, state);
     }
 
