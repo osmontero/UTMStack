@@ -83,7 +83,7 @@ func GetConfig() *Config {
 		if config.Branch != "alpha" &&
 			config.Branch != "beta" &&
 			config.Branch != "rc" {
-			config.Branch = "prod"
+			config.Branch = DEFAULT_BRANCH
 		}
 
 		if config.DataDir == "" {

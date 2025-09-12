@@ -8,9 +8,47 @@ on:
         required: true
 
 jobs:
+  setup_deployment:
+    name: Setup Deployment
+    runs-on: ubuntu-24.04
+    outputs:
+      environment: ${{ steps.set-env.outputs.environment }}
+      version: ${{ steps.set-env.outputs.version }}
+    steps:
+      - name: Validate and Determine Build Environment
+        id: set-env
+        run: |
+          VERSION="${{ github.event.inputs.version_tag }}"
+          
+          # Validate version format and determine environment
+          if [[ "$VERSION" =~ ^v11\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Production environment detected"
+            echo "environment=prod" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            
+          elif [[ "$VERSION" =~ ^v11\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]; then
+            echo "Beta environment detected"
+            echo "environment=beta" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            
+          elif [[ "$VERSION" =~ ^v11\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]]; then
+            echo "RC environment detected"
+            echo "environment=rc" >> $GITHUB_OUTPUT
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+            
+          else
+            echo "ERROR: Invalid version format. Version must match one of:"
+            echo "  - v11.x.x (production)"
+            echo "  - v11.x.x-beta.x (beta)"
+            echo "  - v11.x.x-rc.x (release candidate)"
+            exit 1
+          fi
+
   build:
     name: Build
     runs-on: ubuntu-24.04
+    needs: setup_deployment
+    if: ${{ needs.setup_deployment.outputs.environment != '' }}
     steps:
     - name: Check out code into the right branch
       uses: actions/checkout@v4
@@ -22,14 +60,17 @@ jobs:
       id: go
 
     - name: Build
+      working-directory: ./installer
       env:
         GOOS: linux
         GOARCH: amd64
       run: |       
-        cd "${{ github.workspace }}/installer/config"
-        sed -i 's|const INSTALLER_VERSION = ""|const INSTALLER_VERSION = "${{ secrets.AGENT_SECRET_PREFIX }}"|' const.go
-        cd "${{ github.workspace }}/installer"
-        go build -o installer -v .
+        echo "Building Installer..."
+          go build -o installer -v -ldflags "\
+            -X 'github.com/utmstack/UTMStack/installer/config.DEFAULT_BRANCH=${{ needs.setup_deployment.outputs.environment }}' \
+            -X 'github.com/utmstack/UTMStack/installer/config.INSTALLER_VERSION=${{ needs.setup_deployment.outputs.version }}' \
+            -X 'github.com/utmstack/UTMStack/installer/config.REPLACE=${{ secrets.CM_ENCRYPT_SALT }}' \
+            -X 'github.com/utmstack/UTMStack/installer/config.PUBLIC_KEY=${{ secrets.CM_SIGN_PUBLIC_KEY }}'" .
 
     - name: Create Release
       id: create_release
@@ -37,10 +78,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.event.inputs.version_tag }}
-        name: ${{ github.event.inputs.version_tag }}
+        tag_name: ${{ needs.setup_deployment.outputs.version }}
+        name: ${{ needs.setup_deployment.outputs.version }}
         body_path: ./CHANGELOG.md
         draft: false
-        prerelease: false
+        prerelease: ${{ needs.setup_deployment.outputs.environment != 'prod' }}
         files: |
           ./installer/installer
