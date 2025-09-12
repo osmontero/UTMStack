@@ -57,5 +57,5 @@ jobs:
     secrets:
       AGENT_SECRET_PREFIX: ${{ secrets.AGENT_SECRET_PREFIX }}
       SIGNER_TOKEN: ${{ secrets.SIGNER_TOKEN }}
-      CM_AUTH: ${{ secrets.CM_AUTH_ALPHA }}
+      CM_AUTH: ${{ secrets.CM_AUTH_PROD }}
     
