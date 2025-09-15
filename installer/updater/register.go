@@ -41,8 +41,8 @@ func RegisterInstance() error {
 		}
 
 		serverConfig := config.GetConfig()
-		if serverConfig != nil && (serverConfig.Branch == "alpha" || serverConfig.Branch == "beta" || serverConfig.Branch == "rc") {
-			instanceRegisterReq.MappingName = serverConfig.ServerName
+		if serverConfig != nil && (serverConfig.MappingName != nil && *serverConfig.MappingName != "") {
+			instanceRegisterReq.MappingName = *serverConfig.MappingName
 		}
 
 		instanceJSON, err := json.Marshal(instanceRegisterReq)
