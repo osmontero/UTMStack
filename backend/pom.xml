@@ -14,7 +14,7 @@
     <properties>
         <!-- Build properties -->
         <maven.version>3.3.9</maven.version>
-        <java.version>11</java.version>
+        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
@@ -33,7 +33,7 @@
         <jhipster-dependencies.version>7.3.1</jhipster-dependencies.version>
         <!-- The spring-boot version should match the one managed by
         https://mvnrepository.com/artifact/tech.jhipster/jhipster-dependencies/${jhipster-dependencies.version} -->
-        <spring-boot.version>2.5.5</spring-boot.version>
+        <spring-boot.version>3.1.5</spring-boot.version>
         <!-- The hibernate version should match the one managed by
         https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-dependencies/${spring-boot.version} -->
         <hibernate.version>5.4.32.Final</hibernate.version>
@@ -273,7 +273,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.6.7</version>
+            <version>1.6.15</version>
         </dependency>
         <dependency>
             <groupId>com.utmstack</groupId>
@@ -333,7 +333,7 @@
         <dependency>
             <groupId>com.utmstack.grpc.jclient</groupId>
             <artifactId>collector-client-4j</artifactId>
-            <version>1.2.12</version>
+            <version>1.2.13</version>
         </dependency>
 
         <!-- WebSocket dependency -->
@@ -374,6 +374,12 @@
             <groupId>com.github.ben-manes.caffeine</groupId>
             <artifactId>caffeine</artifactId>
             <version>3.0.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.9.0</version>
         </dependency>
 
     </dependencies>

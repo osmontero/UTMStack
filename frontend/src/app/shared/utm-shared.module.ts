@@ -28,6 +28,7 @@ import {PasswordStrengthBarComponent} from './components/auth/password-strength/
 import { TfaSetupComponent } from './components/auth/tfa-setup/tfa-setup.component';
 import {TotpComponent} from './components/auth/totp/totp.component';
 import {ContactUsComponent} from './components/contact-us/contact-us.component';
+import {AlertEchoesTimelineComponent} from '../data-management/alert-management/shared/components/alert-echoes-timeline/alert-echoes-timeline.component';
 import {
   EmailSettingNotificactionComponent
 } from './components/email-setting-notification/email-setting-notificaction.component';
@@ -238,27 +239,28 @@ import {HighlightPipe} from './pipes/text/highlight.pipe';
 import {TimePeriodPipe} from './pipes/time-period.pipe';
 import {TimezoneOffsetPipe} from './pipes/timezone-offset.pipe';
 import {UtmNotifier} from './websocket/utm-notifier';
-
+import { NgxEchartsModule } from 'ngx-echarts';
 
 
 @NgModule({
-    imports: [
-        InlineSVGModule,
-        CommonModule,
-        ReactiveFormsModule,
-        TranslateModule,
-        NgbModule,
-        FormsModule,
-        RouterModule,
-        NgSelectModule,
-        NgxSortableModule,
-        NgxFlagIconCssModule,
-        NgxJsonViewerModule,
-        AssetsApplyTypeModule,
-        AssetsApplyNoteModule,
-        AssetsGroupAddModule,
-        InfiniteScrollModule
-    ],
+  imports: [
+    InlineSVGModule,
+    CommonModule,
+    ReactiveFormsModule,
+    TranslateModule,
+    NgbModule,
+    FormsModule,
+    RouterModule,
+    NgSelectModule,
+    NgxSortableModule,
+    NgxFlagIconCssModule,
+    NgxJsonViewerModule,
+    AssetsApplyTypeModule,
+    AssetsApplyNoteModule,
+    AssetsGroupAddModule,
+    InfiniteScrollModule,
+    NgxEchartsModule
+  ],
   declarations: [
     ElasticFilterComponent,
     ElasticFilterAddComponent,
@@ -268,6 +270,7 @@ import {UtmNotifier} from './websocket/utm-notifier';
     HasAnyAuthorityDirective,
     NotFoundComponent,
     SidebarComponent,
+    AlertEchoesTimelineComponent,
     PasswordResetInitComponent,
     PasswordResetFinishComponent,
     PasswordStrengthBarComponent,
@@ -407,6 +410,7 @@ import {UtmNotifier} from './websocket/utm-notifier';
     SidebarComponent,
     PasswordResetInitComponent,
     PasswordResetFinishComponent,
+    AlertEchoesTimelineComponent,
     PasswordStrengthBarComponent,
     SortByComponent,
     UtmSpinnerComponent,

@@ -4,16 +4,19 @@ import {AlertTags} from '../../../../../../shared/types/alert/alert-tag.type';
 import {UtmAlertType} from '../../../../../../shared/types/alert/utm-alert.type';
 import {AlertUpdateTagBehavior} from '../../../behavior/alert-update-tag.behavior';
 import {AlertRuleCreateComponent} from '../../alert-rule-create/alert-rule-create.component';
+import { FALSE_POSITIVE_OBJECT } from 'src/app/shared/constants/alert/alert-field.constant';
 
 @Component({
   selector: 'app-alert-tags-apply',
   templateUrl: './alert-tags-apply.component.html',
-  styleUrls: ['./alert-tags-apply.component.scss']
+  styleUrls: ['./alert-tags-apply.component.scss'],
 })
 export class AlertTagsApplyComponent implements OnInit, OnChanges {
   @Input() showTagsLabel: boolean;
   @Input() alert: UtmAlertType;
   @Input() tags: AlertTags[];
+  @Input() template: 'default' | 'menu-item' = 'default';
+  @Input() action: any;
   selected: string[] = [];
   select: any;
   @Output() updateTagsEvent = new EventEmitter<boolean>();
@@ -49,10 +52,15 @@ export class AlertTagsApplyComponent implements OnInit, OnChanges {
     }
   }
 
-  addNewTagRule() {
-    const modalRef = this.modalService.open(AlertRuleCreateComponent, {centered: true, size: 'lg'});
+  addNewTagRule(isFalsePositive: boolean = false) {
+    const modalRef = this.modalService.open(AlertRuleCreateComponent, {
+      centered: true,
+      size: 'lg',
+      windowClass: 'alert-rule-modal'
+    });
     modalRef.componentInstance.alert = this.alert;
     modalRef.componentInstance.action = 'select';
+    modalRef.componentInstance.isFalsePositiveRule = isFalsePositive;
     modalRef.componentInstance.ruleAdd.subscribe((created) => {
       this.icon = this.getTagIcon();
       this.color = this.getColor();

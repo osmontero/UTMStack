@@ -8,9 +8,7 @@ import {NgxSpinnerService} from 'ngx-spinner';
 import {LocalStorageService} from 'ngx-webstorage';
 import {Observable, Subject} from 'rxjs';
 import {filter, takeUntil, tap} from 'rxjs/operators';
-import {
-  IrCreateRuleComponent
-} from '../../../incident-response/shared/component/ir-create-rule/ir-create-rule.component';
+import {TimelineItem} from 'src/app/shared/types/utm-timeline-item';
 import {UtmToastService} from '../../../shared/alert/utm-toast.service';
 import {
   ElasticFilterDefaultTime
@@ -24,11 +22,12 @@ import {
   ALERT_STATUS_FIELD_AUTO,
   ALERT_STATUS_LABEL_FIELD,
   ALERT_TAGS_FIELD, ALERT_TARGET_FIELD,
-  ALERT_TIMESTAMP_FIELD,
+  ALERT_TIMESTAMP_FIELD, ALERTS_CHILDREN_FIELDS,
   EVENT_FIELDS,
   EVENT_IS_ALERT,
   FALSE_POSITIVE_OBJECT,
-  INCIDENT_FIELDS
+  INCIDENT_FIELDS,
+  ALERT_ECHOES_FIELD
 } from '../../../shared/constants/alert/alert-field.constant';
 import {AUTOMATIC_REVIEW, IGNORED} from '../../../shared/constants/alert/alert-status.constant';
 import {ADMIN_ROLE} from '../../../shared/constants/global.constant';
@@ -53,6 +52,7 @@ import {AlertFiltersBehavior} from '../shared/behavior/alert-filters.behavior';
 import {AlertStatusBehavior} from '../shared/behavior/alert-status.behavior';
 import {RowToFiltersComponent} from '../shared/components/filters/row-to-filter/row-to-filters.component';
 import {EventDataTypeEnum} from '../shared/enums/event-data-type.enum';
+import {AlertActionRefreshService} from '../shared/services/alert-action-refresh.service';
 import {AlertTagService} from '../shared/services/alert-tag.service';
 import {OPEN_ALERTS_KEY, OpenAlertsService} from '../shared/services/open-alerts.service';
 import {getCurrentAlertStatus, getStatusName} from '../shared/util/alert-util-function';
@@ -63,13 +63,35 @@ import {getCurrentAlertStatus, getStatusName} from '../shared/util/alert-util-fu
   styleUrls: ['./alert-view.component.scss']
 })
 export class AlertViewComponent implements OnInit, OnDestroy {
+
+
+  constructor(private elasticDataService: ElasticDataService,
+              private modalService: NgbModal,
+              private utmToastService: UtmToastService,
+              private translate: TranslateService,
+              private alertFiltersBehavior: AlertFiltersBehavior,
+              private updateStatusServiceBehavior: AlertStatusBehavior,
+              private activatedRoute: ActivatedRoute,
+              public router: Router,
+              private openAlertsService: OpenAlertsService,
+              private alertDataTypeBehavior: AlertDataTypeBehavior,
+              private alertTagService: AlertTagService,
+              private spinner: NgxSpinnerService,
+              private checkEmailConfigService: CheckEmailConfigService,
+              private localStorage: LocalStorageService,
+              private alertActionRefreshService: AlertActionRefreshService) {
+    // this.tableWidth = this.pageWidth - 300;
+  }
   fields = ALERT_FIELDS;
+  childrenFields = ALERTS_CHILDREN_FIELDS;
   manageTags: number;
   ADMIN = ADMIN_ROLE;
   alerts: UtmAlertType[] = [];
+  childrenAlerts: UtmAlertType[] = [];
   tableWidth: number;
   checkbox = false;
   loading = true;
+  loadingChildren = false;
   /**
    * Contains ID of selected alerts
    */
@@ -83,11 +105,15 @@ export class AlertViewComponent implements OnInit, OnDestroy {
   totalItems: any;
   page = 1;
   itemsPerPage = ITEMS_PER_PAGE;
-  // By default all alert will contain all except alerts in review
   filters: ElasticFilterType[] = [
     {field: ALERT_STATUS_FIELD_AUTO, operator: ElasticOperatorsEnum.IS_NOT, value: AUTOMATIC_REVIEW},
     {field: ALERT_TAGS_FIELD, operator: ElasticOperatorsEnum.IS_NOT, value: FALSE_POSITIVE_OBJECT.tagName},
+    {field: ALERT_PARENT_ID, operator: ElasticOperatorsEnum.DOES_NOT_EXIST},
     {field: ALERT_TIMESTAMP_FIELD, operator: ElasticOperatorsEnum.IS_BETWEEN, value: ['now-7d', 'now']}
+  ];
+  filtersChildren: ElasticFilterType[] = [
+    {field: ALERT_STATUS_FIELD_AUTO, operator: ElasticOperatorsEnum.IS_NOT, value: AUTOMATIC_REVIEW},
+    {field: ALERT_TAGS_FIELD, operator: ElasticOperatorsEnum.IS_NOT, value: FALSE_POSITIVE_OBJECT.tagName},
   ];
   defaultStatus: number;
   dataNature = DataNatureTypeEnum.ALERT;
@@ -109,24 +135,11 @@ export class AlertViewComponent implements OnInit, OnDestroy {
   openAlerts = 0;
   ALERT_ADVERSARY_FIELD = ALERT_ADVERSARY_FIELD;
   ALERT_TARGET_FIELD = ALERT_TARGET_FIELD;
-
-
-  constructor(private elasticDataService: ElasticDataService,
-              private modalService: NgbModal,
-              private utmToastService: UtmToastService,
-              private translate: TranslateService,
-              private alertFiltersBehavior: AlertFiltersBehavior,
-              private updateStatusServiceBehavior: AlertStatusBehavior,
-              private activatedRoute: ActivatedRoute,
-              public router: Router,
-              private openAlertsService: OpenAlertsService,
-              private alertDataTypeBehavior: AlertDataTypeBehavior,
-              private alertTagService: AlertTagService,
-              private spinner: NgxSpinnerService,
-              private checkEmailConfigService: CheckEmailConfigService,
-              private localStorage: LocalStorageService ) {
-    // this.tableWidth = this.pageWidth - 300;
-  }
+  currentChildrenPage = 1;
+  totalChildren: number;
+  pageSizeChildren = ITEMS_PER_PAGE * 4;
+  readonly ALERT_STATUS_FIELD = ALERT_STATUS_FIELD;
+  readonly Math = Math;
 
   ngOnInit() {
     this.openAlerts = this.localStorage.retrieve(OPEN_ALERTS_KEY);
@@ -175,6 +188,20 @@ export class AlertViewComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$),
         tap(() => this.showRefresh = true),
         filter( incomingAlerts => this.openAlerts === null || this.openAlerts < incomingAlerts));
+
+    this.alertActionRefreshService.incidentCreated$
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(incident => !!incident),
+        tap(() => this.refreshAlerts())
+      ).subscribe();
+
+    this.alertActionRefreshService.alertTagRuleCreated$
+      .pipe(
+        takeUntil(this.destroy$),
+        filter(incident => !!incident),
+        tap(() => this.refreshAlerts())
+      ).subscribe();
   }
 
   refreshAlerts() {
@@ -311,10 +338,10 @@ export class AlertViewComponent implements OnInit, OnDestroy {
     this.getAlert('on time filter change');
   }
 
-  getAlert(calledFrom?: string) {
+  getAlert(calledFrom?: string, filtersParam?: ElasticFilterType[]) {
     this.elasticDataService.search(this.page, this.itemsPerPage,
       100000000, this.dataNature,
-      sanitizeFilters(this.filters), this.sortBy, ALERT_PARENT_ID).subscribe(
+      sanitizeFilters(this.filters), this.sortBy, true).subscribe(
       (res: HttpResponse<any>) => {
         this.totalItems = Number(res.headers.get('X-Total-Count'));
         this.alerts = res.body;
@@ -350,16 +377,13 @@ export class AlertViewComponent implements OnInit, OnDestroy {
   }
 
   addToSelected(alert: any) {
+    console.log(alert);
     const index = this.alertSelected.indexOf(alert);
     if (index === -1) {
       this.alertSelected.push(alert);
     } else {
       this.alertSelected.splice(index, 1);
     }
-  }
-
-  isSelected(alert: any): boolean {
-    return this.alertSelected.findIndex(value => value.id === alert.id) !== -1;
   }
 
   onSortBy($event: SortEvent) {
@@ -380,7 +404,6 @@ export class AlertViewComponent implements OnInit, OnDestroy {
       });
     });
   }
-
 
   loadPage(page: any) {
     this.page = page;
@@ -453,8 +476,12 @@ export class AlertViewComponent implements OnInit, OnDestroy {
     return this.alertDetail.name;
   }
 
-  viewDetailAlert(alert: any, td: UtmFieldType) {
-    if (td.field !== ALERT_STATUS_FIELD) {
+  viewDetailAlert(alert: UtmAlertType, td: UtmFieldType) {
+    if (td.field !== ALERT_STATUS_FIELD && td.field !== ALERT_ECHOES_FIELD) {
+      if (alert.echoes > 0) {
+        alert.expanded = true;
+        this.loadChildrenAlerts(alert);
+      }
       this.alertDetail = alert;
       this.viewAlertDetail = true;
     }
@@ -555,20 +582,29 @@ export class AlertViewComponent implements OnInit, OnDestroy {
 
   openIncidentResponseAutomationModal(alert: UtmAlertType) {
        this.router.navigate(['soar/create-flow'], {
-            queryParams:{alertName:alert.name}
-          })
+            queryParams: {alertName: alert.name}
+          });
   }
 
   getFilterTime() {
     return this.filters.find(f => f.field === ALERT_TIMESTAMP_FIELD);
   }
 
+  loadChildrenAlerts(alert: UtmAlertType) {
+    if (alert.expanded) {
+      this.alerts = this.alerts.map(a => {
+        if (a.id !== alert.id) {
+          a.expanded = false;
+        }
+        return a;
+      });
+    }
+
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  getAlertById(parentId: string) {
-    return this.alerts.filter(alert => alert.parentId === parentId);
+    this.alertActionRefreshService.clearValues();
   }
 }

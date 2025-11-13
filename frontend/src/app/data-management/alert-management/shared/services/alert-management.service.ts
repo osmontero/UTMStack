@@ -1,6 +1,7 @@
 import {HttpClient, HttpResponse} from '@angular/common/http';
 import {Injectable} from '@angular/core';
 import {Observable} from 'rxjs';
+import {AlertStatusEnum} from 'src/app/shared/types/alert/utm-alert.type';
 import {SERVER_API_URL} from '../../../../app.constants';
 import {QueryType} from '../../../../shared/types/query-type';
 
@@ -15,12 +16,18 @@ export class AlertManagementService {
   constructor(private http: HttpClient) {
   }
 
-  updateAlertStatus(alertId: string[], status: number, statusObservation: string = ''): Observable<HttpResponse<any>> {
-    const req = {
+  updateAlertStatus(alertId: string[], status: number, statusObservation: string = '', asFalsePositive = false)
+    : Observable<HttpResponse<any>> {
+
+    const req: any = {
       alertIds: alertId,
       status,
       statusObservation
     };
+
+    if (status === AlertStatusEnum.COMPLETED) {
+      req.addFalsePositiveTag = asFalsePositive;
+    }
     return this.http.post<HttpResponse<any>>(this.resourceUrl + '/status', req, {observe: 'response'});
   }
 

@@ -2,6 +2,7 @@ package com.park.utmstack.web.rest.elasticsearch;
 
 import com.park.utmstack.domain.application_events.enums.ApplicationEventType;
 import com.park.utmstack.domain.chart_builder.types.query.FilterType;
+import com.park.utmstack.domain.chart_builder.types.query.OperatorType;
 import com.park.utmstack.domain.shared_types.CsvExportingParams;
 import com.park.utmstack.service.application_events.ApplicationEventService;
 import com.park.utmstack.service.elasticsearch.ElasticsearchService;
@@ -9,7 +10,7 @@ import com.park.utmstack.service.elasticsearch.processor.SearchProcessorRegistry
 import com.park.utmstack.service.elasticsearch.processor.SearchResultProcessor;
 import com.park.utmstack.util.UtilCsv;
 import com.park.utmstack.util.UtilPagination;
-import com.park.utmstack.util.UtilResponse;
+import com.park.utmstack.util.ResponseUtil;
 import com.park.utmstack.util.chart_builder.IndexPropertyType;
 import com.park.utmstack.util.chart_builder.IndexType;
 import com.park.utmstack.util.exceptions.OpenSearchIndexNotFoundException;
@@ -64,7 +65,7 @@ public class ElasticsearchResource {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
             applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -78,7 +79,7 @@ public class ElasticsearchResource {
             String msg = ctx + ": " + e.getLocalizedMessage();
             log.error(msg);
             applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -97,12 +98,12 @@ public class ElasticsearchResource {
             String msg = ctx + ": " + e.getMessage();
             log.info(msg);
             applicationEventService.createEvent(msg, ApplicationEventType.INFO);
-            return UtilResponse.buildNotFoundResponse(msg);
+            return ResponseUtil.buildNotFoundResponse(msg);
         } catch (Exception e) {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
             applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildInternalServerErrorResponse(msg);
+            return ResponseUtil.buildInternalServerErrorResponse(msg);
         }
     }
 
@@ -118,7 +119,7 @@ public class ElasticsearchResource {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
             applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -144,9 +145,9 @@ public class ElasticsearchResource {
     }
 
     @PostMapping("/search")
-    public ResponseEntity<List<Map<String, Object>>> search(@RequestBody(required = false) List<FilterType> filters,
+    public ResponseEntity<List<Map>> search(@RequestBody(required = false) List<FilterType> filters,
                                             @RequestParam Integer top, @RequestParam String indexPattern,
-                                            @RequestParam(required = false) String groupByField,
+                                            @RequestParam(required = false, defaultValue = "false") boolean includeChildren,
                                             Pageable pageable) {
         final String ctx = CLASSNAME + ".search";
         try {
@@ -160,20 +161,30 @@ public class ElasticsearchResource {
             HttpHeaders headers = UtilPagination.generatePaginationHttpHeaders(Math.min(hits.total().value(), top),
                     pageable.getPageNumber(), pageable.getPageSize(), "/api/elasticsearch/search");
 
+            List<Map> results = hits.hits().stream()
+                    .map(Hit::source)
+                    .toList();
 
-            List<Map<String, Object>> flatResults = hits.hits().stream()
-                    .map(hit -> (Map<String, Object>)hit.source())
-                    .collect(Collectors.toList());
+            if (includeChildren) {
+                results.forEach(d -> {
+                    Object id = d.get("id");
+                    if (id != null) {
+                        long countEchoes = elasticsearchService.count(
+                                List.of(new FilterType("parentId", OperatorType.IS,  id.toString())),
+                                indexPattern
+                        );
+                        d.put("hasChildren", countEchoes > 0);
+                        d.put("echoes", countEchoes);
+                    }
+                });
+            }
 
-            SearchResultProcessor processor = searchProcessorRegistry.resolve(groupByField);
-            List<Map<String, Object>> processed = processor.process(flatResults);
-
-            return ResponseEntity.ok().headers(headers).body(processed);
+            return ResponseEntity.ok().headers(headers).body(results);
         } catch (Exception e) {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
             applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -195,7 +206,7 @@ public class ElasticsearchResource {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
             applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -220,7 +231,7 @@ public class ElasticsearchResource {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
             applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -234,7 +245,22 @@ public class ElasticsearchResource {
             String msg = ctx + ": " + e.getLocalizedMessage();
             log.error(msg);
             applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+        }
+    }
+
+    @PostMapping("/count")
+    public ResponseEntity<Boolean> count(@RequestBody(required = false) List<FilterType> filters,
+                                      @RequestParam String indexPattern,
+                                      Pageable pageable) {
+        final String ctx = CLASSNAME + ".count";
+        try {
+            return ResponseEntity.ok().body(elasticsearchService.exists(filters, indexPattern));
+        } catch (Exception e) {
+            String msg = ctx + ": " + e.getMessage();
+            log.error(msg);
+            applicationEventService.createEvent(msg, ApplicationEventType.ERROR);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 

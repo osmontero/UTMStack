@@ -14,6 +14,8 @@ export const ALERT_SEVERITY_FIELD = 'severity';
 export const ALERT_IMPACT_FIELD = 'impact';
 export const ALERT_SEVERITY_FIELD_LABEL = 'severityLabel';
 export const ALERT_TAGS_FIELD = 'tags';
+export const ALERT_ASSETS_GROUP_NAME_FIELD = 'assetGroupName';
+export const ALERT_ASSETS_GROUP_ID_FIELD = 'assetGroupId';
 export const ALERT_NOTE_FIELD = 'notes';
 export const ALERT_OBSERVATION_FIELD = 'statusObservation';
 export const ALERT_TIMESTAMP_FIELD = '@timestamp';
@@ -32,6 +34,7 @@ export const ALERT_TARGET_FIELD = 'target';
 export const ALERT_ADVERSARY_FIELD = 'adversary';
 export const ALERT_TECHNIQUE_FIELD = 'technique';
 export const ALERT_PARENT_ID = 'parentId';
+export const ALERT_ECHOES_FIELD = 'echoes';
 
 // SOURCE
 export const ALERT_SOURCE_HOSTNAME_FIELD = 'source.host';
@@ -148,6 +151,12 @@ export const ALERT_FIELDS: UtmFieldType[] = [
     visible: true,
   },
   {
+    label: 'Echoes',
+    field: ALERT_ECHOES_FIELD,
+    type: ElasticDataTypesEnum.NUMBER,
+    visible: true,
+  },
+  {
     label: 'Target',
     field: ALERT_TARGET_FIELD,
     type: ElasticDataTypesEnum.OBJECT,
@@ -211,13 +220,13 @@ export const ALERT_FIELDS: UtmFieldType[] = [
         label: 'Target Host',
         field: ALERT_TARGET_HOST_FIELD,
         type: ElasticDataTypesEnum.STRING,
-        visible: false,
+        visible: true,
       },
       {
         label: 'Target User',
         field: ALERT_TARGET_USER_FIELD,
         type: ElasticDataTypesEnum.STRING,
-        visible: false,
+        visible: true,
       }
     ]
   },
@@ -285,13 +294,13 @@ export const ALERT_FIELDS: UtmFieldType[] = [
         label: 'Adversary Host',
         field: ALERT_ADVERSARY_HOST_FIELD,
         type: ElasticDataTypesEnum.STRING,
-        visible: false,
+        visible: true,
       },
       {
         label: 'Adversary User',
-        field: ALERT_ADVERSARY_URL_FIELD,
+        field: ALERT_ADVERSARY_USER_FIELD,
         type: ElasticDataTypesEnum.STRING,
-        visible: false,
+        visible: true,
       }
     ]
   },
@@ -389,6 +398,39 @@ export const ALERT_FIELDS: UtmFieldType[] = [
   },
 ];
 
+export const ALERT_ECHOES_FIELDS: UtmFieldType[] = [
+  {
+    label: 'Alert name',
+    field: ALERT_NAME_FIELD,
+    type: ElasticDataTypesEnum.STRING,
+    visible: true,
+  },
+  {
+    label: 'Severity',
+    field: ALERT_SEVERITY_FIELD_LABEL,
+    type: ElasticDataTypesEnum.NUMBER,
+    visible: true,
+  },
+  {
+    label: 'Status',
+    field: ALERT_STATUS_FIELD,
+    type: ElasticDataTypesEnum.NUMBER,
+    visible: true,
+  },
+  {
+    label: 'Time',
+    field: ALERT_TIMESTAMP_FIELD,
+    type: ElasticDataTypesEnum.DATE,
+    visible: true,
+  },
+  {
+    label: 'Sensor',
+    field: ALERT_SENSOR_FIELD,
+    type: ElasticDataTypesEnum.STRING,
+    visible: true,
+  }
+];
+
 
 export const ALERT_FILTERS_FIELDS: UtmFieldType[] = [
   {
@@ -396,6 +438,12 @@ export const ALERT_FILTERS_FIELDS: UtmFieldType[] = [
     field: ALERT_NAME_FIELD,
     type: ElasticDataTypesEnum.STRING,
     customStyle: 'text-blue-800',
+    visible: true,
+  },
+  {
+    label: 'Datasource Group',
+    field: ALERT_ASSETS_GROUP_NAME_FIELD,
+    type: ElasticDataTypesEnum.STRING,
     visible: true,
   },
   {
@@ -565,7 +613,7 @@ export const ALERT_FILTERS_FIELDS: UtmFieldType[] = [
     field: ALERT_TAGS_FIELD,
     type: ElasticDataTypesEnum.STRING,
     visible: true,
-  },
+  }
 ];
 
 export const EVENT_FIELDS: UtmFieldType[] = [
@@ -1265,4 +1313,271 @@ export const INCIDENT_AUTOMATION_ALERT_FIELDS: UtmFieldType[] = [
     visible: false,
   },
 
+];
+
+export const ALERTS_CHILDREN_FIELDS: UtmFieldType[] = [
+  {
+    label: 'Time',
+    field: ALERT_TIMESTAMP_FIELD,
+    type: ElasticDataTypesEnum.DATE,
+    visible: true,
+  },
+  {
+    label: 'Alert name',
+    field: ALERT_NAME_FIELD,
+    type: ElasticDataTypesEnum.STRING,
+    visible: true,
+  },
+  {
+    label: 'Severity',
+    field: ALERT_SEVERITY_FIELD_LABEL,
+    type: ElasticDataTypesEnum.NUMBER,
+    visible: true,
+  },
+  {
+    label: 'Sensor',
+    field: ALERT_SENSOR_FIELD,
+    type: ElasticDataTypesEnum.STRING,
+    visible: true,
+  },
+  {
+    label: 'Target',
+    field: ALERT_TARGET_FIELD,
+    type: ElasticDataTypesEnum.OBJECT,
+    visible: true,
+    fields: [
+      {
+        label: 'Target IP',
+        field: ALERT_TARGET_IP_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: true,
+      },
+      {
+        label: 'Target URL',
+        field: ALERT_TARGET_URL_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+      {
+        label: 'Target Bytes Sent',
+        field: ALERT_TARGET_BYTES_SENT_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+      {
+        label: 'Target Domain',
+        field: ALERT_TARGET_DOMAIN_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+      {
+        label: 'Target ASN',
+        field: ALERT_TARGET_GEOLOCATION_ASN_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: true,
+      },
+      {
+        label: 'Target ASO',
+        field: ALERT_TARGET_GEOLOCATION_ASO_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: true,
+      },
+      {
+        label: 'Target Latitude',
+        field: ALERT_TARGET_GEOLOCATION_LATITUDE_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+      {
+        label: 'Target Longitude',
+        field: ALERT_TARGET_GEOLOCATION_LONGITUDE_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+      {
+        label: 'Target File',
+        field: ALERT_TARGET_FILE_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+      {
+        label: 'Target Host',
+        field: ALERT_TARGET_HOST_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+      {
+        label: 'Target User',
+        field: ALERT_TARGET_USER_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      }
+    ]
+  },
+  {
+    label: 'Adversary',
+    field: ALERT_ADVERSARY_FIELD,
+    type: ElasticDataTypesEnum.OBJECT,
+    visible: true,
+    fields: [
+      {
+        label: 'Adversary IP',
+        field: ALERT_ADVERSARY_IP_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: true,
+      },
+      {
+        label: 'Adversary URL',
+        field: ALERT_ADVERSARY_URL_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+      {
+        label: 'Adversary Bytes Sent',
+        field: ALERT_ADVERSARY_BYTES_SENT_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+      {
+        label: 'Adversary Domain',
+        field: ALERT_ADVERSARY_DOMAIN_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+      {
+        label: 'Adversary ASN',
+        field: ALERT_ADVERSARY_GEOLOCATION_ASN_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: true,
+      },
+      {
+        label: 'Adversary ASO',
+        field: ALERT_ADVERSARY_GEOLOCATION_ASO_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: true,
+      },
+      {
+        label: 'Adversary Latitude',
+        field: ALERT_ADVERSARY_GEOLOCATION_LATITUDE_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+      {
+        label: 'Adversary Longitude',
+        field: ALERT_ADVERSARY_GEOLOCATION_LONGITUDE_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+      {
+        label: 'Adversary File',
+        field: ALERT_ADVERSARY_FILE_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+      {
+        label: 'Adversary Host',
+        field: ALERT_ADVERSARY_HOST_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+      {
+        label: 'Adversary User',
+        field: ALERT_ADVERSARY_URL_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      }
+    ]
+  },
+  {
+    label: 'Impact',
+    field: ALERT_IMPACT_FIELD,
+    type: ElasticDataTypesEnum.STRING,
+    visible: false,
+    fields: [
+      {
+        label: 'Availability',
+        field: ALERT_IMPACT_AVAILABILITY_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: true,
+      },
+      {
+        label: 'Confidentiality',
+        field: ALERT_IMPACT_CONFIDENTIALITY_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+      {
+        label: 'Integrity',
+        field: ALERT_IMPACT_INTEGRITY_FIELD,
+        type: ElasticDataTypesEnum.STRING,
+        visible: false,
+      },
+    ]
+  },
+  {
+    label: 'ID',
+    field: ALERT_CASE_ID_FIELD,
+    type: ElasticDataTypesEnum.STRING,
+    visible: false,
+  },
+  /*{
+    label: 'Tactic',
+    field: ALERT_TACTIC_FIELD,
+    type: ElasticDataTypesEnum.STRING,
+    visible: false,
+  },*/
+  {
+    label: 'Technique',
+    field: ALERT_TECHNIQUE_FIELD,
+    type: ElasticDataTypesEnum.STRING,
+    visible: false,
+  },
+  {
+    label: 'Note',
+    field: ALERT_NOTE_FIELD,
+    type: ElasticDataTypesEnum.STRING,
+    visible: false,
+  },
+  {
+    label: 'Protocol',
+    field: ALERT_PROTOCOL_FIELD,
+    type: ElasticDataTypesEnum.STRING,
+    visible: false,
+  },
+  {
+    label: 'Generated by',
+    field: ALERT_GENERATED_BY_FIELD,
+    type: ElasticDataTypesEnum.STRING,
+    visible: false,
+  },
+  {
+    label: 'Category',
+    field: ALERT_CATEGORY_FIELD,
+    type: ElasticDataTypesEnum.STRING,
+    visible: false,
+  },
+  {
+    label: 'Tags',
+    field: ALERT_TAGS_FIELD,
+    type: ElasticDataTypesEnum.STRING,
+    visible: false,
+  },
+  {
+    label: 'Observation',
+    field: ALERT_OBSERVATION_FIELD,
+    type: ElasticDataTypesEnum.STRING,
+    visible: false,
+  },
+  {
+    label: 'Incident ID',
+    field: ALERT_INCIDENT_ID_FIELD,
+    type: ElasticDataTypesEnum.NUMBER,
+    visible: false,
+  },
+  {
+    label: 'Incident Name',
+    field: ALERT_INCIDENT_NAME_FIELD,
+    type: ElasticDataTypesEnum.STRING,
+    visible: false,
+  },
 ];

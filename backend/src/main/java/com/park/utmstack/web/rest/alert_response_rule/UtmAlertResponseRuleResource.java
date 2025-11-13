@@ -3,6 +3,7 @@ package com.park.utmstack.web.rest.alert_response_rule;
 import com.park.utmstack.domain.alert_response_rule.UtmAlertResponseActionTemplate;
 import com.park.utmstack.domain.alert_response_rule.UtmAlertResponseRule;
 import com.park.utmstack.domain.application_events.enums.ApplicationEventType;
+import com.park.utmstack.service.UtmStackService;
 import com.park.utmstack.service.alert_response_rule.UtmAlertResponseActionTemplateQueryService;
 import com.park.utmstack.service.alert_response_rule.UtmAlertResponseRuleQueryService;
 import com.park.utmstack.service.alert_response_rule.UtmAlertResponseRuleService;
@@ -11,8 +12,9 @@ import com.park.utmstack.service.dto.UtmAlertResponseActionTemplateCriteria;
 import com.park.utmstack.service.dto.UtmAlertResponseActionTemplateDTO;
 import com.park.utmstack.service.dto.UtmAlertResponseRuleCriteria;
 import com.park.utmstack.service.dto.UtmAlertResponseRuleDTO;
-import com.park.utmstack.util.UtilResponse;
+import com.park.utmstack.util.ResponseUtil;
 import com.park.utmstack.web.rest.util.PaginationUtil;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springdoc.api.annotations.ParameterObject;
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
+@RequiredArgsConstructor
 public class UtmAlertResponseRuleResource {
 
     private static final String CLASSNAME = "UtmAlertResponseRuleResource";
@@ -38,17 +41,11 @@ public class UtmAlertResponseRuleResource {
     private final UtmAlertResponseRuleService alertResponseRuleService;
     private final UtmAlertResponseRuleQueryService alertResponseRuleQueryService;
     private final ApplicationEventService eventService;
+    private final UtmStackService utmStackService;
 
     private final UtmAlertResponseActionTemplateQueryService utmAlertResponseActionTemplateQueryService;
 
-    public UtmAlertResponseRuleResource(UtmAlertResponseRuleService alertResponseRuleService,
-                                        UtmAlertResponseRuleQueryService alertResponseRuleQueryService,
-                                        ApplicationEventService eventService, UtmAlertResponseActionTemplateQueryService utmAlertResponseActionTemplateQueryService) {
-        this.alertResponseRuleService = alertResponseRuleService;
-        this.alertResponseRuleQueryService = alertResponseRuleQueryService;
-        this.eventService = eventService;
-        this.utmAlertResponseActionTemplateQueryService = utmAlertResponseActionTemplateQueryService;
-    }
+
 
     @PostMapping("/utm-alert-response-rules")
     public ResponseEntity<UtmAlertResponseRuleDTO> createAlertResponseRule(@Valid @RequestBody UtmAlertResponseRuleDTO dto) {
@@ -58,14 +55,22 @@ public class UtmAlertResponseRuleResource {
                 String msg = ctx + ": A new rule cannot already have an ID";
                 log.error(msg);
                 eventService.createEvent(msg, ApplicationEventType.ERROR);
-                return UtilResponse.buildErrorResponse(HttpStatus.BAD_REQUEST, msg);
+                return ResponseUtil.buildErrorResponse(HttpStatus.BAD_REQUEST, msg);
             }
-            return ResponseEntity.ok(new UtmAlertResponseRuleDTO(alertResponseRuleService.save(new UtmAlertResponseRule(dto))));
+
+            if (utmStackService.isInDevelop()) {
+                dto.setId(alertResponseRuleService.getSystemSequenceNextValue());
+                dto.setSystemOwner(true);
+            } else {
+                dto.setSystemOwner(false);
+            }
+
+            return ResponseEntity.ok(new UtmAlertResponseRuleDTO(alertResponseRuleService.save(new UtmAlertResponseRule(dto), true)));
         } catch (Exception e) {
             String msg = ctx + ": " + e.getLocalizedMessage();
             log.error(msg);
             eventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -77,14 +82,14 @@ public class UtmAlertResponseRuleResource {
                 String msg = ctx + ": The rule you are trying to update does not have a valid ID";
                 log.error(msg);
                 eventService.createEvent(msg, ApplicationEventType.ERROR);
-                return UtilResponse.buildErrorResponse(HttpStatus.BAD_REQUEST, msg);
+                return ResponseUtil.buildErrorResponse(HttpStatus.BAD_REQUEST, msg);
             }
-            return ResponseEntity.ok(new UtmAlertResponseRuleDTO(alertResponseRuleService.save(new UtmAlertResponseRule(dto))));
+            return ResponseEntity.ok(new UtmAlertResponseRuleDTO(alertResponseRuleService.save(new UtmAlertResponseRule(dto), false)));
         } catch (Exception e) {
             String msg = ctx + ": " + e.getLocalizedMessage();
             log.error(msg);
             eventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -100,7 +105,7 @@ public class UtmAlertResponseRuleResource {
             String msg = ctx + ": " + e.getLocalizedMessage();
             log.error(msg);
             eventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -117,7 +122,7 @@ public class UtmAlertResponseRuleResource {
             String msg = ctx + ": " + e.getLocalizedMessage();
             log.error(msg);
             eventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -130,7 +135,7 @@ public class UtmAlertResponseRuleResource {
             String msg = ctx + ": " + e.getLocalizedMessage();
             log.error(msg);
             eventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -143,7 +148,7 @@ public class UtmAlertResponseRuleResource {
             String msg = ctx + ": " + e.getLocalizedMessage();
             log.error(msg);
             eventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 }

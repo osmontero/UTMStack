@@ -2,7 +2,9 @@ package com.park.utmstack.config;
 
 import com.park.utmstack.domain.index_pattern.enums.SystemIndexPattern;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public final class Constants {
@@ -36,8 +38,8 @@ public final class Constants {
     public static final String PROP_NETWORK_SCAN_API_URL = "utmstack.networkScan.apiUrl";
     public static final String PROP_TFA_ENABLE = "utmstack.tfa.enable";
     public static final String PROP_TFA_METHOD = "utmstack.tfa.method";
-    public static final int EXPIRES_IN_SECONDS = 30;
-    public static final int INIT_EXPIRES_IN_SECONDS = 300;
+    public static final int EXPIRES_IN_SECONDS_TOTP = 30;   // Google Authenticator
+    public static final int EXPIRES_IN_SECONDS_EMAIL = 120; // Email OTP
     public static final String TFA_ISSUER = "UTMStack";
 
     // ----------------------------------------------------------------------------------
@@ -74,6 +76,7 @@ public final class Constants {
     // - Alert index common fields
     // ----------------------------------------------------------------------------------
     public static final String alertIdKeyword = "id.keyword";
+    public static final String alertParentIdKeyword = "parentId.keyword";
     public static final String alertStatus = "status";
     public static final String alertTags = "tags";
     public static final String alertIsIncident = "isIncident";
@@ -136,6 +139,28 @@ public final class Constants {
     // Defines the index pattern for querying Elasticsearch statistics indexes.
     // ----------------------------------------------------------------------------------
     public static final String STATISTICS_INDEX_PATTERN = "v11-statistics-*";
+    public static final String V11_API_ACCESS_LOGS = "v11-api-access-logs-*";
+
+    // Logging
+    public static final String TRACE_ID_KEY = "traceId";
+    public static final String CONTEXT_KEY = "context";
+    public static final String USERNAME_KEY = "username";
+    public static final String METHOD_KEY = "method";
+    public static final String PATH_KEY = "path";
+    public static final String REMOTE_ADDR_KEY = "remoteAddr";
+    public static final String DURATION_KEY = "duration";
+    public static final String CAUSE_KEY = "cause";
+
+    public static final String ENV_TFA_ENABLE = "APP_TFA_ENABLED";
+    public static final String TFA_EXEMPTION_HEADER = "X-Bypass-TFA";
+
+    // Configuration data types for moduleGroupConfiguration
+
+    public static final String CONF_TYPE_PASSWORD = "password";
+    public static final String CONF_TYPE_FILE = "file";
+
+    public static final String API_KEY_HEADER = "Utm-Api-Key";
+    public static final List<String> API_ENDPOINT_IGNORE = Collections.emptyList();
 
     private Constants() {
     }

@@ -15,12 +15,12 @@ export class ElasticDataService {
   }
 
   search(page: number, size: number, top: number,
-         pattern: string, filters?: any, sortBy?: string, groupByField?: string): Observable<HttpResponse<any>> {
+         pattern: string, filters?: any, sortBy?: string, includeChildren?: boolean): Observable<HttpResponse<any>> {
     const query = new QueryType();
     query.add('page', page).add('size', size).add('top', top).add('indexPattern', pattern);
 
-    if (groupByField) {
-      query.add('groupByField', groupByField);
+    if (includeChildren) {
+      query.add('includeChildren', true);
     }
 
     if (sortBy) {
@@ -29,6 +29,13 @@ export class ElasticDataService {
     return this.http.post<HttpResponse<any>>(this.resourceUrl + 'search' + query.toString(),
       filters
       , {observe: 'response'});
+  }
+
+  exists(pattern: string, filters?: any): Observable<boolean> {
+    const query = new QueryType();
+    query.add('indexPattern', pattern);
+
+    return this.http.post<boolean>(this.resourceUrl + 'count' + query.toString(), filters);
   }
 
   public exportToCsv(params): Observable<Blob> {

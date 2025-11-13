@@ -18,6 +18,7 @@ import {AlertReportFilterComponent} from './alert-reports/shared/components/aler
 import {SaveAlertReportComponent} from './alert-reports/shared/components/save-report/save-report.component';
 import {AlertViewComponent} from './alert-view/alert-view.component';
 import {AlertManagementSharedModule} from './shared/alert-management-shared.module';
+import {InfiniteScrollModule} from "ngx-infinite-scroll";
 
 @NgModule({
   declarations: [
@@ -29,25 +30,25 @@ import {AlertManagementSharedModule} from './shared/alert-management-shared.modu
     AlertReportViewComponent,
     AlertFullDetailComponent,
   ],
-  imports: [
-    CommonModule,
-    AlertManagementRouting,
-    UtmSharedModule,
-    FormsModule,
-    NgbModule,
-    AlertManagementSharedModule,
-    NgxJsonViewerModule,
-    ResizableModule,
-    TranslateModule,
-    NgSelectModule,
-    ReactiveFormsModule,
-    IncidentSharedModule
-  ],
+    imports: [
+        CommonModule,
+        AlertManagementRouting,
+        UtmSharedModule,
+        FormsModule,
+        NgbModule,
+        AlertManagementSharedModule,
+        NgxJsonViewerModule,
+        ResizableModule,
+        TranslateModule,
+        NgSelectModule,
+        ReactiveFormsModule,
+        IncidentSharedModule,
+        InfiniteScrollModule
+    ],
   entryComponents: [
     SaveAlertReportComponent,
     AlertReportFilterComponent],
   providers: [NewAlertBehavior, AlertIncidentStatusChangeBehavior],
-  exports: [],
   schemas: [NO_ERRORS_SCHEMA, CUSTOM_ELEMENTS_SCHEMA]
 })
 export class AlertManagementModule {

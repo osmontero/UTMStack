@@ -17,6 +17,7 @@ import {AlertTagsCreateComponent} from '../alert-tags/alert-tags-create/alert-ta
 import {AlertTagsManagementComponent} from '../alert-tags/alert-tags-management.component';
 import {AlertTagsRenderComponent} from '../alert-tags/alert-tags-render/alert-tags-render.component';
 import {AlertTagsViewComponent} from '../alert-tags/alert-tags-view/alert-tags-view.component';
+import { AlertActionsContentComponent } from './components/alert-actions-content/alert-actions-content.component';
 import {AlertApplyIncidentComponent} from './components/alert-actions/alert-apply-incident/alert-apply-incident.component';
 import {AlertApplyNoteComponent} from './components/alert-actions/alert-apply-note/alert-apply-note.component';
 import {AlertApplyStatusComponent} from './components/alert-actions/alert-apply-status/alert-apply-status.component';
@@ -29,12 +30,16 @@ import {AlertCategoryComponent} from './components/alert-category/alert-category
 import {AlertCompleteComponent} from './components/alert-complete/alert-complete.component';
 import {AlertDescriptionComponent} from './components/alert-description/alert-description.component';
 import {AlertDocUpdateInProgressComponent} from './components/alert-doc-update-in-progress/alert-doc-update-in-progress.component';
+import {AlertEchoesComponent} from "./components/alert-echoes/alert-echoes.component";
 import { AlertEntityDisplayComponent } from './components/alert-entity-display/alert-entity-display.component';
+import {AlertEventsRelatedComponent} from './components/alert-events-related/alert-events-related.component';
 import {AlertFullLogComponent} from './components/alert-full-log/alert-full-log.component';
 import {AlertHistoryComponent} from './components/alert-history/alert-history.component';
 import {AlertHostDetailComponent} from './components/alert-host-detail/alert-host-detail.component';
+import {AlertImpactComponent} from './components/alert-impact/alert-impact.component';
 import {AlertIncidentDetailComponent} from './components/alert-incident-detail/alert-incident-detail.component';
 import {AlertIpComponent} from './components/alert-ip/alert-ip.component';
+import {AlertLogsRelatedButtonComponent} from './components/alert-logs-related-button/alert-logs-related-button.component';
 import {AlertMapLocationComponent} from './components/alert-map-location/alert-map-location.component';
 import {AlertProposedSolutionComponent} from './components/alert-proposed-solution/alert-proposed-solution.component';
 import {AlertRuleCreateComponent} from './components/alert-rule-create/alert-rule-create.component';
@@ -54,7 +59,9 @@ import {AlertGenericFilterComponent} from './components/filters/alert-generic-fi
 import {FilterAppliedComponent} from './components/filters/filter-applied/filter-applied.component';
 import {RowToFiltersComponent} from './components/filters/row-to-filter/row-to-filters.component';
 import {StatusFilterComponent} from './components/filters/status-filter/status-filter.component';
-import {AlertImpactComponent} from "./components/alert-impact/alert-impact.component";
+import { AlertActionSelectComponent } from './components/alert-action-select/alert-action-select.component';
+import { AlertChildColumnComponent } from './components/alert-child-column/alert-child-column.component';
+import {AlertEchoesTimelineService} from "./components/alert-echoes-timeline/alert-echoes-timeline.service";
 
 @NgModule({
   declarations: [
@@ -80,6 +87,7 @@ import {AlertImpactComponent} from "./components/alert-impact/alert-impact.compo
     AlertIpComponent,
     AlertHistoryComponent,
     AlertMapLocationComponent,
+    AlertChildColumnComponent,
     AlertSeverityDescriptionComponent,
     AlertFullLogComponent,
     AlertHostDetailComponent,
@@ -99,7 +107,12 @@ import {AlertImpactComponent} from "./components/alert-impact/alert-impact.compo
     AlertIncidentDetailComponent,
     AlertSocAiComponent,
     AlertEntityDisplayComponent,
-    AlertBadgeFieldComponent
+    AlertBadgeFieldComponent,
+    AlertLogsRelatedButtonComponent,
+    AlertEventsRelatedComponent,
+    AlertActionsContentComponent,
+    AlertEchoesComponent,
+    AlertActionSelectComponent
   ],
   entryComponents: [
     AlertStatusComponent,
@@ -122,6 +135,7 @@ import {AlertImpactComponent} from "./components/alert-impact/alert-impact.compo
     ActiveFiltersComponent,
     RowToFiltersComponent,
     AlertGenericFilterComponent,
+    AlertChildColumnComponent,
     AlertFilterComponent,
     DataFieldRenderComponent,
     StatusFilterComponent,
@@ -152,23 +166,29 @@ import {AlertImpactComponent} from "./components/alert-impact/alert-impact.compo
     AlertIncidentDetailComponent,
     AlertSocAiComponent,
     AlertEntityDisplayComponent,
-    AlertBadgeFieldComponent
+    AlertBadgeFieldComponent,
+    AlertEventsRelatedComponent,
+    AlertActionsContentComponent,
+    AlertLogsRelatedButtonComponent
   ],
-  imports: [
-    CommonModule,
-    TranslateModule,
-    UtmSharedModule,
-    FormsModule,
-    NgbModule,
-    ReactiveFormsModule,
-    NgSelectModule,
-    InfiniteScrollModule,
-    NgxJsonViewerModule,
-    IncidentResponseSharedModule,
-    DataMgmtSharedModule,
-    RouterModule,
-    InlineSVGModule,
-  ]
+    imports: [
+        CommonModule,
+        TranslateModule,
+        UtmSharedModule,
+        FormsModule,
+        NgbModule,
+        ReactiveFormsModule,
+        NgSelectModule,
+        InfiniteScrollModule,
+        NgxJsonViewerModule,
+        IncidentResponseSharedModule,
+        DataMgmtSharedModule,
+        RouterModule,
+        InlineSVGModule,
+    ],
+  providers: [
+    AlertEchoesTimelineService
+  ],
 })
 export class AlertManagementSharedModule {
 }

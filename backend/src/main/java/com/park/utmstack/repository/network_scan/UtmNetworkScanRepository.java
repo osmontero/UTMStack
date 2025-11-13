@@ -54,10 +54,14 @@ public interface UtmNetworkScanRepository extends JpaRepository<UtmNetworkScan, 
         "AND (:isAgent IS NULL OR ns.isAgent IN :isAgent) " +
         "AND (:assetOsPlatform IS NULL OR ns.assetOsPlatform IN :assetOsPlatform) " +
         "AND ((cast(:initDate as timestamp) is null) or (cast(:endDate as timestamp) is null) or (ns.discoveredAt BETWEEN :initDate AND :endDate)) " +
-        "AND (:dataTypes IS NULL OR EXISTS (" +
-        "   SELECT ip FROM ns.dataInputIpList ip WHERE ip.dataType IN :dataTypes) " +
-        "   OR EXISTS (" +
-        "   SELECT src FROM ns.dataInputSourceList src WHERE src.dataType IN :dataTypes)) " +
+        "AND (:dataTypes IS NULL OR EXISTS (\n" +
+        "       SELECT 1 FROM UtmDataInputStatus ip\n" +
+        "       WHERE ip.source = ns.assetIp AND ip.dataType IN :dataTypes\n" +
+        "     ) \n" +
+        "     OR EXISTS (\n" +
+        "       SELECT 1 FROM UtmDataInputStatus src\n" +
+        "       WHERE src.source = ns.assetName AND src.dataType IN :dataTypes\n" +
+        "     ))" +
         "AND (:ports IS NULL OR ns.id IN (" +
         "   SELECT p.scanId FROM UtmPorts p WHERE p.port IN :ports))")
     @QueryHints(@QueryHint(name = org.hibernate.jpa.QueryHints.HINT_PASS_DISTINCT_THROUGH, value = "false"))
@@ -119,4 +123,10 @@ public interface UtmNetworkScanRepository extends JpaRepository<UtmNetworkScan, 
 
     @Query(nativeQuery = true, value = "select n.asset_name from utm_network_scan n where n.asset_name is not null and n.is_agent is true and n.asset_alive is true and n.asset_status <> 'MISSING' and n.asset_os_platform = :platform")
     List<String> findAgentNamesByPlatform(@Param("platform") String platform);
+
+    @Query("SELECT ns.assetName, ns.groupId, ag.groupName " +
+            "FROM UtmNetworkScan ns " +
+            "JOIN UtmAssetGroup ag ON ns.groupId = ag.id " +
+            "WHERE ns.groupId IS NOT NULL")
+    List<Object[]> findAllAssetGroupMappings();
 }

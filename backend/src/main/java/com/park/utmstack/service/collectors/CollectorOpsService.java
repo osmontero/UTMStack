@@ -26,6 +26,7 @@ import com.park.utmstack.repository.collector.UtmCollectorRepository;
 import com.park.utmstack.security.SecurityUtils;
 import com.park.utmstack.service.application_modules.UtmModuleGroupService;
 import com.park.utmstack.service.application_modules.UtmModuleService;
+import com.park.utmstack.service.dto.application_modules.ModuleActivationDTO;
 import com.park.utmstack.service.dto.collectors.CollectorHostnames;
 import com.park.utmstack.service.dto.collectors.CollectorModuleEnum;
 import com.park.utmstack.service.dto.collectors.dto.CollectorConfigKeysDTO;
@@ -481,12 +482,14 @@ public class CollectorOpsService {
 
     @Transactional
     public void deleteCollector(Long id) throws Exception {
+
         Optional<UtmCollector> collector = utmCollectorRepository.findById(id);
+
         if (collector.isEmpty()) {
             log.error(String.format("Collector with %1$s not found", id));
             throw new RuntimeException(String.format("Collector with %1$s not found", id));
         } else if (collector.get().isActive()) {
-            this.deleteCollector(collector.get().getHostname(), CollectorModuleEnum.AS_400);
+            this.deleteCollector(collector.get().getHostname(), CollectorModuleEnum.valueOf(collector.get().getModule()));
 
             List<UtmModuleGroup> modules = this.utmModuleGroupRepository.findAllByCollector(id.toString());
             if(!modules.isEmpty()){
@@ -495,10 +498,15 @@ public class CollectorOpsService {
                 if(module.getModuleActive()){
                     modules = this.utmModuleGroupRepository.findAllByModuleId(module.getId())
                             .stream().filter( m -> !m.getCollector().equals(id.toString()))
-                            .collect(Collectors.toList());
+                            .toList();
+
 
                     if(modules.isEmpty()){
-                        this.utmModuleService.activateDeactivate(module.getServerId(), module.getModuleName(), false);
+                        this.utmModuleService.activateDeactivate(ModuleActivationDTO.builder()
+                                        .serverId(module.getServerId())
+                                        .moduleName(module.getModuleName())
+                                        .activationStatus(false)
+                                .build());
                     }
                 }
             }

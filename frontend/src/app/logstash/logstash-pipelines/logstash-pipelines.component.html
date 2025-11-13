@@ -13,15 +13,20 @@
            *ngFor="let pipeline of logstashPipelines.pipelines"
            [ngClass]="{'card-pipeline-selected':pipelineDetail && pipeline.pipelineId === pipelineDetail.pipelineId}"
            (click)="viewPipeline(pipeline)">
-        <h6 class="text-blue-800 d-flex justify-content-start w-100">
+        <div class="d-flex justify-content-between w-100 align-items-center" >
+          <h6 class="text-blue-800 d-flex justify-content-start">
           <span
             [ngClass]="pipeline.pipelineStatus==='up'?'text-success':'text-danger'"
             class="span-small-icon d-flex justify-content-start align-items-center">
                   <i
                     [ngClass]="'icon-circle2'"
                     class="mr-2"></i></span>
-          {{ pipeline.pipelineName }}
-        </h6>
+            {{ pipeline.pipelineName }}
+          </h6>
+          <button [ngbTooltip]="'Add filter'" (click)="addCustomFilter(pipeline)" class="btn btn-small btn-icon btn-outline-info">
+            <i class="small-md-icon icon-database-add"></i>
+          </button>
+        </div>
         <img class="p-3 mt-2 mt-1"
              [alt]="pipeline.moduleName"
              [src]="'/assets/img/guides/logos/' + getModuleSvg(pipeline.moduleName)">
@@ -42,28 +47,28 @@
 
     </div>
 
-    <!--<div class="pipeline-line pipeline-{{logstashPipelines.general.status}}">
-      <svg viewbox="0 0 10 100" style="width: 15px">
-        <line x1="5" x2="5" y1="0" y2="100"/>
-      </svg>
-    </div>
-
-    <div class="container__build tooltip-{{logstashPipelines.general.status}}">
-      <div class="p-3">
-        <app-logstash-stats [logstashPipelines]="logstashPipelines"></app-logstash-stats>
-      </div>
-    </div>-->
-
     <div class="pipeline-line pipeline-{{logstashPipelines.general.status}}">
       <svg viewbox="0 0 10 100" style="width: 15px">
         <line x1="5" x2="5" y1="0" y2="100"/>
       </svg>
     </div>
 
+    <!--<div class="container__build tooltip-{{logstashPipelines.general.status}}">
+      <div class="p-3">
+        <app-logstash-stats [logstashPipelines]="logstashPipelines"></app-logstash-stats>
+      </div>
+    </div>
+
+    <div class="pipeline-line pipeline-{{logstashPipelines.general.status}}">
+      <svg viewbox="0 0 10 100" style="width: 15px">
+        <line x1="5" x2="5" y1="0" y2="100"/>
+      </svg>
+    </div>-->
+
 
     <!-- in the deploy container show simply text, without a wrapping card -->
     <div class="container__deploy tooltip-green">
-      <div class="p-3 h-100 position-relative">
+      <div style="height: 180px" class="p-3 position-relative">
         <h6 class="text-blue-800 d-flex align-content-center justify-content-start mb-3">
          <span class="span-small-icon">
         <i [ngClass]="'icon-circle2 text-success-800'" class="mr-2"></i>
@@ -174,7 +179,10 @@
           *ngTemplateOutlet="pipelineEventTemplate; context: { pipeline: pipelineDetail, showColum:false }"></ng-container>
       </div>
 
-      <app-logstash-filters *ngIf="pipelineDetail" [pipeline]="pipelineDetail"></app-logstash-filters>
+      <app-logstash-filters *ngIf="pipelineDetail"
+                            [enableQuickCreate]="enableQuickCreate"
+                            [pipeline]="pipelineDetail">
+      </app-logstash-filters>
     </div>
   </div>
 </div>

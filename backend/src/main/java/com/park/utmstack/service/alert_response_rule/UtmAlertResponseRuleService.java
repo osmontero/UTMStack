@@ -15,7 +15,7 @@ import com.park.utmstack.domain.alert_response_rule.enums.RuleNonExecutionCause;
 import com.park.utmstack.domain.application_events.enums.ApplicationEventType;
 import com.park.utmstack.domain.chart_builder.types.query.FilterType;
 import com.park.utmstack.domain.chart_builder.types.query.OperatorType;
-import com.park.utmstack.domain.shared_types.AlertType;
+import com.park.utmstack.domain.shared_types.alert.UtmAlert;
 import com.park.utmstack.repository.alert_response_rule.UtmAlertResponseActionTemplateRepository;
 import com.park.utmstack.repository.alert_response_rule.UtmAlertResponseRuleExecutionRepository;
 import com.park.utmstack.repository.alert_response_rule.UtmAlertResponseRuleHistoryRepository;
@@ -32,6 +32,7 @@ import com.park.utmstack.service.incident_response.grpc_impl.IncidentResponseCom
 import com.park.utmstack.util.UtilJson;
 import com.park.utmstack.util.exceptions.UtmNotImplementedException;
 import io.grpc.stub.StreamObserver;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -49,6 +50,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 @Transactional
 public class UtmAlertResponseRuleService {
 
@@ -64,46 +66,20 @@ public class UtmAlertResponseRuleService {
     private final UtmAlertResponseRuleExecutionRepository alertResponseRuleExecutionRepository;
     private final UtmIncidentVariableService utmIncidentVariableService;
     private final UtmAlertResponseActionTemplateRepository utmAlertResponseActionTemplateRepository;
-
     private final UtmAlertResponseActionTemplateService utmAlertResponseActionTemplateService;
 
-    public UtmAlertResponseRuleService(UtmAlertResponseRuleRepository alertResponseRuleRepository,
-                                       UtmAlertResponseRuleHistoryRepository alertResponseRuleHistoryRepository,
-                                       UtmNetworkScanRepository networkScanRepository,
-                                       ApplicationEventService eventService,
-                                       AgentService agentService,
-                                       IncidentResponseCommandService incidentResponseCommandService,
-                                       UtmAlertResponseRuleExecutionRepository alertResponseRuleExecutionRepository,
-                                       UtmIncidentVariableService utmIncidentVariableService,
-                                       UtmAlertResponseActionTemplateRepository utmAlertResponseActionTemplateRepository,
-                                       UtmAlertResponseActionTemplateService utmAlertResponseActionTemplateService) {
-        this.alertResponseRuleRepository = alertResponseRuleRepository;
-        this.alertResponseRuleHistoryRepository = alertResponseRuleHistoryRepository;
-        this.networkScanRepository = networkScanRepository;
-        this.eventService = eventService;
-        this.agentService = agentService;
-        this.incidentResponseCommandService = incidentResponseCommandService;
-        this.alertResponseRuleExecutionRepository = alertResponseRuleExecutionRepository;
-        this.utmIncidentVariableService = utmIncidentVariableService;
-        this.utmAlertResponseActionTemplateRepository = utmAlertResponseActionTemplateRepository;
-        this.utmAlertResponseActionTemplateService = utmAlertResponseActionTemplateService;
-    }
 
-    public UtmAlertResponseRule save(UtmAlertResponseRule alertResponseRule) {
+
+    public UtmAlertResponseRule save(UtmAlertResponseRule alertResponseRule, boolean isCreate) {
         final String ctx = CLASSNAME + ".save";
         try {
-            if (alertResponseRule.getId() != null) {
+            if (!isCreate) {
+                String alertRuleId = String.valueOf(alertResponseRule.getId());
                 UtmAlertResponseRule current = alertResponseRuleRepository.findById(alertResponseRule.getId())
-                        .orElseThrow(() -> new RuntimeException(String.format("Incident response rule with ID: %1$s not found", alertResponseRule.getId())));
-                alertResponseRuleHistoryRepository.save(new UtmAlertResponseRuleHistory(new UtmAlertResponseRuleDTO(current)));
-            }
-
-            if (alertResponseRule.getUtmAlertResponseActionTemplates() != null) {
-                for (UtmAlertResponseActionTemplate action : alertResponseRule.getUtmAlertResponseActionTemplates()) {
-                    if (action.getId() == null || !utmAlertResponseActionTemplateRepository.existsById(action.getId())) {
-                        utmAlertResponseActionTemplateService.save(action);
-                    }
-                }
+                        .orElseThrow(() -> new RuntimeException(String.format("Incident response rule with ID: %1$s not found", alertRuleId)));
+                this.mergeInto(current, alertResponseRule);
+                alertResponseRuleHistoryRepository.save(new UtmAlertResponseRuleHistory(new UtmAlertResponseRuleDTO(alertResponseRule)));
+                alertResponseRule = current;
             }
 
             return alertResponseRuleRepository.save(alertResponseRule);
@@ -144,7 +120,7 @@ public class UtmAlertResponseRuleService {
     }
 
     @Async
-    public void evaluateRules(List<AlertType> alerts) {
+    public void evaluateRules(List<UtmAlert> alerts) {
         final String ctx = CLASSNAME + ".evaluateRules";
         try {
             if (CollectionUtils.isEmpty(alerts))
@@ -292,7 +268,7 @@ public class UtmAlertResponseRuleService {
     public void executeRuleCommands() {
         final String ctx = CLASSNAME + ".executeRuleCommands";
         try {
-            List<UtmAlertResponseRuleExecution> cmds = alertResponseRuleExecutionRepository.findAllByExecutionStatus(RuleExecutionStatus.PENDING);
+            List<UtmAlertResponseRuleExecution> cmds = alertResponseRuleExecutionRepository.findAllRuleByExecutionStatusAndRule_RuleActiveTrue(RuleExecutionStatus.PENDING);
             if (CollectionUtils.isEmpty(cmds))
                 return;
 
@@ -343,5 +319,48 @@ public class UtmAlertResponseRuleService {
             String msg = ctx + ": " + e.getLocalizedMessage();
             log.error(msg);
         }
+    }
+
+    public void mergeInto(UtmAlertResponseRule target, UtmAlertResponseRule source) {
+        target.setRuleName(source.getRuleName());
+        target.setRuleDescription(source.getRuleDescription());
+        target.setRuleCmd(source.getRuleCmd());
+        target.setRuleActive(source.getRuleActive());
+        target.setAgentPlatform(source.getAgentPlatform());
+        target.setDefaultAgent(source.getDefaultAgent());
+        target.setExcludedAgents(source.getExcludedAgents());
+        target.setRuleConditions(source.getRuleConditions());
+
+        target.getUtmAlertResponseActionTemplates().clear();
+
+        if (!source.getUtmAlertResponseActionTemplates().isEmpty()) {
+            List<UtmAlertResponseActionTemplate> managedTemplates = source.getUtmAlertResponseActionTemplates()
+                    .stream()
+                    .map(t -> {
+                        if (t.getId() != null) {
+                            UtmAlertResponseActionTemplate existing = utmAlertResponseActionTemplateRepository.findById(t.getId())
+                                    .orElseThrow(() -> new RuntimeException("Template not found: " + t.getId()));
+                            existing.setTitle(t.getTitle());
+                            existing.setDescription(t.getDescription());
+                            existing.setCommand(t.getCommand());
+                            return existing;
+                        } else {
+                            UtmAlertResponseActionTemplate newT = new UtmAlertResponseActionTemplate();
+                            newT.setTitle(t.getTitle());
+                            newT.setDescription(t.getDescription());
+                            newT.setCommand(t.getCommand());
+                            return utmAlertResponseActionTemplateService.save(newT);
+                        }
+                    })
+                    .collect(Collectors.toList());
+
+            target.getUtmAlertResponseActionTemplates().addAll(managedTemplates);
+        }
+    }
+
+    public Long getSystemSequenceNextValue() {
+        return alertResponseRuleRepository.findFirstBySystemOwnerIsTrueOrderByIdDesc()
+                .map(rule -> rule.getId() + 1)
+                .orElse(1L);
     }
 }

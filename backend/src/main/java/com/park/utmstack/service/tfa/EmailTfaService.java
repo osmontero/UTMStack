@@ -1,5 +1,6 @@
 package com.park.utmstack.service.tfa;
 
+import com.park.utmstack.aop.logging.Loggable;
 import com.park.utmstack.config.Constants;
 import com.park.utmstack.domain.User;
 import com.park.utmstack.domain.tfa.TfaMethod;
@@ -9,6 +10,7 @@ import com.park.utmstack.service.UserService;
 import com.park.utmstack.service.dto.tfa.init.Delivery;
 import com.park.utmstack.service.dto.tfa.init.TfaInitResponse;
 import com.park.utmstack.service.dto.tfa.verify.TfaVerifyResponse;
+import com.park.utmstack.util.exceptions.TooManyRequestsException;
 import com.park.utmstack.util.exceptions.UtmMailException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,7 @@ public class EmailTfaService implements TfaMethodService {
     }
 
     @Override
+    @Loggable
     public TfaInitResponse initiateSetup(User user) {
         final String ctx = CLASSNAME + ".initiateSetup";
         try {
@@ -40,7 +43,7 @@ public class EmailTfaService implements TfaMethodService {
             String secret = tfaService.generateSecret();
             String code = tfaService.generateCode(secret);
 
-            long expiresAt = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(Constants.EXPIRES_IN_SECONDS) * 10 * 1000;
+            long expiresAt = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(30);
             TfaSetupState state = new TfaSetupState(secret, expiresAt);
             cache.storeState(user.getLogin(), TfaMethod.EMAIL, state);
 
@@ -56,6 +59,7 @@ public class EmailTfaService implements TfaMethodService {
 
 
     @Override
+    @Loggable
     public TfaVerifyResponse verifyCode(User user, String code) {
 
         TfaSetupState tfaSetupState = cache.getState(user.getLogin(), TfaMethod.EMAIL)
@@ -73,7 +77,7 @@ public class EmailTfaService implements TfaMethodService {
     }
 
     @Override
-    public void persistConfiguration(User user) throws Exception {
+    public void persistConfiguration(User user) {
         String secret = cache.getState(user.getLogin(), TfaMethod.EMAIL)
                 .orElseThrow(() -> new IllegalStateException("No TFA setup found for user: " + user.getLogin()))
                 .getSecret();
@@ -86,11 +90,33 @@ public class EmailTfaService implements TfaMethodService {
         String secret = user.getTfaSecret();
         String code = tfaService.generateCode(secret);
 
-        TfaSetupState state = new TfaSetupState(secret, System.currentTimeMillis() + Constants.EXPIRES_IN_SECONDS * 1000 * 10);
+        TfaSetupState state = new TfaSetupState(secret, System.currentTimeMillis() + (Constants.EXPIRES_IN_SECONDS_EMAIL * 4) * 1000 * 10);
         cache.storeState(user.getLogin(), TfaMethod.EMAIL, state);
 
         mailService.sendTfaVerificationCode(user, code);
+    }
 
+    @Override
+    public void regenerateChallenge(User user) {
+
+        TfaSetupState state = cache.getState(user.getLogin(), TfaMethod.EMAIL)
+                .orElseThrow(() -> new IllegalStateException("No TFA setup found for user: " + user.getLogin()));
+
+        if (!state.canRequestChallenge()){
+            throw new TooManyRequestsException("Challenge request too soon. Please wait " + state.getCooldownRemainingSeconds() + " seconds.");
+        }
+
+        state.setExpiresAt(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(Constants.EXPIRES_IN_SECONDS_EMAIL));
+        state.markChallengeRequested();
+
+        mailService.sendTfaVerificationCode(user, tfaService.generateCode(state.getSecret()));
+        cache.storeState(user.getLogin(), TfaMethod.EMAIL, state);
+
+    }
+
+    @Override
+    public long expirationTimeSeconds() {
+        return Constants.EXPIRES_IN_SECONDS_EMAIL;
     }
 }
 

@@ -1,5 +1,6 @@
 package com.park.utmstack.web.rest.application_modules;
 
+import com.park.utmstack.aop.logging.AuditEvent;
 import com.park.utmstack.domain.application_events.enums.ApplicationEventType;
 import com.park.utmstack.domain.application_modules.UtmModule;
 import com.park.utmstack.domain.application_modules.enums.ModuleName;
@@ -12,11 +13,15 @@ import com.park.utmstack.service.application_events.ApplicationEventService;
 import com.park.utmstack.service.application_modules.UtmModuleQueryService;
 import com.park.utmstack.service.application_modules.UtmModuleService;
 import com.park.utmstack.event_processor.EventProcessorManagerService;
+import com.park.utmstack.service.dto.application_modules.CheckRequirementsResponse;
+import com.park.utmstack.service.dto.application_modules.ModuleActivationDTO;
 import com.park.utmstack.service.dto.application_modules.ModuleDTO;
 import com.park.utmstack.service.dto.application_modules.UtmModuleCriteria;
-import com.park.utmstack.util.UtilResponse;
+import com.park.utmstack.util.ResponseUtil;
 import com.park.utmstack.web.rest.util.PaginationUtil;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -48,19 +53,21 @@ public class UtmModuleResource {
 
 
 
+    @AuditEvent(
+            attemptType = ApplicationEventType.MODULE_ACTIVATION_ATTEMPT,
+            attemptMessage = "Attempt to activate/deactivate module initiated",
+            successType = ApplicationEventType.MODULE_ACTIVATION_SUCCESS,
+            successMessage = "Module activated/deactivated successfully"
+    )
     @PutMapping("/utm-modules/activateDeactivate")
     public ResponseEntity<UtmModule> activateDeactivate(@RequestParam Long serverId,
                                                         @RequestParam ModuleName nameShort,
                                                         @RequestParam Boolean activationStatus) {
-        final String ctx = CLASSNAME + ".activateDeactivate";
-        try {
-            return ResponseEntity.ok(moduleService.activateDeactivate(serverId, nameShort, activationStatus));
-        } catch (Exception e) {
-            String msg = ctx + ": " + e.getMessage();
-            log.error(msg);
-            eventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
-        }
+        return ResponseEntity.ok(moduleService.activateDeactivate(ModuleActivationDTO.builder()
+                        .serverId(serverId)
+                        .moduleName(nameShort)
+                        .activationStatus(activationStatus)
+                .build()));
     }
 
     /**
@@ -81,7 +88,7 @@ public class UtmModuleResource {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
             eventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -94,7 +101,7 @@ public class UtmModuleResource {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
             eventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -108,7 +115,7 @@ public class UtmModuleResource {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
             eventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -123,7 +130,7 @@ public class UtmModuleResource {
                 String msg = ctx + ": You must provide the header used to communicate internally with this resource";
                 log.error(msg);
                 eventService.createEvent(msg, ApplicationEventType.ERROR);
-                return UtilResponse.buildErrorResponse(HttpStatus.BAD_REQUEST, msg);
+                return ResponseUtil.buildErrorResponse(HttpStatus.BAD_REQUEST, msg);
             }
 
             return ResponseEntity.ok(module);
@@ -131,7 +138,7 @@ public class UtmModuleResource {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
             eventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -158,7 +165,7 @@ public class UtmModuleResource {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
             eventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -171,7 +178,7 @@ public class UtmModuleResource {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
             eventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 
@@ -184,28 +191,7 @@ public class UtmModuleResource {
             String msg = ctx + ": " + e.getMessage();
             log.error(msg);
             eventService.createEvent(msg, ApplicationEventType.ERROR);
-            return UtilResponse.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
-        }
-    }
-
-    public static class CheckRequirementsResponse {
-        private ModuleRequirementStatus status;
-        private List<ModuleRequirement> checks;
-
-        public ModuleRequirementStatus getStatus() {
-            return status;
-        }
-
-        public void setStatus(ModuleRequirementStatus status) {
-            this.status = status;
-        }
-
-        public List<ModuleRequirement> getChecks() {
-            return checks;
-        }
-
-        public void setChecks(List<ModuleRequirement> checks) {
-            this.checks = checks;
+            return ResponseUtil.buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, msg);
         }
     }
 }

@@ -4,6 +4,7 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+import com.park.utmstack.aop.logging.Loggable;
 import com.park.utmstack.config.Constants;
 import com.park.utmstack.domain.User;
 import com.park.utmstack.domain.tfa.TfaMethod;
@@ -12,6 +13,7 @@ import com.park.utmstack.service.UserService;
 import com.park.utmstack.service.dto.tfa.init.Delivery;
 import com.park.utmstack.service.dto.tfa.init.TfaInitResponse;
 import com.park.utmstack.service.dto.tfa.verify.TfaVerifyResponse;
+import com.park.utmstack.util.exceptions.TooManyRequestsException;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 import org.springframework.stereotype.Service;
 
@@ -44,7 +46,7 @@ public class TotpTfaService implements TfaMethodService {
     @Override
     public TfaInitResponse initiateSetup(User user) {
         String secret = authenticator.createCredentials().getKey();
-        long expiresAt = System.currentTimeMillis() + Constants.EXPIRES_IN_SECONDS * 10 * 1000;
+        long expiresAt = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(Constants.EXPIRES_IN_SECONDS_TOTP * 10);
         TfaSetupState state = new TfaSetupState(secret, expiresAt);
         cache.storeState(user.getLogin(), TfaMethod.TOTP, state);
 
@@ -54,7 +56,7 @@ public class TotpTfaService implements TfaMethodService {
         String qrBase64 = generateQrBase64(uri);
         Delivery delivery = new Delivery(TfaMethod.TOTP, qrBase64);
 
-        return new TfaInitResponse("pending", delivery, Constants.EXPIRES_IN_SECONDS * 10);
+        return new TfaInitResponse("pending", delivery, Constants.EXPIRES_IN_SECONDS_TOTP * 10);
     }
 
     @Override
@@ -74,7 +76,7 @@ public class TotpTfaService implements TfaMethodService {
 
 
     @Override
-    public void persistConfiguration(User user) throws Exception {
+    public void persistConfiguration(User user) {
         String secret = cache.getState(user.getLogin(), TfaMethod.TOTP)
                 .orElseThrow(() -> new IllegalStateException("No TFA setup found for user: " + user.getLogin()))
                 .getSecret();
@@ -86,7 +88,23 @@ public class TotpTfaService implements TfaMethodService {
     public void generateChallenge(User user) {
         cache.clear(user.getLogin(), TfaMethod.TOTP);
         String secret = user.getTfaSecret();
-        TfaSetupState state = new TfaSetupState(secret, System.currentTimeMillis() + (Constants.EXPIRES_IN_SECONDS + 10) * 1000);
+        TfaSetupState state = new TfaSetupState(secret, System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(Constants.EXPIRES_IN_SECONDS_TOTP));
+        cache.storeState(user.getLogin(), TfaMethod.TOTP, state);
+    }
+
+    @Override
+    public void regenerateChallenge(User user) {
+
+        TfaSetupState state = cache.getState(user.getLogin(), TfaMethod.TOTP)
+                .orElseThrow(() -> new IllegalStateException("No TFA setup found for user: " + user.getLogin()));
+
+        if (!state.canRequestChallenge()){
+            throw new TooManyRequestsException("Challenge request too soon. Please wait " + state.getCooldownRemainingSeconds() + " seconds.");
+        }
+
+        state.setExpiresAt(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(Constants.EXPIRES_IN_SECONDS_TOTP));
+        state.markChallengeRequested();
+
         cache.storeState(user.getLogin(), TfaMethod.TOTP, state);
     }
 
@@ -101,6 +119,11 @@ public class TotpTfaService implements TfaMethodService {
         } catch (Exception e) {
             throw new RuntimeException("Error al generar QR", e);
         }
+    }
+
+    @Override
+    public long expirationTimeSeconds() {
+        return Constants.EXPIRES_IN_SECONDS_TOTP;
     }
 
 }

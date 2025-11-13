@@ -6,7 +6,7 @@ import com.park.utmstack.domain.chart_builder.types.query.OperatorType;
 import com.park.utmstack.domain.index_pattern.enums.SystemIndexPattern;
 import com.park.utmstack.domain.network_scan.NetworkScanFilter;
 import com.park.utmstack.domain.reports.types.IncidentType;
-import com.park.utmstack.domain.shared_types.AlertType;
+import com.park.utmstack.domain.shared_types.alert.UtmAlert;
 import com.park.utmstack.domain.shared_types.enums.ImageShortName;
 import com.park.utmstack.service.UtmImagesService;
 import com.park.utmstack.service.elasticsearch.ElasticsearchService;
@@ -75,12 +75,12 @@ public class CustomReportService {
                 .query(SearchUtil.toQuery(filters));
             SearchUtil.applyPaginationAndSort(srb, page, top);
 
-            HitsMetadata<AlertType> hits = elasticsearchService.search(srb.build(), AlertType.class).hits();
+            HitsMetadata<UtmAlert> hits = elasticsearchService.search(srb.build(), UtmAlert.class).hits();
 
             if (hits.total().value() <= 0)
                 return Optional.empty();
 
-            List<AlertType> alerts = hits.hits().stream().map(Hit::source).collect(Collectors.toList());
+            List<UtmAlert> alerts = hits.hits().stream().map(Hit::source).collect(Collectors.toList());
 
             Map<String, Object> vars = new HashMap<>();
             vars.put("alerts", alerts);
@@ -106,28 +106,28 @@ public class CustomReportService {
                 .query(SearchUtil.toQuery(filters));
             SearchUtil.applyPaginationAndSort(srb, page, top);
 
-            HitsMetadata<AlertType> hits = elasticsearchService.search(srb.build(), AlertType.class).hits();
+            HitsMetadata<UtmAlert> hits = elasticsearchService.search(srb.build(), UtmAlert.class).hits();
 
             if (hits.total().value() <= 0)
                 return Optional.empty();
 
-            List<AlertType> incidentDocs = hits.hits().stream().map(Hit::source).collect(Collectors.toList());
+            List<UtmAlert> incidentDocs = hits.hits().stream().map(Hit::source).collect(Collectors.toList());
 
             List<IncidentType> incidents = new ArrayList<>();
 
-            for (AlertType incident : incidentDocs) {
+            for (UtmAlert incident : incidentDocs) {
                 IncidentType incidentType = new IncidentType();
                 incidentType.setIncident(incident);
 
                 String src = "", dest = "";
 
-                if (!Objects.isNull(incident.getSource()))
-                    src = StringUtils.hasText(incident.getSource().getHost())
-                        ? incident.getSource().getHost() : incident.getSource().getIp();
+                if (!Objects.isNull(incident.getAdversary()))
+                    src = StringUtils.hasText(incident.getAdversary().getHost())
+                        ? incident.getAdversary().getHost() : incident.getAdversary().getIp();
 
-                if (!Objects.isNull(incident.getDestination()))
-                    dest = StringUtils.hasText(incident.getDestination().getHost())
-                        ? incident.getDestination().getHost() : incident.getDestination().getIp();
+                if (!Objects.isNull(incident.getTarget()))
+                    dest = StringUtils.hasText(incident.getTarget().getHost())
+                        ? incident.getTarget().getHost() : incident.getTarget().getIp();
 
                 if (StringUtils.hasText(src))
                     incidentType.setSrcResponses(incidentJobService.findAllByAgent(src));

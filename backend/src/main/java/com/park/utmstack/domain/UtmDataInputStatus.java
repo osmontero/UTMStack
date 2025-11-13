@@ -35,16 +35,6 @@ public class UtmDataInputStatus implements Serializable {
     @Column(name = "source", length = 256, nullable = false)
     private String source;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "source", referencedColumnName = "asset_name", insertable = false, updatable = false, nullable = false)
-    @JsonIgnore
-    private UtmNetworkScan assetName;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "source", referencedColumnName = "asset_ip", insertable = false, updatable = false, nullable = false)
-    @JsonIgnore
-    private UtmNetworkScan assetIp;
-
     @NotNull
     @Size(max = 50)
     @Column(name = "data_type", length = 50, nullable = false)
@@ -68,5 +58,17 @@ public class UtmDataInputStatus implements Serializable {
             return false;
         long now = Instant.now().getEpochSecond();
         return (now - timestamp) > (median * 1.5);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UtmDataInputStatus that)) return false;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

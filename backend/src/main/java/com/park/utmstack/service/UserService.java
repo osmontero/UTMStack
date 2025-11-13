@@ -213,19 +213,16 @@ public class UserService {
         }).map(UserDTO::new);
     }
 
-    public void updateUserTfaSecret(String userLogin, String tfaSecret, String tfaMethod) throws Exception {
-        final String ctx = CLASS_NAME + ".updateUserTfaSecret";
-        try {
+    public void updateUserTfaSecret(String userLogin, String tfaSecret, String tfaMethod) {
             User user = userRepository.findOneByLogin(userLogin)
-                .orElseThrow(() -> new Exception(String.format("User %1$s not found", userLogin)));
+                .orElseThrow(() -> new NoSuchElementException(String.format("User %1$s not found", userLogin)));
             user.setTfaMethod(tfaMethod);
             user.setTfaSecret(tfaSecret);
-        } catch (Exception e) {
-            throw new Exception(ctx + ": " + e.getMessage());
-        }
+
+            userRepository.save(user);
     }
 
-    public void deleteUser(String login) throws Exception {
+    public void deleteUser(String login) {
         String ctx = CLASS_NAME + ".deleteUser";
         User user = userRepository.findOneByLogin(login)
                 .orElseThrow(() -> new NoSuchElementException(String.format("User %1$s not found", login)));
@@ -304,6 +301,7 @@ public class UserService {
 
     public User getCurrentUserLogin() {
         String userLogin = SecurityUtils.getCurrentUserLogin().orElseThrow(() -> new CurrentUserLoginNotFoundException("No current user login was found"));
-        return userRepository.findOneWithAuthoritiesByLogin(userLogin).orElseThrow(() -> new CurrentUserLoginNotFoundException(String.format("No user with login %1$s was found", userLogin)));
+        return userRepository.findOneWithAuthoritiesByLogin(userLogin)
+                .orElseThrow(() -> new CurrentUserLoginNotFoundException(String.format("No user with login %1$s was found", userLogin)));
     }
 }

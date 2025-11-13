@@ -10,7 +10,7 @@ import com.park.utmstack.domain.correlation.config.UtmDataTypes;
 import com.park.utmstack.domain.network_scan.UtmNetworkScan;
 import com.park.utmstack.domain.network_scan.enums.AssetStatus;
 import com.park.utmstack.domain.network_scan.enums.UpdateLevel;
-import com.park.utmstack.domain.shared_types.AlertType;
+import com.park.utmstack.domain.shared_types.alert.UtmAlert;
 import com.park.utmstack.repository.UtmDataInputStatusRepository;
 import com.park.utmstack.repository.correlation.config.UtmDataTypesRepository;
 import com.park.utmstack.repository.network_scan.UtmNetworkScanRepository;
@@ -24,6 +24,7 @@ import com.park.utmstack.util.enums.AlertSeverityEnum;
 import com.park.utmstack.util.enums.AlertStatus;
 import com.utmstack.opensearch_connector.parsers.TermAggregateParser;
 import com.utmstack.opensearch_connector.types.BucketAggregation;
+import lombok.RequiredArgsConstructor;
 import org.apache.http.conn.util.InetAddressUtils;
 import org.opensearch.client.json.JsonData;
 import org.opensearch.client.opensearch._types.SortOrder;
@@ -51,6 +52,7 @@ import java.util.stream.Collectors;
  * Service Implementation for managing UtmDataInputStatus.
  */
 @Service
+@RequiredArgsConstructor
 @Transactional
 public class UtmDataInputStatusService {
 
@@ -65,22 +67,6 @@ public class UtmDataInputStatusService {
     private final UtmDataTypesRepository dataTypesRepository;
     private final UtmNetworkScanRepository networkScanRepository;
 
-
-    public UtmDataInputStatusService(UtmDataInputStatusRepository dataInputStatusRepository,
-                                     UtmServerModuleService serverModuleService,
-                                     ApplicationEventService applicationEventService,
-                                     UtmNetworkScanService networkScanService,
-                                     ElasticsearchService elasticsearchService,
-                                     UtmDataTypesRepository dataTypesRepository,
-                                     UtmNetworkScanRepository networkScanRepository) {
-        this.dataInputStatusRepository = dataInputStatusRepository;
-        this.serverModuleService = serverModuleService;
-        this.applicationEventService = applicationEventService;
-        this.networkScanService = networkScanService;
-        this.elasticsearchService = elasticsearchService;
-        this.dataTypesRepository = dataTypesRepository;
-        this.networkScanRepository = networkScanRepository;
-    }
 
     /**
      * Save a utmDataInputStatus.
@@ -340,7 +326,7 @@ public class UtmDataInputStatusService {
      * Create the alert object for datasource down
      *
      * @param input: Datasource information
-     * @return A ${@link AlertType} to index
+     * @return A ${@link UtmAlert} to index
      */
     private Map<String, Object> createAlertForDatasourceDown(UtmDataInputStatus input) {
         List<String> cloudTypes = Arrays.asList("aws", "o365", "office365", "azure", "gcp", "google", "nids", "netflow");

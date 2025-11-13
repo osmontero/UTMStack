@@ -1,11 +1,21 @@
 package com.park.utmstack.config;
 
+import com.park.utmstack.loggin.api_key.ApiKeyUsageLoggingService;
+import com.park.utmstack.loggin.filter.MdcCleanupFilter;
+import com.park.utmstack.repository.UserRepository;
 import com.park.utmstack.security.AuthoritiesConstants;
+import com.park.utmstack.security.api_key.ApiKeyConfigurer;
+import com.park.utmstack.security.api_key.ApiKeyFilter;
 import com.park.utmstack.security.internalApiKey.InternalApiKeyConfigurer;
 import com.park.utmstack.security.internalApiKey.InternalApiKeyProvider;
 import com.park.utmstack.security.jwt.JWTConfigurer;
+import com.park.utmstack.security.jwt.JWTFilter;
 import com.park.utmstack.security.jwt.TokenProvider;
+import com.park.utmstack.service.api_key.ApiKeyService;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.net.util.SubnetUtils;
 import org.springframework.beans.factory.BeanInitializationException;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -27,8 +37,11 @@ import org.zalando.problem.spring.web.advice.security.SecurityProblemSupport;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Configuration
+@RequiredArgsConstructor
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 @Import(SecurityProblemSupport.class)
@@ -39,17 +52,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private final TokenProvider tokenProvider;
     private final CorsFilter corsFilter;
     private final InternalApiKeyProvider internalApiKeyProvider;
-
-    public SecurityConfiguration(AuthenticationManagerBuilder authenticationManagerBuilder,
-                                 UserDetailsService userDetailsService,
-                                 TokenProvider tokenProvider,
-                                 CorsFilter corsFilter, InternalApiKeyProvider internalApiKeyProvider) {
-        this.authenticationManagerBuilder = authenticationManagerBuilder;
-        this.userDetailsService = userDetailsService;
-        this.tokenProvider = tokenProvider;
-        this.corsFilter = corsFilter;
-        this.internalApiKeyProvider = internalApiKeyProvider;
-    }
+    private final ApiKeyFilter apiKeyFilter;
 
     @PostConstruct
     public void init() {
@@ -108,7 +111,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/account/reset-password/init").permitAll()
                 .antMatchers("/api/account/reset-password/finish").permitAll()
                 .antMatchers("/api/images/all").permitAll()
-                .antMatchers("/api/tfa/**").hasAnyAuthority(AuthoritiesConstants.PRE_VERIFICATION_USER, AuthoritiesConstants.ADMIN, AuthoritiesConstants.USER)
+                .antMatchers("/api/enrollment/**").hasAnyAuthority(AuthoritiesConstants.PRE_VERIFICATION_USER)
+                .antMatchers("/api/tfa/verify-code").hasAnyAuthority(AuthoritiesConstants.PRE_VERIFICATION_USER, AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN)
+                .antMatchers("/api/tfa/refresh").hasAnyAuthority(AuthoritiesConstants.PRE_VERIFICATION_USER, AuthoritiesConstants.USER, AuthoritiesConstants.ADMIN)
+                .antMatchers("/api/tfa/**").hasAnyAuthority(AuthoritiesConstants.ADMIN, AuthoritiesConstants.USER)
                 .antMatchers("/api/utm-incident-jobs").hasAuthority(AuthoritiesConstants.ADMIN)
                 .antMatchers("/api/utm-incident-jobs/**").hasAuthority(AuthoritiesConstants.ADMIN)
                 .antMatchers("/api/utm-incident-variables/**").hasAuthority(AuthoritiesConstants.ADMIN)
@@ -122,7 +128,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .apply(securityConfigurerAdapterForJwt())
                 .and()
-                .apply(securityConfigurerAdapterForInternalApiKey());
+                .apply(securityConfigurerAdapterForInternalApiKey())
+                .and()
+                .apply(securityConfigurerAdapterForApiKey())    ;
+
 
     }
 
@@ -133,4 +142,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private InternalApiKeyConfigurer securityConfigurerAdapterForInternalApiKey() {
         return new InternalApiKeyConfigurer(internalApiKeyProvider);
     }
+
+    private ApiKeyConfigurer securityConfigurerAdapterForApiKey() {
+        return new ApiKeyConfigurer(apiKeyFilter);
+    }
+
 }

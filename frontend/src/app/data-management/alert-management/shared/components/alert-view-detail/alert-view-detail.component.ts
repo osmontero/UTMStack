@@ -1,10 +1,11 @@
 import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {Router} from '@angular/router';
-import {NgxSpinnerService} from 'ngx-spinner';
 import {UtmModulesEnum} from '../../../../../app-module/shared/enum/utm-module.enum';
 import {UtmModulesService} from '../../../../../app-module/shared/services/utm-modules.service';
-import {UtmToastService} from '../../../../../shared/alert/utm-toast.service';
 import {
+  UtmTableDetailComponent
+} from '../../../../../shared/components/utm/table/utm-table/utm-table-detail/utm-table-detail.component';
+import {
+  ALERT_ADVERSARY_FIELD,
   ALERT_CASE_ID_FIELD,
   ALERT_CATEGORY_FIELD,
   ALERT_FIELDS,
@@ -16,11 +17,7 @@ import {
   ALERT_SEVERITY_FIELD_LABEL,
   ALERT_STATUS_FIELD, ALERT_TACTIC_FIELD, ALERT_TECHNIQUE_FIELD, ALERT_TIMESTAMP_FIELD
 } from '../../../../../shared/constants/alert/alert-field.constant';
-import {LOG_ROUTE} from '../../../../../shared/constants/app-routes.constant';
-import {LOG_INDEX_PATTERN, LOG_INDEX_PATTERN_ID} from '../../../../../shared/constants/main-index-pattern.constant';
-import {ElasticOperatorsEnum} from '../../../../../shared/enums/elastic-operators.enum';
 import {IncidentOriginTypeEnum} from '../../../../../shared/enums/incident-response/incident-origin-type.enum';
-import {ElasticDataService} from '../../../../../shared/services/elasticsearch/elastic-data.service';
 import {AlertTags} from '../../../../../shared/types/alert/alert-tag.type';
 import {AlertStatusEnum, UtmAlertType} from '../../../../../shared/types/alert/utm-alert.type';
 import {ElasticFilterType} from '../../../../../shared/types/filter/elastic-filter.type';
@@ -78,11 +75,7 @@ export class AlertViewDetailComponent implements OnInit {
 
   constructor(private alertUpdateHistoryBehavior: AlertUpdateHistoryBehavior,
               private alertUpdateTagBehavior: AlertUpdateTagBehavior,
-              private spinner: NgxSpinnerService,
-              private elasticDataService: ElasticDataService,
               private moduleService: UtmModulesService,
-              private router: Router,
-              private toastService: UtmToastService,
               private alertFieldService: AlertFieldService) {
   }
 
@@ -122,19 +115,6 @@ export class AlertViewDetailComponent implements OnInit {
     this.alertUpdateTagBehavior.$updateTagForAlert.next(id);
     this.alertUpdateHistoryBehavior.$refreshHistory.next(true);
     this.refreshData.emit(true);
-  }
-
-  navigateToEvents() {
-    const queryParams = {patternId: LOG_INDEX_PATTERN_ID, indexPattern: LOG_INDEX_PATTERN};
-    const LOG_ID_FIELD = 'id';
-    queryParams[LOG_ID_FIELD] = ElasticOperatorsEnum.IS_ONE_OF + '->' + this.logs.map(log => log.id).slice(0, 100);
-    queryParams[this.TIMESTAMP_FIELD] = ElasticOperatorsEnum.IS_BETWEEN + '->' + 'now-1y' + ',' + 'now';
-    this.spinner.show('loadingSpinner');
-    this.router.navigate([LOG_ROUTE], {
-      queryParams
-    }).then(() => {
-      this.spinner.hide('loadingSpinner');
-    });
   }
 
   showMap(): boolean {
@@ -179,6 +159,8 @@ export class AlertViewDetailComponent implements OnInit {
   isEmptyResponse() {
     return Object.entries(this.log).length === 0;
   }
+
+  protected readonly ALERT_ADVERSARY_FIELD = ALERT_ADVERSARY_FIELD;
 }
 
 export enum AlertDetailTabEnum {
@@ -189,4 +171,5 @@ export enum AlertDetailTabEnum {
   MAP = 'map',
   TAGS = 'tags',
   INCIDENT = 'incident',
+  ECHOES = 'echoes',
 }

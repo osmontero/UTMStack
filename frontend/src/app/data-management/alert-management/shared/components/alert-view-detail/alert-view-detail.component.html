@@ -1,4 +1,4 @@
-<div *ngIf="alert" class="p-3">
+<div *ngIf="alert" class="d-flex flex-column p-3 h-100">
   <ul class="nav nav-tabs justify-content-start mt-1">
     <li (click)="view=alertDetailTabEnum.DETAIL" class="nav-item cursor-pointer">
       <a [ngClass]="{'active':view===alertDetailTabEnum.DETAIL}" class="nav-link">
@@ -13,7 +13,7 @@
     <li (click)="view=alertDetailTabEnum.LAST_LOG; viewLastLog()" class="nav-item cursor-pointer"
         *ngIf="countRelatedEvents>0">
       <a [ngClass]="{'active':view===alertDetailTabEnum.LAST_LOG}" class="nav-link">
-        <i class="icon-database-time2 mr-1"></i> View last log
+        <i class="icon-database-time2 mr-1"></i> Events related
       </a>
     </li>
     <li (click)="view=alertDetailTabEnum.INCIDENT;" class="nav-item cursor-pointer"
@@ -26,6 +26,10 @@
       <a [ngClass]="{'active':view===alertDetailTabEnum.MAP}" class="nav-link">
         <i class="icon-map5 mr-1"></i> View on map </a>
     </li>
+    <li *ngIf="alert.hasChildren" (click)="view=alertDetailTabEnum.ECHOES" class="nav-item cursor-pointer">
+      <a [ngClass]="{'active':view===alertDetailTabEnum.ECHOES}" class="nav-link relative">
+        <i class="icon-database mr-1"></i> Echoes <small class="badge-pill absolute top-0 end-0 badge badge-primary">{{alert.echoes}}</small> </a>
+    </li>
     <li (click)="view=alertDetailTabEnum.HISTORY" class="nav-item cursor-pointer">
       <a [ngClass]="{'active':view===alertDetailTabEnum.HISTORY}" class="nav-link">
         <i class="icon-history mr-1"></i> Alert History </a>
@@ -34,12 +38,14 @@
       <a [ngClass]="{'active':view===alertDetailTabEnum.TAGS}" class="nav-link">
         <i class="icon-price-tags2 mr-1"></i> Rules applied </a>
     </li>
-      <li class="nav-item cursor-pointer btn-tab">
-          <button (click)="navigateToEvents()" *ngIf="countRelatedEvents>0" class="btn utm-button utm-button-primary ml-2">
+    <li class="nav-item cursor-pointer btn-tab">
+      <!--<button (click)="navigateToEvents()" *ngIf="countRelatedEvents>0" class="btn utm-button utm-button-primary ml-2">
               <i class="icon-eye8 mr-1"></i> View logs related
-          </button>
-      </li>
+      </button>-->
+    </li>
   </ul>
+
+
   <div class="w-100" *ngIf="view === alertDetailTabEnum.DETAIL">
     <app-alert-description [alert]="alert"></app-alert-description>
     <app-alert-severity-description [alert]="alert"></app-alert-severity-description>
@@ -65,10 +71,7 @@
       <div *ngIf="hideEmptyField && alert.id !== ''" class="alert-details w-100 d-flex justify-content-start mb-2">
         <span class="text-blue-800 font-weight-light has-minimum-width">ID:</span>&nbsp;
         <app-data-field-render [data]="alert" [field]="getFieldByName(CASE_ID_FIELD)"></app-data-field-render>
-        <!--<span (click)="navigateToEvents()" *ngIf="countRelatedEvents>0" class="text-blue-800 cursor-pointer ml-2">
-        (view <strong>{{countRelatedEvents < 100 ? countRelatedEvents : ' last 100 ' }}</strong> {{countRelatedEvents > 1 ? 'logs' : 'log'}}
-          related)
-      </span>-->
+        <app-alert-logs-related-action [logs]="logs" [template]="'span'"></app-alert-logs-related-action>
       </div>
       <div class="alert-details w-100 d-flex justify-content-start  align-items-center mb-2">
         <span class="text-blue-800 font-weight-light has-minimum-width">Status:</span>&nbsp;
@@ -155,8 +158,8 @@
 
 
     <div class="d-flex w-100 gap-1 justify-content-between mb-3">
-      <app-alert-host-detail [alert]="alert" type="target" [hideEmptyField] = true class="w-45"></app-alert-host-detail>
-      <app-alert-host-detail [alert]="alert" type="adversary" [hideEmptyField] = true class="w-45"></app-alert-host-detail>
+      <app-alert-host-detail *ngIf="alert.target" [alert]="alert" type="target" [hideEmptyField] = true class="w-45"></app-alert-host-detail>
+      <app-alert-host-detail  [alert]="alert" type="adversary" [hideEmptyField] = true class="w-45"></app-alert-host-detail>
     </div>
   </div>
 
@@ -164,9 +167,9 @@
     <app-alert-incident-detail [alert]="alert"></app-alert-incident-detail>
   </div>
 
-  <div class="w-100 mt-3" *ngIf="view === alertDetailTabEnum.LAST_LOG">
-    <div *ngIf="!fullScreen && countRelatedEvents > 0">
-      <div class="full-log mt-2">
+  <div class="d-flex flex-column w-100 mt-3 h-100 m-h-0" *ngIf="view === alertDetailTabEnum.LAST_LOG">
+    <div class="h-100 m-h-0" *ngIf="!fullScreen && countRelatedEvents > 0">
+      <!--<div class="full-log mt-2">
           <app-analyzer-table-view *ngIf="log; else loadingLastLog"
                                    [rowDocument]="log"></app-analyzer-table-view>
         <ng-template #loadingLastLog>
@@ -182,11 +185,16 @@
             <app-no-data-found></app-no-data-found>
           </div>
         </ng-container>
-      </div>
+      </div>-->
+      <app-alert-events-related [events]="logs"></app-alert-events-related>
     </div>
   </div>
   <div class="w-100 mt-3" *ngIf="view === alertDetailTabEnum.HISTORY">
     <app-alert-history [alert]="alert"></app-alert-history>
+  </div>
+
+  <div class="d-flex flex-column w-100 mt-3 h-100 m-h-0" *ngIf="view === alertDetailTabEnum.ECHOES && alert.hasChildren">
+    <app-alert-echoes [alert]="alert"></app-alert-echoes>
   </div>
 
   <div class="w-100 mt-3" *ngIf="view === alertDetailTabEnum.SOC_AI">
